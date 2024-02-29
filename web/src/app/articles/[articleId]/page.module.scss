@@ -1,4 +1,4 @@
-@import "@/styles/util.scss";
+@use "@/styles/util" as *;
 
 main.article {
   /* metadata section */
@@ -12,7 +12,7 @@ main.article {
     p {
       @include reset;
       font-size: 0.8rem;
-      :global(.material-symbols-outlined) {
+      #{$matsym} {
         font-size: 1rem;
       }
     }
@@ -81,7 +81,7 @@ main.article {
       }
 
       /* icon */
-      :global(.material-symbols-outlined) {
+      #{$matsym} {
         font-size: 1rem;
       }
     }
@@ -91,14 +91,14 @@ main.article {
       color: red;
 
       /* like button icon */
-      :global(.material-symbols-outlined) {
+      #{$matsym} {
         /* empty heart */
         font-variation-settings: "FILL" 0;
       }
     }
 
     /* unlike button icon */
-    button.like.liked :global(.material-symbols-outlined) {
+    button.like.liked #{$matsym} {
       /* filled heart */
       font-variation-settings: "FILL" 1;
     }
