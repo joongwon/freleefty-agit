@@ -1,0 +1,22 @@
+[package]
+edition = "2021"
+name = "db"
+version = "0.0.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1.0.80"
+chrono = "0.4.34"
+# Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
+napi = { version = "2.12.2", default-features = false, features = ["napi4", "tokio_rt", "anyhow"] }
+napi-derive = "2.12.2"
+sqlx = { version = "0.7.3", features = ["postgres", "runtime-tokio", "chrono"] }
+
+[build-dependencies]
+napi-build = "2.0.1"
+
+[profile.release]
+lto = true
+strip = "symbols"

@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT articles.id, title, content, author_id, name, published_at AS \"published_at!\",\n        (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id) AS \"views_count!\",\n        (SELECT COUNT(*) FROM likes WHERE likes.article_id = articles.id) AS \"likes_count!\"\n        FROM articles\n        JOIN users ON articles.author_id = users.id\n        WHERE articles.id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "author_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "published_at!",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 6,
+        "name": "views_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "likes_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      null,
+      null
+    ]
+  },
+  "hash": "748ea07266e4709cce2083ba978c04a4842b85158f863277ea6796c6f3bc163e"
+}

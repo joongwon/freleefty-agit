@@ -1,0 +1,60 @@
+ul.article-list {
+  /* reset list styles */
+  padding: 0;
+  margin: 0;
+  > li { list-style: none; }
+
+  /* lines between list items */
+  border-top: 1px solid #ddd;
+  > li { border-bottom: 1px solid #ddd; }
+}
+
+/* list item styles */
+ul.article-list > li {
+  padding: 0.2rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  /* prevent title text overflow */
+  a {
+    overflow: hidden;
+    .title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  /* clickable area (title, stats) */
+  a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    white-space: nowrap;
+
+    .title {
+      /* fix title text trembling randomly */
+      line-height: 1;
+    }
+
+    /* n-something: number of something */
+    .n-comments,.n-views,.n-likes {
+      color: #969696;
+
+      /* align icon and number */
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  /* metadata: author, date */
+  .author {
+    font-size: 0.9rem;
+    color: #888;
+  }
+}
+

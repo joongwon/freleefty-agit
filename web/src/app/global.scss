@@ -1,0 +1,28 @@
+body,
+input,
+button,
+textarea {
+  margin: 0;
+  font-family: "GmarketSansMedium", sans-serif;
+}
+
+@font-face {
+  font-family: "GmarketSansMedium";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff")
+    format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
