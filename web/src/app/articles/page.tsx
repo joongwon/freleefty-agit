@@ -17,5 +17,5 @@ export default async function ListArticles() {
         ))}
       </ArticleList.Container>
     </main>
-  )
+  );
 }

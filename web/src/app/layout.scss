@@ -1,3 +1,5 @@
+@import "@/styles/util.scss";
+
 @mixin box {
   background-color: #eee;
   box-shadow: 0.3rem 0.3rem 0 rgba(0, 0, 0, 0.1);
@@ -33,9 +35,7 @@ body {
 
     /* user menu */
     menu {
-      /* reset list styles */
-      padding: 0;
-      margin: 0;
+      @include reset;
     }
   }
 
@@ -49,11 +49,10 @@ body {
 
     /* reset list styles */
     ul {
-      padding: 0;
-      margin: 0;
+      @include reset;
     }
     li {
-      list-style: none;
+      @include reset;
     }
   }
 

@@ -1,11 +1,12 @@
+@import "@/styles/util.scss";
+
 main.intro {
   article {
     text-align: justify;
   }
 
   .disclaimer {
-    /* reset p */
-    margin: 0;
+    @include reset;
 
     text-align: right;
     font-size: 0.8rem;

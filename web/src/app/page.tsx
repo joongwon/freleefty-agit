@@ -16,11 +16,9 @@ export default async function Intro() {
           <ArticleList.Item key={article.id} article={article} />
         ))}
       </ArticleList.Container>
-      <p className={cx("disclaimer")}>
-        (최근 14일 조회수 기준)
-      </p>
+      <p className={cx("disclaimer")}>(최근 14일 조회수 기준)</p>
     </main>
-  )
+  );
 }
 
 const contents = (
@@ -48,4 +46,3 @@ const contents = (
     </p>
   </article>
 );
-

@@ -9,13 +9,14 @@ export const metadata: Metadata = {
   description: "오른손도 자주 씁니다",
 };
 
-export default function RootLayout(p: {
-  children: ReactNode;
-}) {
+export default function RootLayout(p: { children: ReactNode }) {
   return (
     <html lang="ko">
       <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
       </head>
       <body>
         <header>
@@ -24,8 +25,12 @@ export default function RootLayout(p: {
         </header>
         <nav>
           <ul>
-            <li><Link href="/">소개</Link></li>
-            <li><Link href="/articles">모든 일지</Link></li>
+            <li>
+              <Link href="/">소개</Link>
+            </li>
+            <li>
+              <Link href="/articles">모든 일지</Link>
+            </li>
           </ul>
         </nav>
         {p.children}

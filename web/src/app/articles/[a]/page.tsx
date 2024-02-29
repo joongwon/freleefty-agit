@@ -4,6 +4,7 @@ import classnames from "classnames/bind";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import * as ArticleList from "@/components/ArticleList";
+import Time from "@/components/Time";
 
 const cx = classnames.bind(styles);
 
@@ -25,48 +26,49 @@ export default async function ViewArticle(p: { params: { a: string } }) {
       <header>
         <h1>{article.title}</h1>
         <p>
-          {article.author.name}{", "}
-          <time dateTime={article.publishedAt}>{article.publishedAt}</time>
+          {article.author.name}
+          {", "}
+          <Time>{article.publishedAt}</Time>
         </p>
-        <ul className={cx("stats")}>
-          <li>
-            <span className="material-symbols-outlined">visibility</span>
-            {" "}{article.viewsCount}
-          </li>
-          <li>
-            <span className="material-symbols-outlined">favorite</span>
-            {" "}{article.likesCount}
-          </li>
-        </ul>
+        <p className={cx("stat")}>
+          <span className="material-symbols-outlined">visibility</span>{" "}
+          {article.viewsCount}
+        </p>
+        <p className={cx("stat")}>
+          <span className="material-symbols-outlined">favorite</span>{" "}
+          {article.likesCount}
+        </p>
       </header>
       <article>
         {article.content.split("\n").map((line, i) => (
           <p key={i}>{line}</p>
         ))}
       </article>
-      <footer>
+      <section className={cx("buttons")}>
         <button>
-          <span className="material-symbols-outlined">comment</span>
-          {" "}{article.comments.length}
+          <span className="material-symbols-outlined">comment</span>{" "}
+          {article.comments.length}
         </button>
-        <button>
-          <span className="material-symbols-outlined">favorite</span>
-          {" "}{article.likesCount}
+        <button className={cx("like")}>
+          <span className="material-symbols-outlined">favorite</span>{" "}
+          {article.likesCount}
         </button>
+        <hr />
         <Link href="/articles">목록</Link>
-        <button>삭제</button>
-      </footer>
-      <ul className={cx("comments")}>
+        <button className={cx("delete")}>삭제</button>
+      </section>
+      <section className={cx("comments")}>
         {article.comments.map((comment) => (
-          <li key={comment.id}>
+          <article key={comment.id}>
             <p>{comment.content}</p>
-            <p>
-              {comment.author.name}{", "}
-              <time dateTime={comment.createdAt}>{comment.createdAt}</time>
-            </p>
-          </li>
+            <footer>
+              {comment.author.name}
+              {", "}
+              <Time>{comment.createdAt}</Time>
+            </footer>
+          </article>
         ))}
-      </ul>
+      </section>
       <ArticleList.Container>
         {article.next && <ArticleList.Item article={article.next} />}
         {article.prev && <ArticleList.Item article={article.prev} />}

@@ -1,0 +1,110 @@
+@import "@/styles/util.scss";
+
+main.article {
+  /* metadata section */
+  header {
+    h1 {
+      /* remove preset margin */
+      margin: 0;
+    }
+
+    /* metadata item (author, date, statistics) */
+    p {
+      @include reset;
+      font-size: 0.8rem;
+      :global(.material-symbols-outlined) {
+        font-size: 1rem;
+      }
+    }
+
+    /* statistics (views, likes, ...) */
+    p.stat {
+      /* put stats in a row */
+      display: inline-flex;
+
+      /* align icon and number */
+      align-items: center;
+
+      /* space between icon and number */
+      gap: 0.25rem;
+
+      /* space between items */
+      margin-right: 1rem;
+    }
+  }
+
+  /* article and comment contents */
+  article {
+    text-align: justify;
+
+    /* long words are wrapped */
+    word-wrap: break-word;
+  }
+
+  /* buttons section */
+  section.buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+
+    /* separator */
+    hr {
+      @include reset;
+      flex: 1;
+    }
+
+    /* buttons */
+    button,a {
+      @include reset;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #313131;
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.25rem;
+
+      /* text and icon alignment */
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+
+      /* color transition */
+      transition: all 0.2s ease-in-out;
+
+      /* prevent wrapping */
+      white-space: nowrap;
+
+      /* hover effect */
+      &:hover {
+        background-color: #ddd;
+      }
+
+      /* icon */
+      :global(.material-symbols-outlined) {
+        font-size: 1rem;
+      }
+    }
+
+    /* like button */
+    button.like {
+      color: red;
+
+      /* like button icon */
+      :global(.material-symbols-outlined) {
+        /* empty heart */
+        font-variation-settings: "FILL" 0;
+      }
+    }
+
+    /* unlike button icon */
+    button.like.liked :global(.material-symbols-outlined) {
+      /* filled heart */
+      font-variation-settings: "FILL" 1;
+    }
+
+    /* delete button */
+    button.delete:hover {
+      background-color: #ff8484;
+    }
+  }
+}

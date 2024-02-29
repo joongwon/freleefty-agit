@@ -1,12 +1,17 @@
+@import "@/styles/util.scss";
+
 ul.article-list {
   /* reset list styles */
-  padding: 0;
-  margin: 0;
-  > li { list-style: none; }
+  @include reset;
+  > li {
+    @include reset;
+  }
 
   /* lines between list items */
   border-top: 1px solid #ddd;
-  > li { border-bottom: 1px solid #ddd; }
+  > li {
+    border-bottom: 1px solid #ddd;
+  }
 }
 
 /* list item styles */
@@ -42,7 +47,9 @@ ul.article-list > li {
     }
 
     /* n-something: number of something */
-    .n-comments,.n-views,.n-likes {
+    .n-comments,
+    .n-views,
+    .n-likes {
       color: #969696;
 
       /* align icon and number */
@@ -55,6 +62,10 @@ ul.article-list > li {
   .author {
     font-size: 0.9rem;
     color: #888;
+
+    /* fill available space and align right */
+    flex: 1;
+    text-align: right;
+    white-space: nowrap;
   }
 }
-

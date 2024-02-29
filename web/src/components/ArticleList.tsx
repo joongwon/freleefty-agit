@@ -3,22 +3,21 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import classnames from "classnames/bind";
 import styles from "./ArticleList.module.scss";
+import Time from "./Time";
 
 const cx = classnames.bind(styles);
 
 export function Container(p: { children: ReactNode }) {
-  return (
-    <ul className={cx("article-list")}>
-      {p.children}
-    </ul>
-  );
+  return <ul className={cx("article-list")}>{p.children}</ul>;
 }
 
 export function Item(p: { article: ArticleSummary }) {
   return (
     <li>
       <Link href={`/articles/${p.article.id}`}>
-        <div className={cx("title", { "untitled": p.article.title.length === 0 })}>
+        <div
+          className={cx("title", { untitled: p.article.title.length === 0 })}
+        >
           {p.article.title.length > 0 ? p.article.title : "(제목없음)"}
         </div>
         {p.article.commentsCount > 0 && (
@@ -41,8 +40,9 @@ export function Item(p: { article: ArticleSummary }) {
         )}
       </Link>
       <div className={cx("author")}>
-        {p.article.author.name}{", "}
-        <time>{p.article.publishedAt}</time>
+        {p.article.author.name}
+        {", "}
+        <Time>{p.article.publishedAt}</Time>
       </div>
     </li>
   );
