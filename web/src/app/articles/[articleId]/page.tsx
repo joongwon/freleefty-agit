@@ -5,11 +5,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import * as ArticleList from "@/components/ArticleList";
 import Time from "@/components/Time";
+import { COMMENT, FAVORITE, VISIBILITY } from "@/components/icons";
 
 const cx = classnames.bind(styles);
 
-export default async function ViewArticle(p: { params: { a: string } }) {
-  const articleId = parseSafeInt(p.params.a);
+export default async function ViewArticle(p: {
+  params: { articleId: string };
+}) {
+  const articleId = parseSafeInt(p.params.articleId);
   if (articleId === null) {
     return notFound();
   }
@@ -31,12 +34,10 @@ export default async function ViewArticle(p: { params: { a: string } }) {
           <Time>{article.publishedAt}</Time>
         </p>
         <p className={cx("stat")}>
-          <span className="material-symbols-outlined">visibility</span>{" "}
-          {article.viewsCount}
+          {VISIBILITY} {article.viewsCount}
         </p>
         <p className={cx("stat")}>
-          <span className="material-symbols-outlined">favorite</span>{" "}
-          {article.likesCount}
+          {FAVORITE} {article.likesCount}
         </p>
       </header>
       <article>
@@ -46,12 +47,10 @@ export default async function ViewArticle(p: { params: { a: string } }) {
       </article>
       <section className={cx("buttons")}>
         <button>
-          <span className="material-symbols-outlined">comment</span>{" "}
-          {article.comments.length}
+          {COMMENT} {article.comments.length}
         </button>
         <button className={cx("like")}>
-          <span className="material-symbols-outlined">favorite</span>{" "}
-          {article.likesCount}
+          {FAVORITE} {article.likesCount}
         </button>
         <hr />
         <Link href="/articles">목록</Link>

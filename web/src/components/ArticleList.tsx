@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import classnames from "classnames/bind";
 import styles from "./ArticleList.module.scss";
-import Time from "./Time";
+import Time from "@/components/Time";
+import { COMMENT, VISIBILITY, FAVORITE } from "@/components/icons";
 
 const cx = classnames.bind(styles);
 
@@ -22,19 +23,19 @@ export function Item(p: { article: ArticleSummary }) {
         </div>
         {p.article.commentsCount > 0 && (
           <div className={cx("n-comments")}>
-            <span className="material-symbols-outlined">comment</span>
+            {COMMENT}
             {p.article.commentsCount}
           </div>
         )}
         {p.article.viewsCount > 0 && (
           <div className={cx("n-views")}>
-            <span className="material-symbols-outlined">visibility</span>
+            {VISIBILITY}
             {p.article.viewsCount}
           </div>
         )}
         {p.article.likesCount > 0 && (
           <div className={cx("n-likes")}>
-            <span className="material-symbols-outlined">favorite</span>
+            {FAVORITE}
             {p.article.likesCount}
           </div>
         )}

@@ -54,7 +54,8 @@ main.article {
     }
 
     /* buttons */
-    button,a {
+    button,
+    a {
       @include reset;
       border: 1px solid #ddd;
       cursor: pointer;
