@@ -108,4 +108,33 @@ main.article {
       background-color: #ff8484;
     }
   }
+
+  /* comments section */
+  section.comments {
+    /* top and bottom margin */
+    margin: 1rem 0 2rem;
+
+    /* line between comments */
+    border-top: 1px solid #ddd;
+    article {
+      border-bottom: 1px solid #ddd;
+    }
+
+    /* comment item */
+    article {
+      padding: 0.5rem 0;
+
+      /* contents */
+      p {
+        @include reset;
+        font-size: 1rem;
+      }
+
+      /* author, date */
+      footer {
+        font-size: 0.8rem;
+        color: #999;
+      }
+    }
+  }
 }

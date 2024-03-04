@@ -12,10 +12,14 @@ export function Container(p: { children: ReactNode }) {
   return <ul className={cx("article-list")}>{p.children}</ul>;
 }
 
-export function Item(p: { article: ArticleSummary }) {
+/**
+ * before: 제목 앞에 표시할 내용. 이전/다음 글을 표시할 때 사용
+ */
+export function Item(p: { article: ArticleSummary; before?: ReactNode }) {
   return (
     <li>
-      <Link href={`/articles/${p.article.id}`}>
+      <Link href={`/articles/${p.article.id}`} className={cx("link")}>
+        {p.before && <div className={cx("before")}>{p.before}</div>}
         <div
           className={cx("title", { untitled: p.article.title.length === 0 })}
         >
@@ -44,6 +48,17 @@ export function Item(p: { article: ArticleSummary }) {
         {p.article.author.name}
         {", "}
         <Time>{p.article.publishedAt}</Time>
+      </div>
+    </li>
+  );
+}
+
+export function Empty(p: { children: string; before?: ReactNode }) {
+  return (
+    <li>
+      <div className={cx("link", "empty")}>
+        {p.before && <div className={cx("before")}>{p.before}</div>}
+        <div className={cx("title")}>{p.children}</div>
       </div>
     </li>
   );

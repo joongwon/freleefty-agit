@@ -5,7 +5,13 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import * as ArticleList from "@/components/ArticleList";
 import Time from "@/components/Time";
-import { COMMENT, FAVORITE, VISIBILITY } from "@/components/icons";
+import {
+  COMMENT,
+  FAVORITE,
+  VISIBILITY,
+  ARROW_UP,
+  ARROW_DOWN,
+} from "@/components/icons";
 
 const cx = classnames.bind(styles);
 
@@ -54,7 +60,8 @@ export default async function ViewArticle(p: {
         </button>
         <hr />
         <Link href="/articles">목록</Link>
-        <button className={cx("delete")}>삭제</button>
+        {/* TODO: delete button */}
+        {/* <button className={cx("delete")}>삭제</button> */}
       </section>
       <section className={cx("comments")}>
         {article.comments.map((comment) => (
@@ -69,15 +76,27 @@ export default async function ViewArticle(p: {
         ))}
       </section>
       <ArticleList.Container>
-        {article.next && <ArticleList.Item article={article.next} />}
-        {article.prev && <ArticleList.Item article={article.prev} />}
+        {article.next ? (
+          <ArticleList.Item article={article.next} before={ARROW_UP} />
+        ) : (
+          <ArticleList.Empty before={ARROW_UP}>
+            (첫번째 글입니다)
+          </ArticleList.Empty>
+        )}
+        {article.prev ? (
+          <ArticleList.Item article={article.prev} before={ARROW_DOWN} />
+        ) : (
+          <ArticleList.Empty before={ARROW_DOWN}>
+            (마지막 글입니다)
+          </ArticleList.Empty>
+        )}
       </ArticleList.Container>
     </main>
   );
 }
 
 function parseSafeInt(s: string) {
-  if (!/^\d+$/.test(s)) {
+  if (!/^[1-9]\d*$/.test(s)) {
     return null;
   }
   const n = parseInt(s);
