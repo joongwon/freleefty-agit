@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import "./global.scss";
 import "./layout.scss";
+import AuthMenu from "./AuthMenu";
 
 export const metadata: Metadata = {
   title: "왼손잡이해방연대 아지트",
@@ -20,8 +21,8 @@ export default function RootLayout(p: { children: ReactNode }) {
       </head>
       <body>
         <header>
-          <Link href="/">왼손잡이해방연대 아지트</Link>
-          <menu>{/* TODO */}TODO</menu>
+          <Link href="/"><h1>왼손잡이해방연대 아지트</h1></Link>
+          <AuthMenu />
         </header>
         <nav>
           <ul>

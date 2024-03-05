@@ -2,7 +2,6 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["db"],
-    typedRoutes: true,
   },
 };
 

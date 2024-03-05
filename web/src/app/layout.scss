@@ -1,4 +1,4 @@
-@import "@/styles/util.scss";
+@use "@/styles/util" as *;
 
 @mixin box {
   background-color: #eee;
@@ -28,7 +28,8 @@ body {
     @include box;
 
     /* site title */
-    a {
+    h1 {
+      @include reset;
       font-size: 1.5rem;
       font-weight: bold;
     }
