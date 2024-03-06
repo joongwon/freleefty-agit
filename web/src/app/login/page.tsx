@@ -1,31 +1,34 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { PageProps, onlyString } from "@/utils";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
-import naverLogin from "./naverLogin.png";
-import Image from "next/image";
-import { host } from "@/host";
 
 const cx = classNames.bind(styles);
 
-function useAuthUrl() {
+function useAuthUrl(from?: string) {
   const clientId = process.env.NEXT_PUBLIC_NAVER_ID;
   if (!clientId) {
     throw new Error("NAVER_ID is not defined");
   }
-  const from = useSearchParams().get("from");
   const state = encodeURIComponent(from ?? "/");
+  const host = window.location.origin;
   return `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
-    `${host}/login/naver/callback`
+    `${host}/login/naver/callback`,
   )}&state=${state}`;
 }
 
-export default function Login() {
+export default function Login(p: PageProps) {
   return (
     <main className={cx("login")}>
       <h1>로그인</h1>
-      <a href={useAuthUrl()}>
-        <Image src={naverLogin} alt="네이버 아이디로 로그인" width="225" height="60"/>
+      <p>네이버 아이디로 로그인하여 일지를 쓰고 반응을 남겨보세요</p>
+      <a href={useAuthUrl(onlyString(p.searchParams.from))}>
+        <img
+          src="/img/naverLogin.png"
+          alt="네이버 아이디로 로그인"
+          width="225"
+          height="60"
+        />
       </a>
     </main>
   );

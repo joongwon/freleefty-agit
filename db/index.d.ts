@@ -34,9 +34,26 @@ export interface Comment {
   createdAt: string
   author: Author
 }
+export const enum Role {
+  Admin = 'Admin',
+  User = 'User'
+}
+export interface User {
+  id: string
+  name: string
+  role: Role
+}
+export const enum UserConflict {
+  NaverId = 'NaverId',
+  UserId = 'UserId',
+  Name = 'Name'
+}
 export class QueryEngine {
   static new(databaseUrl: string): QueryEngine
   listArticles(): Promise<Array<ArticleSummary>>
   listPopularArticles(): Promise<Array<ArticleSummary>>
   getArticle(id: number): Promise<Article | null>
+  getUserByNaverId(naverId: string): Promise<User | null>
+  getUserById(userId: string): Promise<User | null>
+  createUser(naverId: string, userId: string, userName: string): Promise<UserConflict | null>
 }

@@ -21,7 +21,9 @@ export default function RootLayout(p: { children: ReactNode }) {
       </head>
       <body>
         <header>
-          <Link href="/"><h1>왼손잡이해방연대 아지트</h1></Link>
+          <Link href="/">
+            <h1>왼손잡이해방연대 아지트</h1>
+          </Link>
           <AuthMenu />
         </header>
         <nav>

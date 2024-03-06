@@ -12,9 +12,13 @@ export default async function Intro() {
     <main className={cx("intro")}>
       {contents}
       <ArticleList.Container>
-        {articles.map((article) => (
-          <ArticleList.Item key={article.id} article={article} />
-        ))}
+        {articles.length > 0 ? (
+          articles.map((article) => (
+            <ArticleList.Item key={article.id} article={article} />
+          ))
+        ) : (
+          <ArticleList.Empty>인기 있는 일지가 없습니다.</ArticleList.Empty>
+        )}
       </ArticleList.Container>
       <p className={cx("disclaimer")}>(최근 14일 조회수 기준)</p>
     </main>
@@ -39,9 +43,9 @@ const contents = (
       네이버로 로그인하시면 댓글과 일지를 쓸 수 있으니 한 발자국 남겨주시면
       감사하겠습니다.
     </p>
-    <h2>인기 글</h2>
+    <h2>인기 일지</h2>
     <p>
-      아래는 우리 아지트에서 가장 인기있는 글들입니다. 실시간 집계로 자동으로
+      아래는 우리 아지트에서 가장 인기있는 일지들입니다. 실시간 집계로 자동으로
       나열되는 목록이며, 제가 쓰지 않은 글이 포함되어있을 수도 있습니다.
     </p>
   </article>

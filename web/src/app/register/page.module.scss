@@ -1,0 +1,6 @@
+@use "@/styles/util" as *;
+
+p.error {
+  @include reset;
+  color: red;
+}

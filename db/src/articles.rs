@@ -10,9 +10,9 @@ use crate::schema::{Article, ArticleSummary, Author};
 /// Returns a `sqlx::Error` if the query fails
 pub async fn list_articles<'e, E>(con: E) -> Result<Vec<ArticleSummary>, sqlx::Error>
 where
-    E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-    sqlx::query!(
+  sqlx::query!(
         r#"SELECT articles.id, title, author_id, name,
         published_at AS "published_at!",
         (SELECT COUNT(*) FROM comments WHERE comments.article_id = articles.id) AS "comments_count!",
@@ -55,14 +55,14 @@ where
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
 pub async fn list_popular_articles<'e, E>(
-    con: E,
-    n: i64,
-    days: Option<i32>,
+  con: E,
+  n: i64,
+  days: Option<i32>,
 ) -> Result<Vec<ArticleSummary>, sqlx::Error>
 where
-    E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-    sqlx::query!(
+  sqlx::query!(
         r#"SELECT * FROM (
             SELECT articles.id, title, author_id, name,
             published_at AS "published_at!",
@@ -108,37 +108,37 @@ where
 /// Returns a `sqlx::Error` if the query fails
 pub async fn get_article<'e, E>(con: E, id: i32) -> Result<Option<Article>, sqlx::Error>
 where
-    E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-    sqlx::query!(
-        r#"SELECT articles.id, title, content, author_id, name, published_at AS "published_at!",
+  sqlx::query!(
+    r#"SELECT articles.id, title, content, author_id, name, published_at AS "published_at!",
         (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id) AS "views_count!",
         (SELECT COUNT(*) FROM likes WHERE likes.article_id = articles.id) AS "likes_count!"
         FROM articles
         JOIN users ON articles.author_id = users.id
         WHERE articles.id = $1"#,
-        id,
-    )
-    .fetch_optional(con)
-    .await
-    .map(|r| {
-        r.map(|r| Article {
-            id: r.id,
-            title: r.title,
-            content: r.content,
-            published_at: r.published_at.to_string(),
-            author: Author {
-                id: r.author_id,
-                name: r.name,
-            },
-            views_count: r.views_count,
-            likes_count: r.likes_count,
-            /* these fields will be filled by following queries */
-            comments: vec![],
-            next: None,
-            prev: None,
-        })
+    id,
+  )
+  .fetch_optional(con)
+  .await
+  .map(|r| {
+    r.map(|r| Article {
+      id: r.id,
+      title: r.title,
+      content: r.content,
+      published_at: r.published_at.to_string(),
+      author: Author {
+        id: r.author_id,
+        name: r.name,
+      },
+      views_count: r.views_count,
+      likes_count: r.likes_count,
+      /* these fields will be filled by following queries */
+      comments: vec![],
+      next: None,
+      prev: None,
     })
+  })
 }
 
 /// Get next article ordered by publication date
@@ -151,9 +151,9 @@ where
 /// Returns a `sqlx::Error` if the query fails
 pub async fn get_next_article<'e, E>(con: E, id: i32) -> Result<Option<ArticleSummary>, sqlx::Error>
 where
-    E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-    sqlx::query!(
+  sqlx::query!(
         r#"SELECT articles.id, title, author_id, name,
         published_at AS "published_at!",
         (SELECT COUNT(*) FROM comments WHERE comments.article_id = articles.id) AS "comments_count!",
@@ -191,13 +191,13 @@ where
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
 pub async fn get_previous_article<'e, E>(
-    con: E,
-    id: i32,
+  con: E,
+  id: i32,
 ) -> Result<Option<ArticleSummary>, sqlx::Error>
 where
-    E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-    sqlx::query!(
+  sqlx::query!(
         r#"SELECT articles.id, title, author_id, name,
         published_at AS "published_at!",
         (SELECT COUNT(*) FROM comments WHERE comments.article_id = articles.id) AS "comments_count!",
