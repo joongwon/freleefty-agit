@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { createUser } from "@/actions";
-import { tokenStore } from "@/token";
 import Link from "next/link";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
 import { PageProps, onlyString } from "@/utils";
 import { useHookstate } from "@hookstate/core";
+import { gAuthState, putRefreshToken } from "@/auth";
 
 const cx = classNames.bind(styles);
 
@@ -27,7 +27,7 @@ export default function Register(p: PageProps) {
 
   // 오류가 발생하는 경우 다시 로그인하도록 안내
   const [status, setStatus] = useState<"ok" | "fatal" | "naverIdConflict">(
-    p.searchParams.code ? "ok" : "fatal"
+    p.searchParams.code ? "ok" : "fatal",
   );
 
   // 마지막 회원가입 요청에서 발생한 충돌
@@ -37,7 +37,7 @@ export default function Register(p: PageProps) {
   const checkExhaustive = (_x: never) => setStatus("fatal");
 
   const domId = useId();
-  const token = useHookstate(tokenStore());
+  const auth = useHookstate(gAuthState);
 
   return status !== "ok" ? (
     <main>
@@ -74,51 +74,59 @@ export default function Register(p: PageProps) {
           e.preventDefault();
           if (code) {
             setCode(null);
-            createUser(code, id, name).then(res => {
-            if (res.type === "success") {
-              token.set({ status: "token", token: res.token });
-              router.replace(from);
-            } else if (res.type === "conflict") {
-              if (res.conflict === "NaverId") {
-                // 네이버 아이디가 충돌하는 경우 처음부터 다시 로그인 시도
-                setStatus("naverIdConflict");
-              } else {
-                setConflict(res.conflict);
-                setCode(res.code);
-              }
-            } else {
-              checkExhaustive(res);
-            }
-            }).catch(e => {
-              console.error(e);
-              setStatus("fatal");
-            });
+            createUser(code, id, name)
+              .then((res) => {
+                if (res.type === "success") {
+                  auth.set({
+                    type: "login",
+                    token: res.accessToken,
+                    profile: res.profile,
+                  });
+                  putRefreshToken(res.refreshToken);
+                  router.replace(from);
+                } else if (res.type === "conflict") {
+                  if (res.conflict === "NaverId") {
+                    // 네이버 아이디가 충돌하는 경우 처음부터 다시 로그인 시도
+                    setStatus("naverIdConflict");
+                  } else {
+                    setConflict(res.conflict);
+                    setCode(res.code);
+                  }
+                } else {
+                  checkExhaustive(res);
+                }
+              })
+              .catch((e) => {
+                console.error(e);
+                setStatus("fatal");
+              });
           }
         }}
       >
-        <label htmlFor={`id-${domId}`}>
-          아이디
-        </label>
+        <label htmlFor={`id-${domId}`}>아이디</label>
         <input
           id={`id-${domId}`}
           type="text"
           value={id}
           onChange={(e) => setId(e.target.value)}
         />
-        <label htmlFor={`name-${domId}`}>
-          이름
-        </label>
+        <label htmlFor={`name-${domId}`}>이름</label>
         <input
           id={`name-${domId}`}
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <button disabled={code === null} type="submit">등록</button>
+        <button disabled={code === null} type="submit">
+          등록
+        </button>
       </form>
       <p className={cx("conflict")}>
-        {conflict === "UserId" ? "이미 사용중인 아이디입니다." :
-          conflict === "Name" ? "이미 사용중인 이름입니다." : null}
+        {conflict === "UserId"
+          ? "이미 사용중인 아이디입니다."
+          : conflict === "Name"
+            ? "이미 사용중인 이름입니다."
+            : null}
       </p>
     </main>
   );

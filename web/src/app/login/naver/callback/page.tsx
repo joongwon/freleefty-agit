@@ -1,71 +1,86 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { tryLogin, TryLoginResult } from "@/actions";
-import { tokenStore } from "@/token";
+import { useEffect } from "react";
+import { tryLogin } from "@/actions";
 import { PageProps, onlyString } from "@/utils";
 import { hookstate, useHookstate } from "@hookstate/core";
 import { useRouter } from "next/navigation";
+import { gAuthState, putRefreshToken } from "@/auth";
 
-let requested = false;
-let gResult: TryLoginResult | null = null;
-let gError = false;
+type LoginState =
+  | { type: "loading" | "error" | "redirect" | "login" }
+  | { type: "register"; name: string; code: string };
 
-const gLoginState = hookstate({ status: "loading" as const } as { status: "loading" | "error" | "idle" } | { status: "done"; result: TryLoginResult });
+const gLoginState = hookstate<LoginState>({ type: "loading" });
+
+let initLoginCalled = false;
+async function initLogin() {
+  if (initLoginCalled) return;
+  initLoginCalled = true;
+
+  const searchParams = new URLSearchParams(location.search);
+  const code = onlyString(searchParams.get("code"));
+  if (!code) {
+    gLoginState.set({ type: "error" });
+    return;
+  }
+
+  const res = await tryLogin(code).catch(() => null);
+  if (!res) {
+    gLoginState.set({ type: "error" });
+  } else if (res.type === "login") {
+    putRefreshToken(res.refreshToken);
+    gAuthState.set({
+      type: "login",
+      token: res.accessToken,
+      profile: res.profile,
+    });
+    gLoginState.set({ type: "login" });
+  } else if (res.type === "register") {
+    gLoginState.set({
+      type: "register",
+      name: res.naverName,
+      code: res.registerCode,
+    });
+  }
+}
 
 export default function NaverCallback(p: PageProps) {
-  const code = onlyString(p.searchParams.code);
-
-  const [error, setError] = useState(code === undefined);
-
   // 오직 사이트 내에서만 redirect되도록 필터링
   const state = onlyString(p.searchParams.state);
   const from = state?.startsWith("/") ? state : null;
 
-  const token = useHookstate(tokenStore());
-  const loginState = useHookstate(gLoginState);
-
+  const login = useHookstate(gLoginState);
   const router = useRouter();
 
   useEffect(() => {
-    if (code && !loginState.promised && loginState.get().status === "loading") {
-      const task = async () => {
-        try {
-          const result = await tryLogin(code);
-          return { status: "done" as const, result };
-        } catch (e) {
-          return { status: "error" as const };
-        }
-      };
-      loginState.set(task());
-    }
-  }, [code, loginState]);
+    void initLogin();
+  }, []);
+
   useEffect(() => {
-    if (loginState.promised) return;
-    if (loginState.value.status === "done") {
-      const result = loginState.value.result;
-      if (result.type === "login") {
-        token.set({ status: "token", token: result.token });
+    switch (login.value.type) {
+      case "login":
         router.replace(from ?? "/");
-      } else if (result.type === "register") {
+        login.set({ type: "redirect" });
+        break;
+      case "register":
         router.replace(
           "/register?name=" +
-            encodeURIComponent(result.naverName) +
+            encodeURIComponent(login.value.name) +
             "&code=" +
-            encodeURIComponent(result.registerCode) +
+            encodeURIComponent(login.value.code) +
             "&from=" +
             encodeURIComponent(from ?? "/"),
         );
-      }
-      loginState.set({ status: "idle" });
-    } else if (loginState.value.status === "error") {
-      setError(true);
-      loginState.set({ status: "idle" });
+        login.set({ type: "redirect" });
+        break;
+      default:
+        break;
     }
-  }, [loginState]);
+  }, [login, from, router]);
 
-  return !error && code ? (
+  return login.value.type !== "error" ? (
     <main>로그인 중...</main>
   ) : (
     <main>

@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import "./global.scss";
 import "./layout.scss";
 import AuthMenu from "./AuthMenu";
+import { InitToken } from "@/auth";
 
 export const metadata: Metadata = {
   title: "왼손잡이해방연대 아지트",
@@ -38,6 +39,7 @@ export default function RootLayout(p: { children: ReactNode }) {
         </nav>
         {p.children}
       </body>
+      <InitToken />
     </html>
   );
 }

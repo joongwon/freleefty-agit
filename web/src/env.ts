@@ -1,8 +1,13 @@
 const keys = [
-  "NEXT_PUBLIC_HOST", "NEXT_PUBLIC_NAVER_ID", "NAVER_SECRET", "JWT_SECRET", "DATABASE_URL", "REDIS_URL"
+  "NEXT_PUBLIC_HOST",
+  "NEXT_PUBLIC_NAVER_ID",
+  "NAVER_SECRET",
+  "JWT_SECRET",
+  "DATABASE_URL",
+  "REDIS_URL",
 ] as const;
 
-type Env = { [key in typeof keys[number]]: string };
+type Env = { [key in (typeof keys)[number]]: string };
 
 let env: Env | undefined;
 

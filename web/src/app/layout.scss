@@ -37,6 +37,25 @@ body {
     /* user menu */
     menu {
       @include reset;
+      display: flex;
+
+      /* align items vertically */
+      li {
+        line-height: 1.5;
+      }
+
+      /* separator between menu items */
+      li:not(:last-child)::after {
+        content: "|";
+        margin: 0 0.5rem;
+      }
+
+      /* button styles */
+      button,
+      a {
+        @include reset;
+        cursor: pointer;
+      }
     }
   }
 

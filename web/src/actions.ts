@@ -2,12 +2,10 @@
 
 import { getDB, getRedis } from "@/db";
 import * as jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
 import * as uuid from "uuid";
 import { getEnv } from "@/env";
 
 export async function tryLogin(code: string) {
-  console.log("[ACTION] tryLogin");
   // 네이버 access token을 받아오기
   const client_id = getEnv().NEXT_PUBLIC_NAVER_ID;
   const client_secret = getEnv().NAVER_SECRET;
@@ -27,7 +25,7 @@ export async function tryLogin(code: string) {
   if (!res.ok) {
     throw new Error("Failed to get access token from Naver");
   }
-  const data = await res.json() as { access_token?: string };
+  const data = (await res.json()) as { access_token?: string };
   const access_token = data.access_token;
   if (!access_token) {
     throw new Error("Failed to get access token from Naver");
@@ -42,8 +40,9 @@ export async function tryLogin(code: string) {
   if (!profileRes.ok) {
     throw new Error("Failed to get profile from Naver");
   }
-  const profileData =
-    await profileRes.json() as { response: { id: string; nickname?: string } };
+  const profileData = (await profileRes.json()) as {
+    response: { id: string; nickname?: string };
+  };
   const naverId = profileData.response.id;
   const naverName = profileData.response.nickname ?? "";
 
@@ -57,36 +56,34 @@ export async function tryLogin(code: string) {
     return { type: "register" as const, registerCode, naverName };
   } else {
     // 등록되어 있다면, 로그인 처리
-    const accessToken = await login(user.id);
-    return { type: "login" as const, token: accessToken };
+    const res = await login(user.id);
+    return { type: "login" as const, ...res };
   }
 }
 
 async function login(userId: string) {
+  const db = getDB();
+  const profile = await db.getUserById(userId);
+  if (!profile) {
+    throw new Error("User not found");
+  }
   const JWT_SECRET = getEnv().JWT_SECRET;
   const accessToken = await new Promise<string>((resolve, reject) =>
-    jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "24h" }, (err, token) =>
+    jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "1h" }, (err, token) =>
       token ? resolve(token) : reject(err),
     ),
   );
   const refreshToken = uuid.v4();
   const redis = await getRedis();
   await redis.set("refreshToken:" + refreshToken, userId, {
-    EX: 30 * 24 * 60 * 60,
+    EX: 7 * 24 * 60 * 60,
   });
-  cookies().set("refreshToken", refreshToken, {
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60,
-    httpOnly: true,
-    sameSite: "strict",
-  });
-  return accessToken;
+  return { accessToken, refreshToken, profile };
 }
 
 async function makeRegisterCode(naverId: string) {
   const redis = await getRedis();
   const registerCode = uuid.v4();
-  console.log("create registerCode", registerCode);
   await redis.set("register:" + registerCode, naverId, { EX: 5 * 60 });
   return registerCode;
 }
@@ -94,11 +91,9 @@ async function makeRegisterCode(naverId: string) {
 export type TryLoginResult = Awaited<ReturnType<typeof tryLogin>>;
 
 export async function createUser(code: string, id: string, name: string) {
-  console.log("[ACTION] createUser");
   const db = getDB();
   const redis = await getRedis();
 
-  console.log("use registerCode", code);
   const naverId = await redis.getDel("register:" + code);
   if (!naverId) {
     throw new Error("Register code is expired");
@@ -114,48 +109,22 @@ export async function createUser(code: string, id: string, name: string) {
     return { type: "conflict" as const, conflict, code };
   } else {
     // 가입 성공
-    const accessToken = await login(id);
-    return { type: "success" as const, token: accessToken };
+    const res = await login(id);
+    return { type: "success" as const, ...res };
   }
 }
 
-export async function getProfile(token: string) {
-  console.log("[ACTION] getProfile");
-  const JWT_SECRET = getEnv().JWT_SECRET;
-  const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-  const db = getDB();
-  const user = await db.getUserById(decoded.id);
-  if (!user) {
-    throw new Error("User not found");
-  }
-  return user;
-}
-
-export async function refresh() {
-  console.log("[ACTION] refresh");
-  const refreshToken = cookies().get("refreshToken");
-  if (!refreshToken) {
-    return null;
-  }
-
+export async function refresh(refreshToken: string) {
   const redis = await getRedis();
-  const userId = await redis.getDel("refreshToken:" + refreshToken.value);
+  const userId = await redis.getDel("refreshToken:" + refreshToken);
   if (!userId) {
     return null;
   }
 
-  const accessToken = await login(userId);
-  return accessToken;
+  return await login(userId);
 }
 
-export async function logout() {
-  console.log("[ACTION] logout");
-  const refreshToken = cookies().get("refreshToken");
-  if (!refreshToken) {
-    return;
-  }
-
+export async function logout(refreshToken: string) {
   const redis = await getRedis();
-  await redis.del("refreshToken:" + refreshToken.value);
-  cookies().delete("refreshToken");
+  await redis.del("refreshToken:" + refreshToken);
 }
