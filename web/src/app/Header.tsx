@@ -1,0 +1,71 @@
+"use client";
+
+import { ReactNode, useEffect, useRef, useState, useMemo } from "react";
+
+export default function Header(p: {children: ReactNode}) {
+  // calculated from media query
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const listener = (e: { matches: boolean }) => setIsMobile(e.matches);
+    mediaQuery.addEventListener("change", listener);
+    listener(mediaQuery);
+    return () => mediaQuery.removeEventListener("change", listener);
+  }, []);
+
+  // translateY value to render
+  const [{ transY, transition }, setStyle] = useState({ transY: 0, transition: false });
+
+  // header
+  const ref = useRef<HTMLElement | null>(null);
+
+  // last scrollY used for calculating transY
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    lastScrollY.current = window.scrollY;
+
+    // scroll handler; uses requestAnimationFrame for performance
+    let ticking = false;
+    let currentScrollY = window.scrollY;
+    const scrollHandler = () => {
+      currentScrollY = window.scrollY;
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        // height + spare for shadow
+        const headerHeight = (ref.current?.offsetHeight ?? 0) + 5;
+
+        // calculate transY according to scroll
+        const scrollDelta = currentScrollY - lastScrollY.current;
+        setStyle(({ transY }) => {
+          if (scrollDelta < 0) {
+            const next = Math.min(0, transY - scrollDelta);
+            return next < -headerHeight / 2 ? { transY: next, transition: false } : { transY: 0, transition: true };
+          } else {
+            const next = Math.max(-headerHeight, transY - scrollDelta);
+            return next > -headerHeight / 2 ? { transY: next, transition: false } : { transY: -headerHeight, transition: true };
+          }
+        });
+
+        lastScrollY.current = currentScrollY;
+        ticking = false;
+      });
+    };
+    if (isMobile) {
+      window.addEventListener("scroll", scrollHandler);
+      return () => window.removeEventListener("scroll", scrollHandler);
+    }
+  }, [isMobile]);
+
+  // prevent transition setting multiple times
+  const style = useMemo(() => ({
+    transform: `translateY(${isMobile ? transY : 0}px)`,
+    transition: isMobile && transition ? "transform 0.3s" : "none",
+  }), [isMobile, transY, transition]);
+  return (
+    <header ref={ref} style={style}>
+      {p.children}
+    </header>
+  );
+}

@@ -2,6 +2,7 @@ import { getDB } from "@/db";
 import * as ArticleList from "@/components/ArticleList";
 import styles from "./page.module.scss";
 import classnames from "classnames/bind";
+import Link from "next/link";
 
 const cx = classnames.bind(styles);
 
@@ -21,6 +22,9 @@ export default async function Intro() {
         )}
       </ArticleList.Container>
       <p className={cx("disclaimer")}>(최근 14일 조회수 기준)</p>
+      <p>
+        <Link href="/articles" style={{textDecoration: "underline"}}>최신 일지들</Link>도 둘러보세요.
+      </p>
     </main>
   );
 }

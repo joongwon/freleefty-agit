@@ -11,3 +11,9 @@
 }
 
 $matsym: string.unquote(":global(.material-symbols-outlined)");
+
+@mixin mobile {
+  @media (max-width: 768px) {
+    @content;
+  }
+}

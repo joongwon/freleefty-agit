@@ -80,14 +80,14 @@ export default async function ViewArticle(p: {
           <ArticleList.Item article={article.next} before={ARROW_UP} />
         ) : (
           <ArticleList.Empty before={ARROW_UP}>
-            (첫번째 글입니다)
+            (마지막 글입니다)
           </ArticleList.Empty>
         )}
         {article.prev ? (
           <ArticleList.Item article={article.prev} before={ARROW_DOWN} />
         ) : (
           <ArticleList.Empty before={ARROW_DOWN}>
-            (마지막 글입니다)
+            (첫번째 글입니다)
           </ArticleList.Empty>
         )}
       </ArticleList.Container>

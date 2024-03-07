@@ -5,6 +5,8 @@ import "./global.scss";
 import "./layout.scss";
 import AuthMenu from "./AuthMenu";
 import { InitToken } from "@/auth";
+import NavMenu from "./NavMenu";
+import Header from "./Header";
 
 export const metadata: Metadata = {
   title: "왼손잡이해방연대 아지트",
@@ -21,22 +23,13 @@ export default function RootLayout(p: { children: ReactNode }) {
         />
       </head>
       <body>
-        <header>
+        <Header>
           <Link href="/">
             <h1>왼손잡이해방연대 아지트</h1>
           </Link>
           <AuthMenu />
-        </header>
-        <nav>
-          <ul>
-            <li>
-              <Link href="/">소개</Link>
-            </li>
-            <li>
-              <Link href="/articles">모든 일지</Link>
-            </li>
-          </ul>
-        </nav>
+        </Header>
+        <NavMenu />
         {p.children}
       </body>
       <InitToken />
