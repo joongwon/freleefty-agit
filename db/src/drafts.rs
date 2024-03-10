@@ -148,6 +148,33 @@ where
   .map(|r| r.rows_affected() as i64)
 }
 
+/// Get the length of a draft title by its ID and author ID (used for validation before publishing)
+/// # Arguments
+/// * `con` - The database connection
+/// * `id` - The draft ID
+/// * `author_id` - The author ID
+/// # Returns
+/// The length of the draft title
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn get_draft_title_length<'e, E>(
+  con: E,
+  id: i32,
+  author_id: &str,
+) -> Result<i32, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(
+    r#"SELECT LENGTH(title) FROM drafts WHERE id = $1 AND author_id = $2"#,
+    id,
+    author_id,
+  )
+  .fetch_one(con)
+  .await
+  .map(|r| r.length.unwrap_or(0))
+}
+
 /// Copy a draft to an article (used for publishing)
 /// # Arguments
 /// * `con` - The database connection

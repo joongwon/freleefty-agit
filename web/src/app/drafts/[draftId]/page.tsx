@@ -70,6 +70,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     ([draftId], opt: { arg: { token: string } }) =>
       publishDraft(opt.arg.token, draftId),
     {
+      // prevent not found error before navigating
+      revalidate: false,
       onSuccess: (data) => {
         if (typeof data === "number") {
           router.replace(`/articles/${data}`);
@@ -96,6 +98,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     if (res.isLoading) return "저장된 일지를 불러오는 중...";
     if (res.error) return "일지를 불러오는 중 오류가 발생했습니다";
     if (update.error) return "일지를 저장하는 중 오류가 발생했습니다";
+    if (publish.data === "Bad") return "발행하려면 제목을 입력하세요";
     if (publish.error) return "일지를 발행하는 중 오류가 발생했습니다";
     return null;
   })();
@@ -111,7 +114,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
    */
   const submitDisabled =
     res.isValidating ||
-    (!title && !content) ||
+    (title === undefined && content === undefined) ||
     update.isMutating ||
     publish.isMutating;
 
@@ -131,26 +134,26 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   return (
     <main className={cx("draft")}>
       <h1>일지 쓰기</h1>
-      <p>{errorMessage}</p>
-      <form
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <input
-          type="text"
-          value={dTitle}
-          onChange={(e) => setTitle(e.target.value)}
-          disabled={editDisabled}
-        />
-        <textarea
-          value={dContent}
-          onChange={(e) => setContent(e.target.value)}
-          disabled={editDisabled}
-        />
-      </form>
+      <input
+        className={cx("title")}
+        type="text"
+        value={dTitle}
+        onChange={(e) => setTitle(e.target.value)}
+        disabled={editDisabled}
+      />
+      <textarea
+        className={cx("content")}
+        value={dContent}
+        onChange={(e) => setContent(e.target.value)}
+        disabled={editDisabled}
+      />
       <section className={cx("buttons")}>
-        <button className={cx("save")} disabled={submitDisabled} onClick={() => {
+        <p className={cx("error")}>{errorMessage}</p>
+        <button className={cx("save")} disabled={submitDisabled} title={submitDisabled ? "변경사항이 없습니다" : ""}
+        onClick={() => {
           if (gAuthState.value.type !== "login")
             throw new Error("non-login state found in onSubmit");
+          publish.reset();
           void update.trigger({
             title: dTitle,
             content: dContent,
@@ -162,9 +165,11 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         <button
           className={cx("publish")}
           type="button"
+          title={publishDisabled ? "우선 저장하세요" : ""}
           onClick={() => {
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in publish onClick");
+            update.reset();
             void publish.trigger({ token: gAuthState.value.token });
           }}
           disabled={publishDisabled}

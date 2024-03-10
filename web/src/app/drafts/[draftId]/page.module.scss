@@ -1,7 +1,36 @@
 @use "@/styles/util" as *;
 
 main.draft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  input, textarea {
+    @include input;
+  }
+
+  .title {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+
+  .content {
+    font-size: 1rem;
+  }
+
   section.buttons {
+    @include a-no-underline;
+
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+
+    p.error {
+      @include reset;
+      flex: 1;
+      color: red;
+    }
+
     a,
     button {
       @include button;
@@ -11,6 +40,10 @@ main.draft {
     }
     button.publish {
       @include button-blue;
+    }
+
+    button:disabled {
+      @include button-disabled;
     }
   }
 }

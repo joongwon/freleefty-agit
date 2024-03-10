@@ -251,7 +251,7 @@ where
 /// Author's id
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn get_author_id<'e, E>(con: E, id: i32) -> Result<Option<String>, sqlx::Error>
+pub async fn get_article_author_id<'e, E>(con: E, id: i32) -> Result<Option<String>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {

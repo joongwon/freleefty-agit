@@ -1,6 +1,8 @@
 @import "@/styles/util.scss";
 
 ul.article-list {
+  @include a-no-underline;
+
   /* reset list styles */
   @include reset;
   > li {

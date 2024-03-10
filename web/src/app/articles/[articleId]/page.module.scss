@@ -43,6 +43,8 @@ main.article {
 
   /* buttons section */
   section.buttons {
+    @include a-no-underline;
+
     display: flex;
     gap: 0.5rem;
     margin: 1rem 0;
@@ -98,6 +100,26 @@ main.article {
     }
   }
 
+  form.comment-form {
+    /* form */
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+
+    /* input */
+    textarea {
+      @include input;
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    /* submit button */
+    button {
+      @include button;
+      width: 4rem;
+    }
+  }
+
   /* comments section */
   section.comments {
     /* top and bottom margin */
@@ -111,6 +133,7 @@ main.article {
 
     /* comment item */
     article {
+      position: relative;
       padding: 0.5rem 0;
 
       /* contents */
@@ -124,6 +147,63 @@ main.article {
         font-size: 0.8rem;
         color: #999;
       }
+
+      button.delete {
+        display: none;
+
+        @include button;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+
+        height: fit-content;
+        margin: auto;
+      }
+
+      /* delete button */
+      &:hover button.delete {
+        display: block;
+      }
+    }
+
+    /* no comments */
+    p.empty {
+      text-align: center;
+      color: #999;
+    }
+  }
+}
+
+@include mobile {
+  form.comment-form {
+    flex-direction: column;
+    align-items: flex-end;
+
+    textarea {
+      align-self: stretch;
+    }
+  }
+
+  main.article section.comments article {
+    display: grid;
+    grid-template:
+      "content delete" auto
+      "author  delete" auto
+      / 1fr auto;
+
+    p {
+      grid-area: content;
+    }
+
+    footer {
+      grid-area: author;
+    }
+
+    button.delete {
+      display: block;
+      position: static;
+      grid-area: delete;
     }
   }
 }

@@ -1,19 +1,20 @@
-import { getDB } from "@/db";
+import { getDB, getRedis } from "@/db";
 import styles from "./page.module.scss";
 import classnames from "classnames/bind";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import * as ArticleList from "@/components/ArticleList";
 import Time from "@/components/Time";
 import {
-  COMMENT,
   FAVORITE,
   VISIBILITY,
   ARROW_UP,
   ARROW_DOWN,
 } from "@/components/icons";
-import DeleteButton from "./DeleteButton";
 import { parseSafeInt } from "@/utils";
+import Buttons from "./Buttons";
+import DeleteCommentButton from "./DeleteCommentButton";
+import { randomUUID } from "crypto";
+import SubmitView from "./SubmitView";
 
 const cx = classnames.bind(styles);
 
@@ -31,6 +32,10 @@ export default async function ViewArticle(p: {
   if (article === null) {
     return notFound();
   }
+
+  const viewToken = randomUUID();
+  const redis = await getRedis();
+  await redis.set(`view:${viewToken}`, articleId, { EX: 60 });
 
   return (
     <main className={cx("article")}>
@@ -53,21 +58,15 @@ export default async function ViewArticle(p: {
           <p key={i}>{line}</p>
         ))}
       </article>
-      <section className={cx("buttons")}>
-        <button>
-          {COMMENT} {article.comments.length}
-        </button>
-        <button className={cx("like")}>
-          {FAVORITE} {article.likesCount}
-        </button>
-        <hr />
-        <Link href="/articles">목록</Link>
-        <DeleteButton id={article.id} authorId={article.author.id} />
-      </section>
+      <Buttons article={article} />
       <section className={cx("comments")}>
+        {article.comments.length === 0 && (
+          <p className={cx("empty")}>댓글이 없습니다</p>
+        )}
         {article.comments.map((comment) => (
           <article key={comment.id}>
             <p>{comment.content}</p>
+            <DeleteCommentButton articleId={article.id} comment={comment} />
             <footer>
               {comment.author.name}
               {", "}
@@ -92,6 +91,7 @@ export default async function ViewArticle(p: {
           </ArticleList.Empty>
         )}
       </ArticleList.Container>
+      <SubmitView viewToken={viewToken} />
     </main>
   );
 }

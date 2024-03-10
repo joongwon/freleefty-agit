@@ -2,9 +2,10 @@
 
 import { getDB, getRedis } from "@/db";
 import * as jwt from "jsonwebtoken";
-import * as uuid from "uuid";
 import { getEnv } from "@/env";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
+import { randomUUID } from "crypto";
 
 const stringSchema = z.string();
 const numberSchema = z.number();
@@ -79,7 +80,7 @@ async function login(userId: string) {
       token ? resolve(token) : reject(err),
     ),
   );
-  const refreshToken = uuid.v4();
+  const refreshToken = randomUUID();
   const redis = await getRedis();
   await redis.set("refreshToken:" + refreshToken, userId, {
     EX: 7 * 24 * 60 * 60,
@@ -100,7 +101,7 @@ async function makeRegisterCode(naverIdRaw: string) {
   const naverId = stringSchema.parse(naverIdRaw);
 
   const redis = await getRedis();
-  const registerCode = uuid.v4();
+  const registerCode = randomUUID();
   await redis.set("register:" + registerCode, naverId, { EX: 5 * 60 });
   return registerCode;
 }
@@ -174,7 +175,7 @@ export async function getDraft(tokenRaw: string, idRaw: number) {
   return await db.getDraft(id, userId);
 }
 
-const articleTitleSchema = z.string().min(1).max(255).trim();
+const draftTitleSchema = z.string().max(255);
 export async function updateDraft(
   tokenRaw: string,
   idRaw: number,
@@ -183,7 +184,7 @@ export async function updateDraft(
 ) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);
-  const title = articleTitleSchema.parse(titleRaw);
+  const title = draftTitleSchema.parse(titleRaw);
   const content = stringSchema.parse(contentRaw);
 
   const db = getDB();
@@ -206,7 +207,9 @@ export async function deleteArticle(tokenRaw: string, idRaw: number) {
 
   const db = getDB();
   const userId = (await decodeToken(token)).id;
-  return await db.deleteArticle(id, userId);
+  const res = await db.deleteArticle(id, userId);
+  revalidatePath("/articles");
+  return res;
 }
 
 export async function publishDraft(tokenRaw: string, idRaw: number) {
@@ -215,5 +218,49 @@ export async function publishDraft(tokenRaw: string, idRaw: number) {
 
   const db = getDB();
   const userId = (await decodeToken(token)).id;
-  return await db.publishDraft(id, userId);
+  const res = await db.publishDraft(id, userId);
+  revalidatePath("/articles");
+  return res;
+}
+
+const commentContentSchema = z.string().min(1).max(1023);
+export async function createComment(
+  tokenRaw: string,
+  articleIdRaw: number,
+  contentRaw: string,
+) {
+  const token = stringSchema.parse(tokenRaw);
+  const articleId = numberSchema.parse(articleIdRaw);
+  const content = commentContentSchema.parse(contentRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  const res = await db.createComment(articleId, userId, content);
+  revalidatePath(`/articles/${articleId}`);
+  return res;
+}
+
+export async function deleteComment(tokenRaw: string, articleIdRaw: number, idRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const articleId = numberSchema.parse(articleIdRaw);
+  const id = numberSchema.parse(idRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  const res = await db.deleteComment(id, userId);
+  revalidatePath(`/articles/${articleId}`);
+  return res;
+}
+
+export async function submitView(viewTokenRaw: string) {
+  const viewToken = stringSchema.parse(viewTokenRaw);
+
+  const redis = await getRedis();
+  const rawArticleId = await redis.getDel(`view:${viewToken}`);
+  if (!rawArticleId) {
+    return;
+  }
+  const articleId = parseInt(rawArticleId);
+  const db = getDB();
+  await db.createViewLog(articleId);
 }

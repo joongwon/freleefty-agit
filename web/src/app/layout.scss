@@ -14,7 +14,7 @@ body {
   grid-gap: 1rem;
 
   max-width: 60rem;
-  margin: 0 auto;
+  margin: 0 auto 5rem;
 
   > header {
     grid-area: header;
@@ -30,6 +30,7 @@ body {
     white-space: nowrap;
 
     @include box;
+    @include a-no-underline;
 
     /* site title */
     h1 {
@@ -41,6 +42,7 @@ body {
     /* user menu */
     menu {
       @include reset;
+      @include a-no-underline;
       display: flex;
       color: #666;
 
@@ -66,6 +68,7 @@ body {
   }
 
   > nav {
+    @include a-no-underline;
     grid-area: nav;
 
     padding: 1rem;

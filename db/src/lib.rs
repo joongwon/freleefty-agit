@@ -14,16 +14,19 @@ mod comments;
 mod drafts;
 mod schema;
 mod users;
+mod views;
 
 use articles::{
-  delete_article, get_article, get_author_id, get_next_article, get_previous_article,
+  delete_article, get_article, get_article_author_id, get_next_article, get_previous_article,
   list_articles, list_popular_articles,
 };
-use comments::list_comments;
+use comments::{list_comments, create_comment, delete_comment, get_comment_author};
 use drafts::{
   copy_draft_to_article, create_draft, delete_draft, get_draft, list_drafts, update_draft,
+  get_draft_title_length,
 };
 use users::{create_user, get_user_by_id, get_user_by_naver_id};
+use views::{create_view_log};
 
 #[napi]
 pub struct QueryEngine {
@@ -174,11 +177,11 @@ impl QueryEngine {
   pub async fn delete_article(
     &self,
     id: i32,
-    author_id: String,
+    user_id: String,
   ) -> Result<MaybeNotFoundForbidden, napi::Error> {
     let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
-    match get_author_id(&mut *tx, id).await.map_err(error_to_napi)? {
-      Some(author) if author == author_id => {
+    match get_article_author_id(&mut *tx, id).await.map_err(error_to_napi)? {
+      Some(author_id) if author_id == user_id => {
         delete_article(&mut *tx, id).await.map_err(error_to_napi)?;
         tx.commit().await.map_err(error_to_napi)?;
         Ok(MaybeNotFoundForbidden::Ok)
@@ -199,16 +202,70 @@ impl QueryEngine {
     &self,
     id: i32,
     author_id: String,
-  ) -> Result<i32, napi::Error> {
+  ) -> Result<napi::Either<i32, BadRequest>, napi::Error> {
     let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
-    let article_id = copy_draft_to_article(&mut *tx, id, &author_id)
+    let draft_len = get_draft_title_length(&mut *tx, id, &author_id)
       .await
       .map_err(error_to_napi)?;
-    delete_draft(&mut *tx, id, &author_id)
+    if draft_len > 0 {
+      let article_id = copy_draft_to_article(&mut *tx, id, &author_id)
+        .await
+        .map_err(error_to_napi)?;
+      delete_draft(&mut *tx, id, &author_id)
+        .await
+        .map_err(error_to_napi)?;
+      tx.commit().await.map_err(error_to_napi)?;
+      Ok(napi::Either::A(article_id))
+    } else {
+      tx.commit().await.map_err(error_to_napi)?;
+      Ok(napi::Either::B(BadRequest::Bad))
+    }
+  }
+
+  #[napi]
+  pub async fn create_comment(
+    &self,
+    article_id: i32,
+    author_id: String,
+    body: String,
+  ) -> Result<i32, napi::Error> {
+    create_comment(&self.pool, article_id, &author_id, &body)
       .await
-      .map_err(error_to_napi)?;
-    tx.commit().await.map_err(error_to_napi)?;
-    Ok(article_id)
+      .map_err(error_to_napi)
+  }
+
+  #[napi]
+  pub async fn delete_comment(
+    &self,
+    id: i32,
+    user_id: String,
+  ) -> Result<MaybeNotFoundForbidden, napi::Error> {
+    let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
+    match get_comment_author(&mut *tx, id).await.map_err(error_to_napi)? {
+      Some(author_id) if author_id == user_id => {
+        delete_comment(&mut *tx, id).await.map_err(error_to_napi)?;
+        tx.commit().await.map_err(error_to_napi)?;
+        Ok(MaybeNotFoundForbidden::Ok)
+      }
+      Some(_) => {
+        tx.commit().await.map_err(error_to_napi)?;
+        Ok(MaybeNotFoundForbidden::Forbidden)
+      }
+      None => {
+        tx.commit().await.map_err(error_to_napi)?;
+        Ok(MaybeNotFoundForbidden::NotFound)
+      }
+    }
+  }
+
+  #[napi]
+  pub async fn create_view_log(
+    &self,
+    article_id: i32,
+  ) -> Result<(), napi::Error> {
+    create_view_log(&self.pool, article_id)
+      .await
+      .map_err(error_to_napi)
   }
 }
 
@@ -223,4 +280,9 @@ pub enum MaybeNotFoundForbidden {
   Ok,
   Forbidden,
   NotFound,
+}
+
+#[napi(string_enum)]
+pub enum BadRequest {
+  Bad,
 }

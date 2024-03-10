@@ -43,6 +43,18 @@
   }
 }
 
+@mixin button-disabled {
+  @include button;
+  cursor: not-allowed;
+  background-color: #ddd;
+  color: #aaa;
+  border-color: #aaa;
+
+  &:hover {
+    background-color: #ddd;
+  }
+}
+
 /* input styles */
 @mixin input {
   @include reset;
@@ -51,6 +63,12 @@
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 0.25rem;
+}
+
+@mixin a-no-underline {
+  a {
+    text-decoration: none;
+  }
 }
 
 $matsym: string.unquote(":global(.material-symbols-outlined)");

@@ -70,6 +70,9 @@ export const enum MaybeNotFoundForbidden {
   Forbidden = 'Forbidden',
   NotFound = 'NotFound'
 }
+export const enum BadRequest {
+  Bad = 'Bad'
+}
 export class QueryEngine {
   static new(databaseUrl: string): QueryEngine
   listArticles(): Promise<Array<ArticleSummary>>
@@ -82,6 +85,9 @@ export class QueryEngine {
   getDraft(id: number, authorId: string): Promise<Draft | null>
   updateDraft(id: number, authorId: string, title: string, body: string): Promise<MaybeNotFound>
   deleteDraft(id: number, authorId: string): Promise<MaybeNotFound>
-  deleteArticle(id: number, authorId: string): Promise<MaybeNotFoundForbidden>
-  publishDraft(id: number, authorId: string): Promise<number>
+  deleteArticle(id: number, userId: string): Promise<MaybeNotFoundForbidden>
+  publishDraft(id: number, authorId: string): Promise<number | BadRequest>
+  createComment(articleId: number, authorId: string, body: string): Promise<number>
+  deleteComment(id: number, userId: string): Promise<MaybeNotFoundForbidden>
+  createViewLog(articleId: number): Promise<void>
 }
