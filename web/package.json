@@ -25,7 +25,8 @@
     "sass": "^1.71.1",
     "swr": "^2.2.5",
     "typescript-eslint": "^7.1.1",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20",

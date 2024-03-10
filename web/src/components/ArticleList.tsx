@@ -1,4 +1,4 @@
-import type { ArticleSummary } from "db";
+import type { ArticleSummary, DraftSummary } from "db";
 import Link from "next/link";
 import { ReactNode } from "react";
 import classnames from "classnames/bind";
@@ -48,6 +48,21 @@ export function Item(p: { article: ArticleSummary; before?: ReactNode }) {
         {p.article.author.name}
         {", "}
         <Time>{p.article.publishedAt}</Time>
+      </div>
+    </li>
+  );
+}
+
+export function DraftItem(p: { draft: DraftSummary }) {
+  return (
+    <li>
+      <Link href={`/drafts/${p.draft.id}`} className={cx("link")}>
+        <div className={cx("title", { untitled: p.draft.title.length === 0 })}>
+          {p.draft.title.length > 0 ? p.draft.title : "(제목없음)"}
+        </div>
+      </Link>
+      <div className={cx("author")}>
+        <Time>{p.draft.updatedAt}</Time>
       </div>
     </li>
   );

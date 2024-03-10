@@ -1,5 +1,3 @@
--- Add migration script here
-
 CREATE TYPE role AS ENUM ('admin', 'user');
 
 CREATE TABLE users

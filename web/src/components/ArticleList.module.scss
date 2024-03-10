@@ -63,11 +63,9 @@ ul.article-list > li {
     }
   }
 
-  /* placeholder text */
-  .link.empty {
-    .title {
-      color: #999;
-    }
+  /* placeholder, empty text */
+  .link.empty .title, .title.untitled {
+    color: #999;
   }
 
   /* metadata: author, date */

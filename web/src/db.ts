@@ -1,4 +1,4 @@
-import { QueryEngine, UserConflict } from "db";
+import { QueryEngine } from "db";
 import * as Redis from "redis";
 import { getEnv } from "@/env";
 
@@ -21,5 +21,3 @@ export async function getRedis() {
   }
   return redis;
 }
-
-export type TUserConflict = keyof typeof UserConflict;

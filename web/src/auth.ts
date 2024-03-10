@@ -30,6 +30,8 @@ async function initToken() {
   if (initTokenCalled) return;
   initTokenCalled = true;
 
+  scheduleRefresh();
+
   // find refresh token in local storage
   const refreshToken = popRefreshToken();
   if (!refreshToken) {
@@ -52,8 +54,16 @@ async function initToken() {
     profile: res.profile,
   });
 
-  // schedule next refresh
+}
+
+function scheduleRefresh() {
   const task = async () => {
+    if (gAuthState.get().type !== "login") return;
+    const refreshToken = popRefreshToken();
+    if (!refreshToken) {
+      gAuthState.set({ type: "anon" });
+      return;
+    }
     const res = await refresh(refreshToken).catch(() => null);
     if (!res) {
       gAuthState.set({ type: "anon" });

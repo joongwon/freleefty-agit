@@ -11,14 +11,19 @@ fn init_dbpool(database_url: &str) -> Result<DbPool, sqlx::Error> {
 
 mod articles;
 mod comments;
+mod drafts;
 mod schema;
 mod users;
 
 use articles::{
-  get_article, get_next_article, get_previous_article, list_articles, list_popular_articles,
+  delete_article, get_article, get_author_id, get_next_article, get_previous_article,
+  list_articles, list_popular_articles,
 };
 use comments::list_comments;
-use users::{create_user, get_user_by_naver_id, UserConflict, get_user_by_id};
+use drafts::{
+  copy_draft_to_article, create_draft, delete_draft, get_draft, list_drafts, update_draft,
+};
+use users::{create_user, get_user_by_id, get_user_by_naver_id};
 
 #[napi]
 pub struct QueryEngine {
@@ -47,7 +52,7 @@ impl QueryEngine {
 
   #[napi]
   pub async fn list_popular_articles(&self) -> Result<Vec<schema::ArticleSummary>, napi::Error> {
-    list_popular_articles(&self.pool, 5, Some(14))
+    list_popular_articles(&self.pool, 5, 14)
       .await
       .map_err(error_to_napi)
   }
@@ -80,10 +85,7 @@ impl QueryEngine {
   }
 
   #[napi]
-  pub async fn get_user_by_id(
-    &self,
-    user_id: String,
-  ) -> Result<Option<schema::User>, napi::Error> {
+  pub async fn get_user_by_id(&self, user_id: String) -> Result<Option<schema::User>, napi::Error> {
     get_user_by_id(&self.pool, &user_id)
       .await
       .map_err(error_to_napi)
@@ -95,9 +97,130 @@ impl QueryEngine {
     naver_id: String,
     user_id: String,
     user_name: String,
-  ) -> Result<Option<UserConflict>, napi::Error> {
+  ) -> Result<Option<schema::UserConflict>, napi::Error> {
     create_user(&self.pool, &naver_id, &user_id, &user_name)
       .await
       .map_err(error_to_napi)
   }
+
+  #[napi]
+  pub async fn list_or_create_draft(
+    &self,
+    user_id: String,
+  ) -> Result<napi::Either<schema::DraftSummary, Vec<schema::DraftSummary>>, napi::Error> {
+    let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
+    let drafts = list_drafts(&mut *tx, &user_id)
+      .await
+      .map_err(error_to_napi)?;
+    if drafts.is_empty() {
+      let draft = create_draft(&mut *tx, &user_id)
+        .await
+        .map_err(error_to_napi)?;
+      tx.commit().await.map_err(error_to_napi)?;
+      Ok(napi::Either::A(draft))
+    } else {
+      tx.commit().await.map_err(error_to_napi)?;
+      Ok(napi::Either::B(drafts))
+    }
+  }
+
+  #[napi]
+  pub async fn get_draft(
+    &self,
+    id: i32,
+    author_id: String,
+  ) -> Result<Option<schema::Draft>, napi::Error> {
+    get_draft(&self.pool, id, &author_id)
+      .await
+      .map_err(error_to_napi)
+  }
+
+  #[napi]
+  pub async fn update_draft(
+    &self,
+    id: i32,
+    author_id: String,
+    title: String,
+    body: String,
+  ) -> Result<MaybeNotFound, napi::Error> {
+    let res = update_draft(&self.pool, id, &author_id, &title, &body)
+      .await
+      .map_err(error_to_napi)?;
+    if res == 0 {
+      Ok(MaybeNotFound::NotFound)
+    } else {
+      Ok(MaybeNotFound::Ok)
+    }
+  }
+
+  #[napi]
+  pub async fn delete_draft(
+    &self,
+    id: i32,
+    author_id: String,
+  ) -> Result<MaybeNotFound, napi::Error> {
+    if delete_draft(&self.pool, id, &author_id)
+      .await
+      .map_err(error_to_napi)?
+      == 0
+    {
+      Ok(MaybeNotFound::NotFound)
+    } else {
+      Ok(MaybeNotFound::Ok)
+    }
+  }
+
+  #[napi]
+  pub async fn delete_article(
+    &self,
+    id: i32,
+    author_id: String,
+  ) -> Result<MaybeNotFoundForbidden, napi::Error> {
+    let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
+    match get_author_id(&mut *tx, id).await.map_err(error_to_napi)? {
+      Some(author) if author == author_id => {
+        delete_article(&mut *tx, id).await.map_err(error_to_napi)?;
+        tx.commit().await.map_err(error_to_napi)?;
+        Ok(MaybeNotFoundForbidden::Ok)
+      }
+      Some(_) => {
+        tx.commit().await.map_err(error_to_napi)?;
+        Ok(MaybeNotFoundForbidden::Forbidden)
+      }
+      None => {
+        tx.commit().await.map_err(error_to_napi)?;
+        Ok(MaybeNotFoundForbidden::NotFound)
+      }
+    }
+  }
+
+  #[napi]
+  pub async fn publish_draft(
+    &self,
+    id: i32,
+    author_id: String,
+  ) -> Result<i32, napi::Error> {
+    let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
+    let article_id = copy_draft_to_article(&mut *tx, id, &author_id)
+      .await
+      .map_err(error_to_napi)?;
+    delete_draft(&mut *tx, id, &author_id)
+      .await
+      .map_err(error_to_napi)?;
+    tx.commit().await.map_err(error_to_napi)?;
+    Ok(article_id)
+  }
+}
+
+#[napi(string_enum)]
+pub enum MaybeNotFound {
+  Ok,
+  NotFound,
+}
+
+#[napi(string_enum)]
+pub enum MaybeNotFoundForbidden {
+  Ok,
+  Forbidden,
+  NotFound,
 }

@@ -4,6 +4,7 @@ import { logout } from "@/actions";
 import { useRouter } from "next/navigation";
 import { useHookstate } from "@hookstate/core";
 import { gAuthState, popRefreshToken } from "@/auth";
+import Link from "next/link";
 
 function handleLogout() {
   const refreshToken = popRefreshToken();
@@ -56,14 +57,10 @@ export default function AuthMenu() {
         <menu>
           <li>{authState.value.profile.name}님 환영합니다!</li>
           <li>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleLogout();
-              }}
-            >
-              로그아웃
-            </button>
+            <Link href="/drafts">일지 쓰기</Link>
+          </li>
+          <li>
+            <button onClick={() => handleLogout()}>로그아웃</button>
           </li>
         </menu>
       );

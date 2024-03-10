@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useRef, useState, useMemo } from "react";
 
-export default function Header(p: {children: ReactNode}) {
+export default function Header(p: { children: ReactNode }) {
   // calculated from media query
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -14,7 +14,10 @@ export default function Header(p: {children: ReactNode}) {
   }, []);
 
   // translateY value to render
-  const [{ transY, transition }, setStyle] = useState({ transY: 0, transition: false });
+  const [{ transY, transition }, setStyle] = useState({
+    transY: 0,
+    transition: false,
+  });
 
   // header
   const ref = useRef<HTMLElement | null>(null);
@@ -41,10 +44,14 @@ export default function Header(p: {children: ReactNode}) {
         setStyle(({ transY }) => {
           if (scrollDelta < 0) {
             const next = Math.min(0, transY - scrollDelta);
-            return next < -headerHeight / 2 ? { transY: next, transition: false } : { transY: 0, transition: true };
+            return next < -headerHeight / 2
+              ? { transY: next, transition: false }
+              : { transY: 0, transition: true };
           } else {
             const next = Math.max(-headerHeight, transY - scrollDelta);
-            return next > -headerHeight / 2 ? { transY: next, transition: false } : { transY: -headerHeight, transition: true };
+            return next > -headerHeight / 2
+              ? { transY: next, transition: false }
+              : { transY: -headerHeight, transition: true };
           }
         });
 
@@ -59,10 +66,13 @@ export default function Header(p: {children: ReactNode}) {
   }, [isMobile]);
 
   // prevent transition setting multiple times
-  const style = useMemo(() => ({
-    transform: `translateY(${isMobile ? transY : 0}px)`,
-    transition: isMobile && transition ? "transform 0.3s" : "none",
-  }), [isMobile, transY, transition]);
+  const style = useMemo(
+    () => ({
+      transform: `translateY(${isMobile ? transY : 0}px)`,
+      transition: isMobile && transition ? "transform 0.3s" : "none",
+    }),
+    [isMobile, transY, transition],
+  );
   return (
     <header ref={ref} style={style}>
       {p.children}

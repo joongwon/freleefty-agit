@@ -43,10 +43,32 @@ export interface User {
   name: string
   role: Role
 }
+export interface DraftSummary {
+  id: number
+  title: string
+  createdAt: string
+  updatedAt: string
+}
+export interface Draft {
+  id: number
+  title: string
+  content: string
+  createdAt: string
+  updatedAt: string
+}
 export const enum UserConflict {
   NaverId = 'NaverId',
-  UserId = 'UserId',
+  Id = 'Id',
   Name = 'Name'
+}
+export const enum MaybeNotFound {
+  Ok = 'Ok',
+  NotFound = 'NotFound'
+}
+export const enum MaybeNotFoundForbidden {
+  Ok = 'Ok',
+  Forbidden = 'Forbidden',
+  NotFound = 'NotFound'
 }
 export class QueryEngine {
   static new(databaseUrl: string): QueryEngine
@@ -56,4 +78,10 @@ export class QueryEngine {
   getUserByNaverId(naverId: string): Promise<User | null>
   getUserById(userId: string): Promise<User | null>
   createUser(naverId: string, userId: string, userName: string): Promise<UserConflict | null>
+  listOrCreateDraft(userId: string): Promise<DraftSummary | Array<DraftSummary>>
+  getDraft(id: number, authorId: string): Promise<Draft | null>
+  updateDraft(id: number, authorId: string, title: string, body: string): Promise<MaybeNotFound>
+  deleteDraft(id: number, authorId: string): Promise<MaybeNotFound>
+  deleteArticle(id: number, authorId: string): Promise<MaybeNotFoundForbidden>
+  publishDraft(id: number, authorId: string): Promise<number>
 }

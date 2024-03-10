@@ -23,7 +23,10 @@ export default async function Intro() {
       </ArticleList.Container>
       <p className={cx("disclaimer")}>(최근 14일 조회수 기준)</p>
       <p>
-        <Link href="/articles" style={{textDecoration: "underline"}}>최신 일지들</Link>도 둘러보세요.
+        <Link href="/articles" style={{ textDecoration: "underline" }}>
+          최신 일지들
+        </Link>
+        도 둘러보세요.
       </p>
     </main>
   );
@@ -31,11 +34,9 @@ export default async function Intro() {
 
 const contents = (
   <article>
-    <h1>소개</h1>
-    <p>
-      왼손잡이해방연대는 아지트를 띄울 정도의 낭만과 충동은 있지만 더 빨리 만들
-      만큼 부지런하지는 못한 어떤 사람입니다.
-    </p>
+    <h1>왼손잡이해방연대</h1>
+    <p>아지트 주인장의 이름입니다. 오른손도 자주 씁니다.</p>
+    <h1>아지트</h1>
     <p>
       아지트는 계속해서 만드는 중에 있습니다만은 아직 만들지 못한 부분에
       관해서는 <a href="https://blog.naver.com/freleefty">네이버 블로그</a>를

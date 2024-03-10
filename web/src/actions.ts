@@ -4,8 +4,14 @@ import { getDB, getRedis } from "@/db";
 import * as jwt from "jsonwebtoken";
 import * as uuid from "uuid";
 import { getEnv } from "@/env";
+import { z } from "zod";
 
-export async function tryLogin(code: string) {
+const stringSchema = z.string();
+const numberSchema = z.number();
+
+export async function tryLogin(codeRaw: string) {
+  const code = stringSchema.parse(codeRaw);
+
   // 네이버 access token을 받아오기
   const client_id = getEnv().NEXT_PUBLIC_NAVER_ID;
   const client_secret = getEnv().NAVER_SECRET;
@@ -81,7 +87,18 @@ async function login(userId: string) {
   return { accessToken, refreshToken, profile };
 }
 
-async function makeRegisterCode(naverId: string) {
+async function decodeToken(token: string) {
+  const JWT_SECRET = getEnv().JWT_SECRET;
+  return await new Promise<{ id: string }>((resolve, reject) =>
+    jwt.verify(token, JWT_SECRET, (err, decoded) =>
+      decoded ? resolve(decoded as { id: string }) : reject(err),
+    ),
+  );
+}
+
+async function makeRegisterCode(naverIdRaw: string) {
+  const naverId = stringSchema.parse(naverIdRaw);
+
   const redis = await getRedis();
   const registerCode = uuid.v4();
   await redis.set("register:" + registerCode, naverId, { EX: 5 * 60 });
@@ -90,7 +107,14 @@ async function makeRegisterCode(naverId: string) {
 
 export type TryLoginResult = Awaited<ReturnType<typeof tryLogin>>;
 
-export async function createUser(code: string, id: string, name: string) {
+const userIdSchema = z.string().min(1).max(20).regex(/^[a-zA-Z0-9]+$/);
+const userNameSchema = z.string().min(1).max(20).regex(/^[^\s]+( [^\s]+)*$/);
+
+export async function createUser(codeRaw: string, idRaw: string, nameRaw: string) {
+  const code = stringSchema.parse(codeRaw);
+  const id = userIdSchema.parse(idRaw);
+  const name = userNameSchema.parse(nameRaw);
+
   const db = getDB();
   const redis = await getRedis();
 
@@ -102,11 +126,11 @@ export async function createUser(code: string, id: string, name: string) {
   const conflict = await db.createUser(naverId, id, name);
   if (conflict === "NaverId") {
     // 이미 사용중인 네이버 아이디, 로그인 재시도
-    return { type: "conflict" as const, conflict };
+    return { type: "fatal" as const, conflict: conflict };
   } else if (conflict !== null) {
-    // 다른 충돌로 가입 실패, code 재발급 후 다시 시도
+    // 다른 오류로 가입 실패, code 재발급 후 다시 시도
     const code = await makeRegisterCode(naverId);
-    return { type: "conflict" as const, conflict, code };
+    return { type: "error" as const, conflict: conflict, code };
   } else {
     // 가입 성공
     const res = await login(id);
@@ -114,7 +138,9 @@ export async function createUser(code: string, id: string, name: string) {
   }
 }
 
-export async function refresh(refreshToken: string) {
+export async function refresh(refreshTokenRaw: string) {
+  const refreshToken = stringSchema.parse(refreshTokenRaw);
+
   const redis = await getRedis();
   const userId = await redis.getDel("refreshToken:" + refreshToken);
   if (!userId) {
@@ -124,7 +150,70 @@ export async function refresh(refreshToken: string) {
   return await login(userId);
 }
 
-export async function logout(refreshToken: string) {
+export async function logout(refreshTokenRaw: string) {
+  const refreshToken = stringSchema.parse(refreshTokenRaw);
+
   const redis = await getRedis();
   await redis.del("refreshToken:" + refreshToken);
+}
+
+export async function listOrCreateDraft(tokenRaw: string) {
+  const token = stringSchema.parse(tokenRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.listOrCreateDraft(userId);
+}
+
+export async function getDraft(tokenRaw: string, idRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const id = numberSchema.parse(idRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.getDraft(id, userId);
+}
+
+const articleTitleSchema = z.string().min(1).max(255).trim();
+export async function updateDraft(
+  tokenRaw: string,
+  idRaw: number,
+  titleRaw: string,
+  contentRaw: string,
+) {
+  const token = stringSchema.parse(tokenRaw);
+  const id = numberSchema.parse(idRaw);
+  const title = articleTitleSchema.parse(titleRaw);
+  const content = stringSchema.parse(contentRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.updateDraft(id, userId, title, content);
+}
+
+export async function deleteDraft(tokenRaw: string, idRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const id = numberSchema.parse(idRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.deleteDraft(id, userId);
+}
+
+export async function deleteArticle(tokenRaw: string, idRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const id = numberSchema.parse(idRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.deleteArticle(id, userId);
+}
+
+export async function publishDraft(tokenRaw: string, idRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const id = numberSchema.parse(idRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.publishDraft(id, userId);
 }

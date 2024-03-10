@@ -7,7 +7,6 @@ import Link from "next/link";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
 import { PageProps, onlyString } from "@/utils";
-import { useHookstate } from "@hookstate/core";
 import { gAuthState, putRefreshToken } from "@/auth";
 
 const cx = classNames.bind(styles);
@@ -31,16 +30,18 @@ export default function Register(p: PageProps) {
   );
 
   // 마지막 회원가입 요청에서 발생한 충돌
-  const [conflict, setConflict] = useState<"UserId" | "Name" | null>(null);
-
-  // exhuastive check를 위한 함수, 만일 호출된다면 사용자에게 오류로 안내
-  const checkExhaustive = (_x: never) => setStatus("fatal");
+  const [conflict, setConflict] = useState<"Id" | "Name" | null>(null);
+  const conflictMessage =
+    conflict === "Id"
+      ? "이미 사용중인 아이디입니다."
+      : conflict === "Name"
+      ? "이미 사용중인 이름입니다."
+      : null;
 
   const domId = useId();
-  const auth = useHookstate(gAuthState);
 
   return status !== "ok" ? (
-    <main>
+    <main className={cx("register")}>
       <h1>사용자 등록</h1>
       {status === "naverIdConflict" ? (
         <p>이미 사용중인 아이디입니다. 다시 로그인하세요.</p>
@@ -67,7 +68,7 @@ export default function Register(p: PageProps) {
       </nav>
     </main>
   ) : (
-    <main>
+    <main className={cx("register")}>
       <h1>사용자 등록</h1>
       <form
         onSubmit={(e) => {
@@ -76,24 +77,23 @@ export default function Register(p: PageProps) {
             setCode(null);
             createUser(code, id, name)
               .then((res) => {
-                if (res.type === "success") {
-                  auth.set({
-                    type: "login",
-                    token: res.accessToken,
-                    profile: res.profile,
-                  });
-                  putRefreshToken(res.refreshToken);
-                  router.replace(from);
-                } else if (res.type === "conflict") {
-                  if (res.conflict === "NaverId") {
-                    // 네이버 아이디가 충돌하는 경우 처음부터 다시 로그인 시도
+                switch (res.type) {
+                  case "success":
+                    gAuthState.set({
+                      type: "login",
+                      token: res.accessToken,
+                      profile: res.profile,
+                    });
+                    putRefreshToken(res.refreshToken);
+                    router.replace(from);
+                    break;
+                  case "fatal":
                     setStatus("naverIdConflict");
-                  } else {
+                    break;
+                  case "error":
                     setConflict(res.conflict);
                     setCode(res.code);
-                  }
-                } else {
-                  checkExhaustive(res);
+                    break;
                 }
               })
               .catch((e) => {
@@ -103,30 +103,34 @@ export default function Register(p: PageProps) {
           }
         }}
       >
-        <label htmlFor={`id-${domId}`}>아이디</label>
+        <label htmlFor={`id-${domId}`}>아이디 (숫자 또는 영문 1~20자)</label>
         <input
           id={`id-${domId}`}
           type="text"
           value={id}
           onChange={(e) => setId(e.target.value)}
+          minLength={1}
+          maxLength={20}
+          pattern="[a-zA-Z0-9]+"
+          required
         />
-        <label htmlFor={`name-${domId}`}>이름</label>
+        <label htmlFor={`name-${domId}`}>이름 (연속된 공백이 없는 1~20자)</label>
         <input
           id={`name-${domId}`}
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          minLength={1}
+          maxLength={20}
+          pattern="[^\s]+( [^\s]+)*"
+          required
         />
         <button disabled={code === null} type="submit">
           등록
         </button>
       </form>
       <p className={cx("conflict")}>
-        {conflict === "UserId"
-          ? "이미 사용중인 아이디입니다."
-          : conflict === "Name"
-            ? "이미 사용중인 이름입니다."
-            : null}
+        {conflictMessage}
       </p>
     </main>
   );

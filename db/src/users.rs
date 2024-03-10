@@ -1,4 +1,4 @@
-use crate::schema::User;
+use crate::schema::{User, UserConflict};
 
 pub async fn get_user_by_naver_id<'e, E>(
   con: E,
@@ -15,13 +15,6 @@ where
   .fetch_optional(con)
   .await?;
   Ok(user)
-}
-
-#[napi(string_enum)]
-pub enum UserConflict {
-  NaverId,
-  UserId,
-  Name,
 }
 
 pub async fn create_user<'e, E>(
@@ -45,7 +38,7 @@ where
     Ok(_) => Ok(None),
     Err(sqlx::Error::Database(err)) => match err.constraint() {
       Some("users_naver_id_key") => Ok(Some(UserConflict::NaverId)),
-      Some("users_pkey") => Ok(Some(UserConflict::UserId)),
+      Some("users_pkey") => Ok(Some(UserConflict::Id)),
       Some("users_name_key") => Ok(Some(UserConflict::Name)),
       _ => Err(sqlx::Error::Database(err)),
     },
@@ -53,10 +46,7 @@ where
   }
 }
 
-pub async fn get_user_by_id<'e, E>(
-  con: E,
-  user_id: &str,
-) -> Result<Option<User>, sqlx::Error>
+pub async fn get_user_by_id<'e, E>(con: E, user_id: &str) -> Result<Option<User>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {

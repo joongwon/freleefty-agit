@@ -13,13 +13,10 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-        r#"SELECT articles.id, title, author_id, name,
-        published_at AS "published_at!",
-        (SELECT COUNT(*) FROM comments WHERE comments.article_id = articles.id) AS "comments_count!",
-        (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id) AS "views_count!",
-        (SELECT COUNT(*) FROM likes WHERE likes.article_id = articles.id) AS "likes_count!"
-        FROM articles JOIN users ON articles.author_id = users.id
-        WHERE published_at IS NOT NULL
+        r#"SELECT articles.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+        FROM articles
+        JOIN users ON articles.author_id = users.id
+        JOIN article_stats ON articles.id = article_stats.id
         ORDER BY published_at DESC"#,
     )
     .fetch_all(con)
@@ -34,9 +31,9 @@ where
                     id: r.author_id,
                     name: r.name,
                 },
-                comments_count: r.comments_count,
-                views_count: r.views_count,
-                likes_count: r.likes_count,
+                comments_count: r.comments_count.unwrap_or(0),
+                views_count: r.views_count.unwrap_or(0),
+                likes_count: r.likes_count.unwrap_or(0),
             })
             .collect()
     })
@@ -57,44 +54,47 @@ where
 pub async fn list_popular_articles<'e, E>(
   con: E,
   n: i64,
-  days: Option<i32>,
+  days: i32,
 ) -> Result<Vec<ArticleSummary>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-        r#"SELECT * FROM (
-            SELECT articles.id, title, author_id, name,
-            published_at AS "published_at!",
-            (SELECT COUNT(*) FROM comments WHERE comments.article_id = articles.id) AS "comments_count!",
+    r#"SELECT * FROM (
+            SELECT articles.id, title, author_id, name, published_at, comments_count, likes_count,
             (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id
-                AND ($2::INTERVAL IS NULL OR now() - views.created_at < $2)) AS "views_count!",
-            (SELECT COUNT(*) FROM likes WHERE likes.article_id = articles.id) AS "likes_count!"
-            FROM articles JOIN users ON articles.author_id = users.id
-            WHERE published_at IS NOT NULL
-            ORDER BY "views_count!" DESC LIMIT $1
-        ) AS t WHERE "views_count!" > 0"#,
-        n,
-        days.map(|d| sqlx::postgres::types::PgInterval { days: d, months: 0, microseconds: 0 }),
-    )
-    .fetch_all(con)
-    .await
-    .map(|rows| {
-        rows.into_iter()
-            .map(|r| ArticleSummary {
-                id: r.id,
-                title: r.title,
-                published_at: r.published_at.to_string(),
-                author: Author {
-                    id: r.author_id,
-                    name: r.name,
-                },
-                comments_count: r.comments_count,
-                views_count: r.views_count,
-                likes_count: r.likes_count,
-            })
-            .collect()
-    })
+                AND (now() - views.created_at < $2)) AS views_count
+            FROM articles
+            JOIN users ON articles.author_id = users.id
+            JOIN article_stats ON articles.id = article_stats.id
+            ORDER BY views_count DESC LIMIT $1
+        ) AS t WHERE views_count > 0"#,
+    n,
+    sqlx::postgres::types::PgInterval {
+      days,
+      months: 0,
+      microseconds: 0
+    },
+  )
+  .fetch_all(con)
+  .await
+  .map(|rows| {
+    rows
+      .into_iter()
+      .map(|r| ArticleSummary {
+        id: r.id,
+        title: r.title,
+        published_at: r.published_at.to_string(),
+        author: Author {
+          id: r.author_id,
+          name: r.name,
+        },
+        comments_count: r.comments_count.unwrap_or(0),
+        views_count: r.views_count.unwrap_or(0),
+        likes_count: r.likes_count.unwrap_or(0),
+      })
+      .collect()
+  })
 }
 
 /// Get an article by its ID
@@ -111,11 +111,10 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"SELECT articles.id, title, content, author_id, name, published_at AS "published_at!",
-        (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id) AS "views_count!",
-        (SELECT COUNT(*) FROM likes WHERE likes.article_id = articles.id) AS "likes_count!"
+    r#"SELECT articles.id, title, content, author_id, name, published_at, views_count, likes_count
         FROM articles
         JOIN users ON articles.author_id = users.id
+        JOIN article_stats ON articles.id = article_stats.id
         WHERE articles.id = $1"#,
     id,
   )
@@ -131,8 +130,8 @@ where
         id: r.author_id,
         name: r.name,
       },
-      views_count: r.views_count,
-      likes_count: r.likes_count,
+      views_count: r.views_count.unwrap_or(0),
+      likes_count: r.likes_count.unwrap_or(0),
       /* these fields will be filled by following queries */
       comments: vec![],
       next: None,
@@ -154,13 +153,11 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-        r#"SELECT articles.id, title, author_id, name,
-        published_at AS "published_at!",
-        (SELECT COUNT(*) FROM comments WHERE comments.article_id = articles.id) AS "comments_count!",
-        (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id) AS "views_count!",
-        (SELECT COUNT(*) FROM likes WHERE likes.article_id = articles.id) AS "likes_count!"
-        FROM articles JOIN users ON articles.author_id = users.id
-        WHERE published_at IS NOT NULL AND published_at > (SELECT published_at FROM articles WHERE id = $1)
+        r#"SELECT articles.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+        FROM articles
+        JOIN users ON articles.author_id = users.id
+        JOIN article_stats ON articles.id = article_stats.id
+        WHERE published_at > (SELECT published_at FROM articles WHERE id = $1)
         ORDER BY published_at ASC LIMIT 1"#,
         id,
     )
@@ -175,9 +172,9 @@ where
                 id: r.author_id,
                 name: r.name,
             },
-            comments_count: r.comments_count,
-            views_count: r.views_count,
-            likes_count: r.likes_count,
+            comments_count: r.comments_count.unwrap_or(0),
+            views_count: r.views_count.unwrap_or(0),
+            likes_count: r.likes_count.unwrap_or(0),
         })
     })
 }
@@ -198,13 +195,11 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-        r#"SELECT articles.id, title, author_id, name,
-        published_at AS "published_at!",
-        (SELECT COUNT(*) FROM comments WHERE comments.article_id = articles.id) AS "comments_count!",
-        (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id) AS "views_count!",
-        (SELECT COUNT(*) FROM likes WHERE likes.article_id = articles.id) AS "likes_count!"
-        FROM articles JOIN users ON articles.author_id = users.id
-        WHERE published_at IS NOT NULL AND published_at < (SELECT published_at FROM articles WHERE id = $1)
+        r#"SELECT articles.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+        FROM articles
+        JOIN users ON articles.author_id = users.id
+        JOIN article_stats ON articles.id = article_stats.id
+        WHERE published_at < (SELECT published_at FROM articles WHERE id = $1)
         ORDER BY published_at DESC LIMIT 1"#,
         id,
     )
@@ -219,9 +214,49 @@ where
                 id: r.author_id,
                 name: r.name,
             },
-            comments_count: r.comments_count,
-            views_count: r.views_count,
-            likes_count: r.likes_count,
+            comments_count: r.comments_count.unwrap_or(0),
+            views_count: r.views_count.unwrap_or(0),
+            likes_count: r.likes_count.unwrap_or(0),
         })
     })
+}
+
+/// Delete an article by its ID
+/// # Arguments
+/// * `con` - The database connection
+/// * `id` - The article ID
+/// # Returns
+/// None
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails or if the article does not exist
+pub async fn delete_article<'e, E>(con: E, id: i32) -> Result<(), sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  let res = sqlx::query!(r#"DELETE FROM articles WHERE id = $1"#, id,)
+    .execute(con)
+    .await?;
+  if res.rows_affected() == 0 {
+    Err(sqlx::Error::RowNotFound)
+  } else {
+    Ok(())
+  }
+}
+
+/// Get author of an article by its ID
+/// # Arguments
+/// * `con` - The database connection
+/// * `id` - The article ID
+/// # Returns
+/// Author's id
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn get_author_id<'e, E>(con: E, id: i32) -> Result<Option<String>, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(r#"SELECT author_id FROM articles WHERE id = $1"#, id,)
+    .fetch_optional(con)
+    .await
+    .map(|r| r.map(|r| r.author_id))
 }

@@ -1,6 +1,30 @@
 @use "@/styles/util" as *;
 
-p.error {
-  @include reset;
-  color: red;
+main.register {
+  form {
+    @include reset;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    padding: 1rem;
+
+    input {
+      @include input;
+    }
+
+    button {
+      @include button;
+      color: #000;
+      width: fit-content;
+      align-self: center;
+    }
+  }
+
+  p.conflict {
+    @include reset;
+    color: red;
+  }
 }

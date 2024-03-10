@@ -12,6 +12,8 @@ import {
   ARROW_UP,
   ARROW_DOWN,
 } from "@/components/icons";
+import DeleteButton from "./DeleteButton";
+import { parseSafeInt } from "@/utils";
 
 const cx = classnames.bind(styles);
 
@@ -60,8 +62,7 @@ export default async function ViewArticle(p: {
         </button>
         <hr />
         <Link href="/articles">목록</Link>
-        {/* TODO: delete button */}
-        {/* <button className={cx("delete")}>삭제</button> */}
+        <DeleteButton id={article.id} authorId={article.author.id} />
       </section>
       <section className={cx("comments")}>
         {article.comments.map((comment) => (
@@ -93,15 +94,4 @@ export default async function ViewArticle(p: {
       </ArticleList.Container>
     </main>
   );
-}
-
-function parseSafeInt(s: string) {
-  if (!/^[1-9]\d*$/.test(s)) {
-    return null;
-  }
-  const n = parseInt(s);
-  if (Number.isSafeInteger(n)) {
-    return n;
-  }
-  return null;
 }

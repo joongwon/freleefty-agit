@@ -51,3 +51,27 @@ pub struct User {
   pub name: String,
   pub role: Role,
 }
+
+#[napi(object)]
+pub struct DraftSummary {
+  pub id: i32,
+  pub title: String,
+  pub created_at: String,
+  pub updated_at: String,
+}
+
+#[napi(object)]
+pub struct Draft {
+  pub id: i32,
+  pub title: String,
+  pub content: String,
+  pub created_at: String,
+  pub updated_at: String,
+}
+
+#[napi(string_enum)]
+pub enum UserConflict {
+  NaverId,
+  Id,
+  Name,
+}

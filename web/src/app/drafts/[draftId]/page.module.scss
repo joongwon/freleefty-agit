@@ -1,0 +1,16 @@
+@use "@/styles/util" as *;
+
+main.draft {
+  section.buttons {
+    a,
+    button {
+      @include button;
+    }
+    button.save {
+      @include button-green;
+    }
+    button.publish {
+      @include button-blue;
+    }
+  }
+}

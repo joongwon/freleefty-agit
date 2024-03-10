@@ -56,13 +56,7 @@ main.article {
     /* buttons */
     button,
     a {
-      @include reset;
-      border: 1px solid #ddd;
-      cursor: pointer;
-      font-size: 0.8rem;
-      color: #313131;
-      padding: 0.3rem 0.6rem;
-      border-radius: 0.25rem;
+      @include button;
 
       /* text and icon alignment */
       display: flex;
@@ -74,11 +68,6 @@ main.article {
 
       /* prevent wrapping */
       white-space: nowrap;
-
-      /* hover effect */
-      &:hover {
-        background-color: #ddd;
-      }
 
       /* icon */
       #{$matsym} {

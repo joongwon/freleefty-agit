@@ -10,6 +10,49 @@
   font-size: inherit;
 }
 
+/* button styles */
+@mixin button {
+  @include reset;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #313131;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.25rem;
+
+  &:hover {
+    background-color: #ddd;
+  }
+}
+
+@mixin button-blue {
+  @include button;
+  background-color: #a2c3ff;
+
+  &:hover {
+    background-color: #8ab1ff;
+  }
+}
+
+@mixin button-green {
+  @include button;
+  background-color: #c0ffbd;
+
+  &:hover {
+    background-color: #a8ff9e;
+  }
+}
+
+/* input styles */
+@mixin input {
+  @include reset;
+  min-width: 0;
+  width: auto;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+}
+
 $matsym: string.unquote(":global(.material-symbols-outlined)");
 
 @mixin mobile {
