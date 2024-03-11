@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO articles (title, content, author_id)\n    SELECT title, content, author_id FROM drafts WHERE id = $1 AND author_id = $2\n    RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "a1a2568677046ffc6902b82ad658abf693651707c963566a65aae6bc0c478075"
+}
