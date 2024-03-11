@@ -4,12 +4,7 @@ import classnames from "classnames/bind";
 import { notFound } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
 import Time from "@/components/Time";
-import {
-  FAVORITE,
-  VISIBILITY,
-  ARROW_UP,
-  ARROW_DOWN,
-} from "@/components/icons";
+import { FAVORITE, VISIBILITY, ARROW_UP, ARROW_DOWN } from "@/components/icons";
 import { parseSafeInt } from "@/utils";
 import Buttons from "./Buttons";
 import DeleteCommentButton from "./DeleteCommentButton";

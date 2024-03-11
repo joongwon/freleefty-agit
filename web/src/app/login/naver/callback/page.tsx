@@ -20,7 +20,7 @@ async function initLogin() {
   initLoginCalled = true;
 
   // clean possible old tokens
-  popRefreshToken();
+  // popRefreshToken(); // this is done in InitToken (src/auth.ts)
 
   const searchParams = new URLSearchParams(location.search);
   const code = onlyString(searchParams.get("code"));
@@ -61,6 +61,7 @@ export default function NaverCallback(p: PageProps) {
     void initLogin();
   }, []);
 
+  // routing
   useEffect(() => {
     switch (login.value.type) {
       case "login":
@@ -83,29 +84,34 @@ export default function NaverCallback(p: PageProps) {
     }
   }, [login, from, router]);
 
-  return login.value.type !== "error" ? (
-    <main>로그인 중...</main>
-  ) : (
-    <main>
-      <p>로그인 중 오류가 발생했습니다</p>
-      <nav>
-        <ul>
-          <li>
-            <Link href={from ? `/login?from=${state}` : "/login"}>
-              다시 로그인
-            </Link>
-          </li>
-          {from ? (
-            <li>
-              <Link href={from}>돌아가기</Link>
-            </li>
-          ) : (
-            <li>
-              <Link href="/">대문으로</Link>
-            </li>
-          )}
-        </ul>
-      </nav>
-    </main>
-  );
+  switch (login.value.type) {
+    case "loading":
+      return <main>로그인 중...</main>;
+    case "redirect":
+      return <main>리다이렉트 중...</main>;
+    case "error":
+      return (
+        <main>
+          <p>로그인 중 오류가 발생했습니다</p>
+          <nav>
+            <ul>
+              <li>
+                <Link href={from ? `/login?from=${state}` : "/login"}>
+                  다시 로그인
+                </Link>
+              </li>
+              {from ? (
+                <li>
+                  <Link href={from}>돌아가기</Link>
+                </li>
+              ) : (
+                <li>
+                  <Link href="/">대문으로</Link>
+                </li>
+              )}
+            </ul>
+          </nav>
+        </main>
+      );
+  }
 }

@@ -66,7 +66,8 @@ ul.article-list > li {
   }
 
   /* placeholder, empty text */
-  .link.empty .title, .title.untitled {
+  .link.empty .title,
+  .title.untitled {
     color: #999;
   }
 

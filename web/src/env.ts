@@ -14,10 +14,19 @@ let env: Env | undefined;
 export function getEnv() {
   if (!env) {
     env = {} as Env;
+    const notFound = [];
     for (const key of keys) {
       const value = process.env[key];
-      if (!value) throw new Error(`env.${key} is not defined`);
-      env[key] = value;
+      if (!value) {
+        notFound.push(key);
+      } else {
+        env[key] = value;
+      }
+    }
+    if (notFound.length > 0) {
+      throw new Error(
+        `Environment variables not found: ${notFound.join(", ")}`,
+      );
     }
   }
   return env;

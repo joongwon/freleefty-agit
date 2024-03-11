@@ -76,8 +76,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         if (typeof data === "number") {
           router.replace(`/articles/${data}`);
         }
-      }
-    }
+      },
+    },
   );
 
   // ask before leaving
@@ -149,17 +149,21 @@ export default function EditDraft(p: { params: { draftId: string } }) {
       />
       <section className={cx("buttons")}>
         <p className={cx("error")}>{errorMessage}</p>
-        <button className={cx("save")} disabled={submitDisabled} title={submitDisabled ? "변경사항이 없습니다" : ""}
-        onClick={() => {
-          if (gAuthState.value.type !== "login")
-            throw new Error("non-login state found in onSubmit");
-          publish.reset();
-          void update.trigger({
-            title: dTitle,
-            content: dContent,
-            token: gAuthState.value.token,
-          });
-        }}>
+        <button
+          className={cx("save")}
+          disabled={submitDisabled}
+          title={submitDisabled ? "변경사항이 없습니다" : ""}
+          onClick={() => {
+            if (gAuthState.value.type !== "login")
+              throw new Error("non-login state found in onSubmit");
+            publish.reset();
+            void update.trigger({
+              title: dTitle,
+              content: dContent,
+              token: gAuthState.value.token,
+            });
+          }}
+        >
           저장
         </button>
         <button

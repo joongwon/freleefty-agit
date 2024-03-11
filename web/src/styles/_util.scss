@@ -11,7 +11,7 @@
 }
 
 /* button styles */
-@mixin button {
+@mixin button($bg-color: #ffffff, $hover-color: #ddd) {
   @include reset;
   border: 1px solid #ddd;
   cursor: pointer;
@@ -19,40 +19,26 @@
   color: #313131;
   padding: 0.3rem 0.6rem;
   border-radius: 0.25rem;
+  background-color: $bg-color;
 
   &:hover {
+    background-color: $hover-color;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
     background-color: #ddd;
+    color: #aaa;
+    border-color: #aaa;
   }
 }
 
 @mixin button-blue {
-  @include button;
-  background-color: #a2c3ff;
-
-  &:hover {
-    background-color: #8ab1ff;
-  }
+  @include button(#a2c3ff, #8ab1ff);
 }
 
 @mixin button-green {
-  @include button;
-  background-color: #c0ffbd;
-
-  &:hover {
-    background-color: #a8ff9e;
-  }
-}
-
-@mixin button-disabled {
-  @include button;
-  cursor: not-allowed;
-  background-color: #ddd;
-  color: #aaa;
-  border-color: #aaa;
-
-  &:hover {
-    background-color: #ddd;
-  }
+  @include button(#c0ffbd, #a8ff9e);
 }
 
 /* input styles */

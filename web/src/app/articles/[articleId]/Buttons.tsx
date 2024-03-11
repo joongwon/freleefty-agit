@@ -1,8 +1,5 @@
 "use client";
-import {
-  COMMENT,
-  FAVORITE,
-} from "@/components/icons";
+import { COMMENT, FAVORITE } from "@/components/icons";
 import Link from "next/link";
 import classnames from "classnames/bind";
 import styles from "./page.module.scss";
@@ -47,14 +44,19 @@ export default function Buttons(p: { article: Article }) {
       console.error(e);
       alert("삭제 중 오류가 발생했습니다.");
     }
-  }
+  };
 
-  const canDeleteArticle = auth.value.type === "login" && auth.value.profile.id === p.article.author.id;
+  const canDeleteArticle =
+    auth.value.type === "login" &&
+    auth.value.profile.id === p.article.author.id;
   const router = useRouter();
   return (
     <>
       <section className={cx("buttons")}>
-        <button onClick={() => setIsCommentOpen(!isCommentOpen)} disabled={commentDisabled}>
+        <button
+          onClick={() => setIsCommentOpen(!isCommentOpen)}
+          disabled={commentDisabled}
+        >
           {COMMENT} {p.article.comments.length}
         </button>
         <button className={cx("like")}>
@@ -62,19 +64,33 @@ export default function Buttons(p: { article: Article }) {
         </button>
         <hr />
         <Link href="/articles">목록</Link>
-        {canDeleteArticle && <button className={cx("delete")} onClick={() => {
-          if (auth.value.type !== "login") {
-            throw new Error("non-login state detected in delete article button");
-          }
-          handleDeleteArticle();
-        }}>삭제</button>}
+        {canDeleteArticle && (
+          <button
+            className={cx("delete")}
+            onClick={() => {
+              if (auth.value.type !== "login") {
+                throw new Error(
+                  "non-login state detected in delete article button",
+                );
+              }
+              handleDeleteArticle();
+            }}
+          >
+            삭제
+          </button>
+        )}
       </section>
-      {isCommentOpen && <CommentForm articleId={p.article.id} afterSubmit={() => setIsCommentOpen(false)} />}
+      {isCommentOpen && (
+        <CommentForm
+          articleId={p.article.id}
+          afterSubmit={() => setIsCommentOpen(false)}
+        />
+      )}
     </>
   );
 }
 
-function CommentForm(p: { articleId: number, afterSubmit: () => void }) {
+function CommentForm(p: { articleId: number; afterSubmit: () => void }) {
   const auth = useHookstate(gAuthState);
   const [comment, setComment] = useState("");
   const handleComment = async () => {
@@ -88,10 +104,22 @@ function CommentForm(p: { articleId: number, afterSubmit: () => void }) {
       console.error(e);
       alert("댓글 등록 중 오류가 발생했습니다.");
     }
-  }
+  };
   return (
-    <form className={cx("comment-form")} onSubmit={(e) => { e.preventDefault(); handleComment(); }}>
-      <textarea required minLength={1} maxLength={1023} value={comment} onChange={(e) => setComment(e.target.value)} />
+    <form
+      className={cx("comment-form")}
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleComment();
+      }}
+    >
+      <textarea
+        required
+        minLength={1}
+        maxLength={1023}
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+      />
       <button type="submit">등록</button>
     </form>
   );

@@ -5,7 +5,8 @@ main.draft {
   flex-direction: column;
   gap: 0.5rem;
 
-  input, textarea {
+  input,
+  textarea {
     @include input;
   }
 
@@ -40,10 +41,6 @@ main.draft {
     }
     button.publish {
       @include button-blue;
-    }
-
-    button:disabled {
-      @include button-disabled;
     }
   }
 }

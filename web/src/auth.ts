@@ -32,6 +32,14 @@ async function initToken() {
 
   scheduleRefresh();
 
+  // landed on login callback page
+  if (location.pathname === "/login/naver/callback") {
+    // remove possibily remainig previous token
+    popRefreshToken();
+    gAuthState.set({ type: "anon" });
+    return;
+  }
+
   // find refresh token in local storage
   const refreshToken = popRefreshToken();
   if (!refreshToken) {
@@ -53,7 +61,6 @@ async function initToken() {
     token: res.accessToken,
     profile: res.profile,
   });
-
 }
 
 function scheduleRefresh() {

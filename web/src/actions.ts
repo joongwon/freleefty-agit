@@ -108,10 +108,22 @@ async function makeRegisterCode(naverIdRaw: string) {
 
 export type TryLoginResult = Awaited<ReturnType<typeof tryLogin>>;
 
-const userIdSchema = z.string().min(1).max(20).regex(/^[a-zA-Z0-9]+$/);
-const userNameSchema = z.string().min(1).max(20).regex(/^[^\s]+( [^\s]+)*$/);
+const userIdSchema = z
+  .string()
+  .min(1)
+  .max(20)
+  .regex(/^[a-zA-Z0-9]+$/);
+const userNameSchema = z
+  .string()
+  .min(1)
+  .max(20)
+  .regex(/^[^\s]+( [^\s]+)*$/);
 
-export async function createUser(codeRaw: string, idRaw: string, nameRaw: string) {
+export async function createUser(
+  codeRaw: string,
+  idRaw: string,
+  nameRaw: string,
+) {
   const code = stringSchema.parse(codeRaw);
   const id = userIdSchema.parse(idRaw);
   const name = userNameSchema.parse(nameRaw);
@@ -240,7 +252,11 @@ export async function createComment(
   return res;
 }
 
-export async function deleteComment(tokenRaw: string, articleIdRaw: number, idRaw: number) {
+export async function deleteComment(
+  tokenRaw: string,
+  articleIdRaw: number,
+  idRaw: number,
+) {
   const token = stringSchema.parse(tokenRaw);
   const articleId = numberSchema.parse(articleIdRaw);
   const id = numberSchema.parse(idRaw);

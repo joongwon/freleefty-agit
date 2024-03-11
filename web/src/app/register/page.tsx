@@ -35,8 +35,8 @@ export default function Register(p: PageProps) {
     conflict === "Id"
       ? "이미 사용중인 아이디입니다."
       : conflict === "Name"
-      ? "이미 사용중인 이름입니다."
-      : null;
+        ? "이미 사용중인 이름입니다."
+        : null;
 
   const domId = useId();
 
@@ -114,7 +114,9 @@ export default function Register(p: PageProps) {
           pattern="[a-zA-Z0-9]+"
           required
         />
-        <label htmlFor={`name-${domId}`}>이름 (연속된 공백이 없는 1~20자)</label>
+        <label htmlFor={`name-${domId}`}>
+          이름 (연속된 공백이 없는 1~20자)
+        </label>
         <input
           id={`name-${domId}`}
           type="text"
@@ -129,9 +131,7 @@ export default function Register(p: PageProps) {
           등록
         </button>
       </form>
-      <p className={cx("conflict")}>
-        {conflictMessage}
-      </p>
+      <p className={cx("conflict")}>{conflictMessage}</p>
     </main>
   );
 }

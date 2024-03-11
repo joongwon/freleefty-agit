@@ -8,9 +8,14 @@ import styles from "./page.module.scss";
 
 const cx = classnames.bind(styles);
 
-export default function DeleteCommentButton(p: { articleId: number, comment: Comment }) {
+export default function DeleteCommentButton(p: {
+  articleId: number;
+  comment: Comment;
+}) {
   const auth = useHookstate(gAuthState);
-  const canDelete = auth.value.type === "login" && auth.value.profile.id === p.comment.author.id;
+  const canDelete =
+    auth.value.type === "login" &&
+    auth.value.profile.id === p.comment.author.id;
   const handleDelete = async () => {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleDelete");
@@ -19,7 +24,11 @@ export default function DeleteCommentButton(p: { articleId: number, comment: Com
       return;
     }
     try {
-      const res = await deleteComment(auth.value.token, p.articleId, p.comment.id);
+      const res = await deleteComment(
+        auth.value.token,
+        p.articleId,
+        p.comment.id,
+      );
       switch (res) {
         case "Ok":
           return;
@@ -34,6 +43,10 @@ export default function DeleteCommentButton(p: { articleId: number, comment: Com
       console.error(e);
       alert("삭제 중 오류가 발생했습니다.");
     }
-  }
-  return canDelete ? <button onClick={handleDelete} className={cx("delete")}>삭제</button> : null;
+  };
+  return canDelete ? (
+    <button onClick={handleDelete} className={cx("delete")}>
+      삭제
+    </button>
+  ) : null;
 }
