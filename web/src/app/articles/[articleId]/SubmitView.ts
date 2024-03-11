@@ -11,7 +11,8 @@ export default function SubmitView(p: { viewToken: string }) {
         return;
       }
       submittedRef.current = true;
-      submitView(p.viewToken);
+      // don't care about the result
+      void submitView(p.viewToken);
     }, 1000);
     return () => clearTimeout(timeout);
   }, [p.viewToken]);

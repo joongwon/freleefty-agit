@@ -12,6 +12,7 @@ fn init_dbpool(database_url: &str) -> Result<DbPool, sqlx::Error> {
 mod articles;
 mod comments;
 mod drafts;
+mod likes;
 mod schema;
 mod users;
 mod views;
@@ -20,13 +21,14 @@ use articles::{
   delete_article, get_article, get_article_author_id, get_next_article, get_previous_article,
   list_articles, list_popular_articles,
 };
-use comments::{list_comments, create_comment, delete_comment, get_comment_author};
+use comments::{create_comment, delete_comment, get_comment_author, list_comments};
 use drafts::{
-  copy_draft_to_article, create_draft, delete_draft, get_draft, list_drafts, update_draft,
-  get_draft_title_length,
+  copy_draft_to_article, create_draft, delete_draft, get_draft, get_draft_title_length,
+  list_drafts, update_draft,
 };
 use users::{create_user, get_user_by_id, get_user_by_naver_id};
-use views::{create_view_log};
+use views::create_view_log;
+use likes::{like_article, unlike_article, list_likers};
 
 #[napi]
 pub struct QueryEngine {
@@ -180,7 +182,10 @@ impl QueryEngine {
     user_id: String,
   ) -> Result<MaybeNotFoundForbidden, napi::Error> {
     let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
-    match get_article_author_id(&mut *tx, id).await.map_err(error_to_napi)? {
+    match get_article_author_id(&mut *tx, id)
+      .await
+      .map_err(error_to_napi)?
+    {
       Some(author_id) if author_id == user_id => {
         delete_article(&mut *tx, id).await.map_err(error_to_napi)?;
         tx.commit().await.map_err(error_to_napi)?;
@@ -241,7 +246,10 @@ impl QueryEngine {
     user_id: String,
   ) -> Result<MaybeNotFoundForbidden, napi::Error> {
     let mut tx = self.pool.begin().await.map_err(error_to_napi)?;
-    match get_comment_author(&mut *tx, id).await.map_err(error_to_napi)? {
+    match get_comment_author(&mut *tx, id)
+      .await
+      .map_err(error_to_napi)?
+    {
       Some(author_id) if author_id == user_id => {
         delete_comment(&mut *tx, id).await.map_err(error_to_napi)?;
         tx.commit().await.map_err(error_to_napi)?;
@@ -259,13 +267,37 @@ impl QueryEngine {
   }
 
   #[napi]
-  pub async fn create_view_log(
-    &self,
-    article_id: i32,
-  ) -> Result<(), napi::Error> {
+  pub async fn create_view_log(&self, article_id: i32) -> Result<(), napi::Error> {
     create_view_log(&self.pool, article_id)
       .await
       .map_err(error_to_napi)
+  }
+
+  #[napi]
+  pub async fn like_article(
+    &self,
+    article_id: i32,
+    user_id: String,
+  ) -> Result<i64, napi::Error> {
+    like_article(&self.pool, article_id, &user_id)
+      .await
+      .map_err(error_to_napi)
+  }
+
+  #[napi]
+  pub async fn unlike_article(
+    &self,
+    article_id: i32,
+    user_id: String,
+  ) -> Result<i64, napi::Error> {
+    unlike_article(&self.pool, article_id, &user_id)
+      .await
+      .map_err(error_to_napi)
+  }
+
+  #[napi]
+  pub async fn list_likers(&self, article_id: i32) -> Result<Vec<String>, napi::Error> {
+    list_likers(&self.pool, article_id).await.map_err(error_to_napi)
   }
 }
 

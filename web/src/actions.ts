@@ -280,3 +280,32 @@ export async function submitView(viewTokenRaw: string) {
   const db = getDB();
   await db.createViewLog(articleId);
 }
+
+export async function likeArticle(tokenRaw: string, articleIdRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const articleId = numberSchema.parse(articleIdRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  const res = await db.likeArticle(articleId, userId);
+  revalidatePath(`/articles/${articleId}`);
+  return res;
+}
+
+export async function unlikeArticle(tokenRaw: string, articleIdRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const articleId = numberSchema.parse(articleIdRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  const res = await db.unlikeArticle(articleId, userId);
+  revalidatePath(`/articles/${articleId}`);
+  return res;
+}
+
+export async function listLikers(articleIdRaw: number) {
+  const articleId = numberSchema.parse(articleIdRaw);
+
+  const db = getDB();
+  return await db.listLikers(articleId);
+}

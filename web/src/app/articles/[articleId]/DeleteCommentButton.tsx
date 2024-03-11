@@ -45,7 +45,7 @@ export default function DeleteCommentButton(p: {
     }
   };
   return canDelete ? (
-    <button onClick={handleDelete} className={cx("delete")}>
+    <button onClick={() => void handleDelete()} className={cx("delete")}>
       삭제
     </button>
   ) : null;

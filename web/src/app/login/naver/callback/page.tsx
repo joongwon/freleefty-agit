@@ -6,7 +6,7 @@ import { tryLogin } from "@/actions";
 import { PageProps, onlyString } from "@/utils";
 import { hookstate, useHookstate } from "@hookstate/core";
 import { useRouter } from "next/navigation";
-import { gAuthState, putRefreshToken, popRefreshToken } from "@/auth";
+import { gAuthState, putRefreshToken } from "@/auth";
 
 type LoginState =
   | { type: "loading" | "error" | "redirect" | "login" }

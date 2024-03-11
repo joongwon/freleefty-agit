@@ -77,10 +77,7 @@ where
 /// The number of rows affected
 /// # Errors
 /// If the query fails, an error is returned
-pub async fn delete_comment<'e, E>(
-  con: E,
-  comment_id: i32,
-) -> Result<u64, sqlx::Error>
+pub async fn delete_comment<'e, E>(con: E, comment_id: i32) -> Result<u64, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {

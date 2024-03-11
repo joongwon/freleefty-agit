@@ -10,11 +10,8 @@ pub async fn create_view_log<'e, E>(con: E, article_id: i32) -> Result<(), sqlx:
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-  sqlx::query!(
-    r#"INSERT INTO views (article_id) VALUES ($1)"#,
-    article_id,
-  )
-  .execute(con)
-  .await?;
+  sqlx::query!(r#"INSERT INTO views (article_id) VALUES ($1)"#, article_id,)
+    .execute(con)
+    .await?;
   Ok(())
 }

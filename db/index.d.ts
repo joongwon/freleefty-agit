@@ -22,8 +22,8 @@ export interface Article {
   content: string
   publishedAt: string
   author: Author
-  likesCount: number
   viewsCount: number
+  likesCount: number
   comments: Array<Comment>
   next?: ArticleSummary
   prev?: ArticleSummary
@@ -90,4 +90,7 @@ export class QueryEngine {
   createComment(articleId: number, authorId: string, body: string): Promise<number>
   deleteComment(id: number, userId: string): Promise<MaybeNotFoundForbidden>
   createViewLog(articleId: number): Promise<void>
+  likeArticle(articleId: number, userId: string): Promise<number>
+  unlikeArticle(articleId: number, userId: string): Promise<number>
+  listLikers(articleId: number): Promise<Array<string>>
 }
