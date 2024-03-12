@@ -3,6 +3,7 @@ import * as ArticleList from "@/components/ArticleList";
 import styles from "./page.module.scss";
 import classnames from "classnames/bind";
 
+export const dynamic = "force-dynamic";
 const cx = classnames.bind(styles);
 
 export default async function ListArticles() {

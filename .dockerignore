@@ -1,0 +1,7 @@
+db/node_modules
+db/target
+db/.env
+db/db.*.node
+web/node_modules
+web/.env
+web/.next

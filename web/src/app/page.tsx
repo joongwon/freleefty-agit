@@ -4,6 +4,7 @@ import styles from "./page.module.scss";
 import classnames from "classnames/bind";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
 const cx = classnames.bind(styles);
 
 export default async function Intro() {

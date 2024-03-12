@@ -9,6 +9,8 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1.0.80"
 chrono = "0.4.34"
+env_logger = "0.11.3"
+log = "0.4.21"
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.12.2", default-features = false, features = ["napi4", "tokio_rt", "anyhow"] }
 napi-derive = "2.12.2"

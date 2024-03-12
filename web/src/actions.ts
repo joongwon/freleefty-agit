@@ -14,7 +14,7 @@ export async function tryLogin(codeRaw: string) {
   const code = stringSchema.parse(codeRaw);
 
   // 네이버 access token을 받아오기
-  const client_id = getEnv().NEXT_PUBLIC_NAVER_ID;
+  const client_id = getEnv().NAVER_ID;
   const client_secret = getEnv().NAVER_SECRET;
   const res = await fetch("https://nid.naver.com/oauth2.0/token", {
     method: "POST",

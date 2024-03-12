@@ -27,9 +27,10 @@
 
   &:disabled {
     cursor: not-allowed;
-    background-color: #ddd;
-    color: #aaa;
     border-color: #aaa;
+    &:hover {
+      background-color: $bg-color;
+    }
   }
 }
 

@@ -1,0 +1,25 @@
+services:
+  next:
+    # image: registry.freleefty.org/joongwon/blog-server:latest
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://blog:blog@db/blog
+      REDIS_URL: redis://redis
+    restart: always
+    ports:
+      - ${PORT}:3000
+  db:
+    image: postgres:16.0-alpine
+    environment:
+      POSTGRES_PASSWORD: blog
+      POSTGRES_USER: blog
+      POSTGRES_DB: blog
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: always
+  redis:
+    image: redis:7.2.1-alpine
+    restart: always
+volumes:
+  db_data:

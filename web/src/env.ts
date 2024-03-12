@@ -1,6 +1,5 @@
 const keys = [
-  "NEXT_PUBLIC_HOST",
-  "NEXT_PUBLIC_NAVER_ID",
+  "NAVER_ID",
   "NAVER_SECRET",
   "JWT_SECRET",
   "DATABASE_URL",
