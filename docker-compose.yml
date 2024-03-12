@@ -16,10 +16,8 @@ services:
       POSTGRES_USER: blog
       POSTGRES_DB: blog
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ${DB_DATA}:/var/lib/postgresql/data
     restart: always
   redis:
     image: redis:7.2.1-alpine
     restart: always
-volumes:
-  db_data:
