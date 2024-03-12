@@ -6,6 +6,7 @@ services:
     environment:
       DATABASE_URL: postgres://blog:blog@db/blog
       REDIS_URL: redis://redis
+      PORT: 3000
     restart: always
     ports:
       - ${PORT}:3000
