@@ -2,35 +2,23 @@
 import useSWR from "swr";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { listOrCreateDraft, createDraft, listDrafts } from "@/actions";
+import { createDraft, listDrafts } from "@/actions";
 import { useRouter } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
 import useSWRMutation from "swr/mutation";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
-import { PageProps } from "@/utils";
 
 const cx = classNames.bind(styles);
 
-export default function ListDrafts(p: PageProps) {
+export default function ListDrafts() {
   const authState = useHookstate(gAuthState);
   const swrKey = authState.type.get() === "login" ? "drafts" : null;
   const list = useSWR(
     swrKey,
     () => {
       if (gAuthState.value.type !== "login") throw new Error("Not logged in");
-      if (p.searchParams.noredirect === "true") {
-        return listDrafts(gAuthState.value.token);
-      } else {
-        return listOrCreateDraft(gAuthState.value.token);
-      }
-    },
-    {
-      onSuccess: (data) => {
-        if (!Array.isArray(data)) {
-          router.replace(`/drafts/${data.id}`);
-        }
-      },
+      return listDrafts(gAuthState.value.token);
     },
   );
   const create = useSWRMutation(
