@@ -100,9 +100,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (title !== undefined || content !== undefined) {
-        if (gAuthState.value.type !== "login")
-          return;
-        update.trigger({
+        if (gAuthState.value.type !== "login") return;
+        void update.trigger({
           title: dTitle,
           content: dContent,
           token: gAuthState.value.token,
@@ -169,7 +168,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         type="text"
         value={dTitle}
         onChange={(e) => {
-          setTitle(e.target.value)
+          setTitle(e.target.value);
         }}
         disabled={editDisabled}
         placeholder="(제목 없음)"
@@ -178,7 +177,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         className={cx("content")}
         value={dContent}
         onChange={(e) => {
-          setContent(e.target.value)
+          setContent(e.target.value);
         }}
         disabled={editDisabled}
         placeholder="(빈 일지)"
@@ -258,15 +257,11 @@ export default function EditDraft(p: { params: { draftId: string } }) {
           목록
         </Link>
       </section>
-      {title === undefined && content === undefined && update.data === "Ok" &&
-      <p className={cx("save")}>저장됨</p>
-      }
-      {update.isMutating &&
-      <p className={cx("save")}>저장 중...</p>
-      }
-      {errorMessage &&
-      <p className={cx("error")}>{errorMessage}</p>
-      }
+      {title === undefined && content === undefined && update.data === "Ok" && (
+        <p className={cx("save")}>저장됨</p>
+      )}
+      {update.isMutating && <p className={cx("save")}>저장 중...</p>}
+      {errorMessage && <p className={cx("error")}>{errorMessage}</p>}
     </main>
   );
 }

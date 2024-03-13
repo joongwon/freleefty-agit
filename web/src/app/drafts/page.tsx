@@ -74,9 +74,11 @@ export default function ListDrafts(p: PageProps) {
         </button>
       </header>
       <ArticleList.Container>
-        {list.data.length > 0 ? list.data.map((draft) => (
-          <ArticleList.DraftItem key={draft.id} draft={draft} />
-        )) : (
+        {list.data.length > 0 ? (
+          list.data.map((draft) => (
+            <ArticleList.DraftItem key={draft.id} draft={draft} />
+          ))
+        ) : (
           <p>저장된 초안이 없습니다.</p>
         )}
       </ArticleList.Container>
