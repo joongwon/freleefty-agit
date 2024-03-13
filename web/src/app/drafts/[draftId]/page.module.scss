@@ -36,13 +36,6 @@ main.draft {
     justify-content: flex-end;
     flex-wrap: wrap;
 
-    p.error {
-      @include reset;
-      flex: 1;
-      color: red;
-      min-width: 100%;
-    }
-
     a,
     button {
       @include button;
@@ -56,5 +49,16 @@ main.draft {
     button.delete {
       @include button-red;
     }
+  }
+
+  p.error {
+    @include reset;
+    margin: 0;
+    color: red;
+  }
+  p.save {
+    @include reset;
+    margin: 0;
+    color: green;
   }
 }

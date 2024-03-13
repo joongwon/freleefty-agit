@@ -90,22 +90,29 @@ export default function EditDraft(p: { params: { draftId: string } }) {
       revalidate: false,
       onSuccess: (data) => {
         if (data === "Ok") {
-          router.replace("/drafts");
+          router.replace("/drafts?noredirect=true");
         }
       },
     },
   );
 
-  // ask before leaving
+  // autosave 5 seconds after last change
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (title || content) {
-        e.preventDefault();
+    const timeout = setTimeout(() => {
+      if (title !== undefined || content !== undefined) {
+        if (gAuthState.value.type !== "login")
+          return;
+        update.trigger({
+          title: dTitle,
+          content: dContent,
+          token: gAuthState.value.token,
+        });
       }
+    }, 3000);
+    return () => {
+      clearTimeout(timeout);
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [title, content]);
+  }, [dTitle, dContent, title, content]);
 
   const errorMessage = (() => {
     if (authState.type.value !== "login") return "일지를 쓰려면 로그인하세요";
@@ -161,19 +168,22 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         className={cx("title")}
         type="text"
         value={dTitle}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => {
+          setTitle(e.target.value)
+        }}
         disabled={editDisabled}
         placeholder="(제목 없음)"
       />
       <textarea
         className={cx("content")}
         value={dContent}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => {
+          setContent(e.target.value)
+        }}
         disabled={editDisabled}
         placeholder="(빈 일지)"
       />
       <section className={cx("buttons")}>
-        <p className={cx("error")}>{errorMessage}</p>
         <button
           className={cx("save", { disabled: submitDisabled })}
           title={
@@ -248,6 +258,15 @@ export default function EditDraft(p: { params: { draftId: string } }) {
           목록
         </Link>
       </section>
+      {title === undefined && content === undefined && update.data === "Ok" &&
+      <p className={cx("save")}>저장됨</p>
+      }
+      {update.isMutating &&
+      <p className={cx("save")}>저장 중...</p>
+      }
+      {errorMessage &&
+      <p className={cx("error")}>{errorMessage}</p>
+      }
     </main>
   );
 }

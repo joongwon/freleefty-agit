@@ -178,6 +178,14 @@ export async function listOrCreateDraft(tokenRaw: string) {
   return await db.listOrCreateDraft(userId);
 }
 
+export async function listDrafts(tokenRaw: string) {
+  const token = stringSchema.parse(tokenRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.listDrafts(userId);
+}
+
 export async function getDraft(tokenRaw: string, idRaw: number) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);

@@ -2,24 +2,28 @@
 import useSWR from "swr";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { listOrCreateDraft, createDraft } from "@/actions";
+import { listOrCreateDraft, createDraft, listDrafts } from "@/actions";
 import { useRouter } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
 import useSWRMutation from "swr/mutation";
-import { useEffect } from "react";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
+import { PageProps } from "@/utils";
 
 const cx = classNames.bind(styles);
 
-export default function ListDrafts() {
+export default function ListDrafts(p: PageProps) {
   const authState = useHookstate(gAuthState);
   const swrKey = authState.type.get() === "login" ? "drafts" : null;
   const list = useSWR(
     swrKey,
     () => {
       if (gAuthState.value.type !== "login") throw new Error("Not logged in");
-      return listOrCreateDraft(gAuthState.value.token);
+      if (p.searchParams.noredirect === "true") {
+        return listDrafts(gAuthState.value.token);
+      } else {
+        return listOrCreateDraft(gAuthState.value.token);
+      }
     },
     {
       onSuccess: (data) => {
@@ -37,18 +41,15 @@ export default function ListDrafts() {
     },
     {
       revalidate: false,
+      onSuccess: (data) => {
+        router.push(`/drafts/${data.id}`);
+      },
       onError: () => {
         alert("새 초안을 만드는 중 오류가 발생했습니다.");
       },
     },
   );
   const router = useRouter();
-
-  useEffect(() => {
-    if (create.data) {
-      router.push(`/drafts/${create.data.id}`);
-    }
-  }, [create.data, router]);
 
   if (!swrKey) {
     return <main>일지를 쓰려면 로그인하세요.</main>;
@@ -73,9 +74,11 @@ export default function ListDrafts() {
         </button>
       </header>
       <ArticleList.Container>
-        {list.data.map((draft) => (
+        {list.data.length > 0 ? list.data.map((draft) => (
           <ArticleList.DraftItem key={draft.id} draft={draft} />
-        ))}
+        )) : (
+          <p>저장된 초안이 없습니다.</p>
+        )}
       </ArticleList.Container>
     </main>
   );
