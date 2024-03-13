@@ -11,12 +11,14 @@ FROM base AS db
 WORKDIR /app/db
 # Fake cargo
 RUN cargo init --lib .
-# Build dependencies
+# Install packages
+COPY db/package.json db/yarn.lock ./
+RUN yarn
+# Build cargo dependencies
 COPY db/Cargo* ./
 RUN cargo build --release
 # Build
 COPY db .
-RUN yarn
 RUN yarn build
 
 FROM base AS web
