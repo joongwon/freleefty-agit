@@ -30,6 +30,7 @@ export default function RootLayout(p: { children: ReactNode }) {
           <AuthMenu />
         </Header>
         <NavMenu />
+        <div id="top" style={{ position: "absolute" }} />
         {p.children}
       </body>
       <InitToken />

@@ -19,6 +19,7 @@ body {
   > header {
     z-index: 1;
     grid-area: header;
+    transition: transform 0.5s;
 
     padding: 1rem;
 
@@ -27,6 +28,7 @@ body {
     justify-content: space-between;
 
     /* wrap */
+    min-width: 0;
     flex-wrap: wrap;
     white-space: nowrap;
 
@@ -46,6 +48,18 @@ body {
       @include a-no-underline;
       display: flex;
       color: #666;
+
+      /* handle long names */
+      flex-wrap: wrap;
+      min-width: 0;
+      li {
+        display: flex;
+        min-width: 0;
+        span.name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
 
       /* align items vertically */
       li {

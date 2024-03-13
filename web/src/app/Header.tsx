@@ -14,9 +14,8 @@ export default function Header(p: { children: ReactNode }) {
   }, []);
 
   // translateY value to render
-  const [{ transY, transition }, setStyle] = useState({
+  const [{ transY }, setStyle] = useState({
     transY: 0,
-    transition: false,
   });
 
   // header
@@ -32,30 +31,22 @@ export default function Header(p: { children: ReactNode }) {
     let ticking = false;
     let currentScrollY = window.scrollY;
     const scrollHandler = () => {
-      currentScrollY = window.scrollY;
+      currentScrollY = Math.min(Math.max(window.scrollY, 0), document.documentElement.scrollHeight - window.innerHeight);
       if (ticking) return;
       ticking = true;
       window.requestAnimationFrame(() => {
         // height + spare for shadow
         const headerHeight = (ref.current?.offsetHeight ?? 0) + 5;
 
-        // calculate transY according to scroll
+        // calculate transY according to scroll direction
         const scrollDelta = currentScrollY - lastScrollY.current;
-        setStyle(({ transY }) => {
-          if (scrollDelta < 0) {
-            const next = Math.min(0, transY - scrollDelta);
-            return next < -headerHeight / 2
-              ? { transY: next, transition: false }
-              : { transY: 0, transition: true };
-          } else {
-            const next = Math.max(-headerHeight, transY - scrollDelta);
-            return next > -headerHeight / 2
-              ? { transY: next, transition: false }
-              : { transY: -headerHeight, transition: true };
-          }
-        });
-
-        lastScrollY.current = currentScrollY;
+        if (scrollDelta > 20) {
+          setStyle({ transY: -headerHeight });
+          lastScrollY.current = currentScrollY;
+        } else if (scrollDelta < -20) {
+          setStyle({ transY: 0 });
+          lastScrollY.current = currentScrollY;
+        }
         ticking = false;
       });
     };
@@ -69,9 +60,8 @@ export default function Header(p: { children: ReactNode }) {
   const style = useMemo(
     () => ({
       transform: `translateY(${isMobile ? transY : 0}px)`,
-      transition: isMobile && transition ? "transform 0.3s" : "none",
     }),
-    [isMobile, transY, transition],
+    [isMobile, transY],
   );
   return (
     <header ref={ref} style={style}>
