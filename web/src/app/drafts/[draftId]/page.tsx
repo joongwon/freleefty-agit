@@ -3,7 +3,7 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { getDraft, updateDraft, publishDraft } from "@/actions";
+import { getDraft, updateDraft, publishDraft, deleteDraft } from "@/actions";
 import { parseSafeInt } from "@/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -128,6 +128,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     res.isValidating ||
     title !== undefined ||
     content !== undefined ||
+    res.data?.title === "" ||
     update.isMutating ||
     publish.isMutating;
 
@@ -140,12 +141,14 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         value={dTitle}
         onChange={(e) => setTitle(e.target.value)}
         disabled={editDisabled}
+        placeholder="(제목 없음)"
       />
       <textarea
         className={cx("content")}
         value={dContent}
         onChange={(e) => setContent(e.target.value)}
         disabled={editDisabled}
+        placeholder="(빈 일지)"
       />
       <section className={cx("buttons")}>
         <p className={cx("error")}>{errorMessage}</p>
@@ -172,7 +175,9 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         <button
           className={cx("publish", { disabled: publishDisabled })}
           type="button"
-          title={publishDisabled ? "발행하려면 우선 저장하세요" : "발행하여 공개하기"}
+          title={
+            res.data?.title === "" ? "발행하려면 제목을 입력하세요" :
+          publishDisabled ? "발행하려면 우선 저장하세요" : "발행하여 공개하기"}
           onClick={() => {
             if (publishDisabled) {
               alert("발행하려면 우선 저장하세요");

@@ -8,6 +8,15 @@ main.draft {
   input,
   textarea {
     @include input;
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  textarea {
+    height: 10rem;
+    resize: vertical;
+    line-height: 1.5;
   }
 
   .title {
@@ -25,11 +34,13 @@ main.draft {
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
+    flex-wrap: wrap;
 
     p.error {
       @include reset;
       flex: 1;
       color: red;
+      min-width: 100%;
     }
 
     a,

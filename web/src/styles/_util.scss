@@ -1,5 +1,19 @@
 @use "sass:string";
 
+$matsym: string.unquote(":global(.material-symbols-outlined)");
+
+@mixin mobile {
+  @media (max-width: 768px) {
+    @content;
+  }
+}
+
+@mixin not-mobile {
+  @media (min-width: 769px) {
+    @content;
+  }
+}
+
 /* resets preset styles of p, ul, button, ... */
 @mixin reset {
   margin: 0;
@@ -13,14 +27,22 @@
 /* button styles */
 @mixin button($bg-color: #ffffff, $hover-color: #ddd, $disabled-color: #aaa) {
   @include reset;
-  border: 1px solid #ddd;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
   font-size: 0.8rem;
-  color: #313131;
   padding: 0.3rem 0.6rem;
+
+  color: #313131;
+
+  border: 1px solid #ddd;
   border-radius: 0.25rem;
-  background-color: $bg-color;
   border-color: $hover-color;
+
+  background-color: $bg-color;
   transition: background-color 0.2s ease;
 
   &:hover {
@@ -55,13 +77,5 @@
 @mixin a-no-underline {
   a {
     text-decoration: none;
-  }
-}
-
-$matsym: string.unquote(":global(.material-symbols-outlined)");
-
-@mixin mobile {
-  @media (max-width: 768px) {
-    @content;
   }
 }

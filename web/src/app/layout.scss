@@ -52,8 +52,8 @@ body {
       }
 
       /* separator between menu items */
-      li:not(:last-child)::after {
-        content: "|";
+      li:not(:first-child)::before {
+        content: "·";
         margin: 0 0.5rem;
       }
 
