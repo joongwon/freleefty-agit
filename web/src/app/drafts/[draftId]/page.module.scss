@@ -14,7 +14,7 @@ main.draft {
   }
 
   textarea {
-    height: 10rem;
+    height: 30rem;
     resize: vertical;
     line-height: 1.5;
   }
@@ -60,5 +60,22 @@ main.draft {
     @include reset;
     margin: 0;
     color: green;
+  }
+}
+
+@include mobile {
+  main.draft {
+    height: 100svh;
+    margin: 0;
+    padding: 1rem;
+    box-sizing: border-box;
+
+    textarea {
+      flex: 1;
+    }
+
+    section.buttons {
+      justify-content: flex-start;
+    }
   }
 }

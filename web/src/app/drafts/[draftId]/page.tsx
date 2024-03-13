@@ -162,7 +162,6 @@ export default function EditDraft(p: { params: { draftId: string } }) {
 
   return (
     <main className={cx("draft")}>
-      <h1>일지 쓰기</h1>
       <input
         className={cx("title")}
         type="text"

@@ -17,7 +17,7 @@ export default function NavMenu() {
         }}
       >
         <ul>
-          <li>
+          <li className="top-link">
             <a href="#top">맨 위로</a>
           </li>
           <li>

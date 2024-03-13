@@ -51,7 +51,7 @@ export default function ListDrafts() {
   return (
     <main className={cx("draft-list")}>
       <header>
-        <h1>저장된 초안 목록</h1>
+        <h1>초안 목록</h1>
         <button
           className={cx("new")}
           onClick={() => {
