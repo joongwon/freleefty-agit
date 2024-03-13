@@ -151,7 +151,7 @@ function LikeButton(p: { article: Article }) {
   return (
     <>
       <button
-        className={cx("like", { liked: userInLike })}
+        className={cx("like", { liked: userInLike, disabled: !canClick })}
         title={
           !canClick
             ? "로그인 후 공감할 수 있습니다."
