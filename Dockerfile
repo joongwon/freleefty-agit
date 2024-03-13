@@ -12,7 +12,8 @@ WORKDIR /app/db
 # Fake cargo
 RUN cargo init --lib .
 # Install packages
-COPY db/package.json db/yarn.lock ./
+COPY db/package.json db/yarn.lock db/.yarnrc.yml ./
+COPY db/.yarn ./.yarn
 RUN yarn
 # Build cargo dependencies
 COPY db/Cargo* ./
