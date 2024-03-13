@@ -56,6 +56,10 @@ export interface Draft {
   createdAt: string
   updatedAt: string
 }
+export interface LikeLog {
+  user: Author
+  createdAt: string
+}
 export const enum UserConflict {
   NaverId = 'NaverId',
   Id = 'Id',
@@ -94,5 +98,5 @@ export class QueryEngine {
   createViewLog(articleId: number): Promise<void>
   likeArticle(articleId: number, userId: string): Promise<number>
   unlikeArticle(articleId: number, userId: string): Promise<number>
-  listLikers(articleId: number): Promise<Array<string>>
+  listLikers(articleId: number): Promise<Array<LikeLog>>
 }

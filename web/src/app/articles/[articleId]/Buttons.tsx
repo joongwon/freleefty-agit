@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
+import moment from "moment";
 
 const cx = classnames.bind(styles);
 
@@ -21,9 +22,19 @@ export default function Buttons(p: { article: Article }) {
   if (commentDisabled && isCommentOpen) {
     setIsCommentOpen(false);
   }
+  const likes = useLikes(p.article.id);
 
   return (
     <>
+      {likes.data && <p className={cx("likes")}>
+        {likes.data.map((e, i, arr) => (
+          <span key={e.user.id} title={moment(e.createdAt).fromNow()}>
+            {e.user.name}
+            {i < arr.length - 1 && ", "}
+          </span>
+        ))}
+        님이 이 일지에 공감합니다
+      </p>}
       <section className={cx("buttons")}>
         <button
           onClick={() => { if (commentDisabled ) alert("로그인 후 댓글을 달 수 있습니다"); else setIsCommentOpen(!isCommentOpen)}}
@@ -82,11 +93,15 @@ function CommentForm(p: { articleId: number; afterSubmit: () => void }) {
   );
 }
 
+function useLikes(articleId: number) {
+  return useSWR([articleId, "like"], async ([id]) => listLikers(id));
+}
+
 function LikeButton(p: { article: Article }) {
   const auth = useHookstate(gAuthState);
-  const likes = useSWR([p.article.id, "like"], async ([articleId]) => listLikers(articleId));
+  const likes = useLikes(p.article.id);
   const userId = auth.value.type === "login" ? auth.value.profile.id : null;
-  const userInLike = likes.data?.some((liker) => liker === userId) ?? false;
+  const userInLike = likes.data?.some((e) => e.user.id === userId) ?? false;
   const canClick = auth.value.type === "login" && likes.data !== undefined;
   const toggleLike = useSWRMutation([p.article.id, "like"], async ([articleId], opt: { arg: { like: boolean }}) => {
     if (auth.value.type !== "login") {
@@ -112,17 +127,19 @@ function LikeButton(p: { article: Article }) {
     }
   });
 
-  return <button className={cx("like", {liked: userInLike})}
-    title={!canClick ? "로그인 후 공감할 수 있습니다." : userInLike ? "공감을 취소합니다" : "이 글에 공감합니다"}
-    onClick={() => {
-      if (!canClick) {
-        alert("로그인 후 공감할 수 있습니다.");
-        return;
-      }
-      void toggleLike.trigger({ like: !userInLike });
-    }}>
-    {FAVORITE} {likes.data ? likes.data.length : "…"}
-  </button>;
+  return <>
+    <button className={cx("like", {liked: userInLike})}
+      title={!canClick ? "로그인 후 공감할 수 있습니다." : userInLike ? "공감을 취소합니다" : "이 글에 공감합니다"}
+      onClick={() => {
+        if (!canClick) {
+          alert("로그인 후 공감할 수 있습니다.");
+          return;
+        }
+        void toggleLike.trigger({ like: !userInLike });
+      }}>
+      {FAVORITE} {likes.data?.length}
+    </button>
+  </>
 }
 
 function DeleteButton(p: { article: Article }) {

@@ -353,7 +353,7 @@ impl QueryEngine {
   }
 
   #[napi]
-  pub async fn list_likers(&self, article_id: i32) -> Result<Vec<String>, napi::Error> {
+  pub async fn list_likers(&self, article_id: i32) -> Result<Vec<schema::LikeLog>, napi::Error> {
     debug!("QueryEngine.list_likers");
     list_likers(&self.pool, article_id).await.map_err(err("QueryEngine.list_likers"))
   }

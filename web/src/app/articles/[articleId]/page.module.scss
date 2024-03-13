@@ -41,6 +41,13 @@ main.article {
     word-wrap: break-word;
   }
 
+  /* likes */
+  p.likes {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #999;
+  }
+
   /* buttons section */
   section.buttons {
     @include a-no-underline;
@@ -48,6 +55,7 @@ main.article {
     display: flex;
     gap: 0.5rem;
     margin: 1rem 0;
+    align-items: center;
 
     /* separator */
     hr {

@@ -1,3 +1,5 @@
+use crate::schema::{Author, LikeLog};
+
 /// Mark an article as liked by the user
 /// # Arguments
 /// * `con` - The database connection
@@ -70,15 +72,28 @@ where
 pub async fn list_likers<'e, E>(
   con: E,
   article_id: i32,
-) -> Result<Vec<String>, sqlx::Error>
+) -> Result<Vec<LikeLog>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"SELECT user_id FROM likes WHERE article_id = $1"#,
+    r#"SELECT user_id AS id, name, created_at
+    FROM likes
+    JOIN users ON likes.user_id = users.id
+    WHERE article_id = $1
+    ORDER BY created_at ASC
+    "#,
     article_id
   )
   .fetch_all(con)
   .await
-  .map(|res| res.into_iter().map(|row| row.user_id).collect())
+  .map(|res| res.into_iter().map(|row|
+    LikeLog {
+      user: Author {
+        id: row.id,
+        name: row.name,
+      },
+      created_at: row.created_at.to_string(),
+    }
+  ).collect())
 }

@@ -69,6 +69,12 @@ pub struct Draft {
   pub updated_at: String,
 }
 
+#[napi(object)]
+pub struct LikeLog {
+  pub user: Author,
+  pub created_at: String,
+}
+
 #[napi(string_enum)]
 pub enum UserConflict {
   NaverId,

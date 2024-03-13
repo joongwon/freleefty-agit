@@ -86,7 +86,7 @@ export default async function ViewArticle(p: {
           </ArticleList.Empty>
         )}
       </ArticleList.Container>
-      <SubmitView viewToken={viewToken} />
+      <SubmitView viewToken={viewToken} authorId={article.author.id} />
     </main>
   );
 }
