@@ -2,15 +2,21 @@
 import useSWR from "swr";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { listOrCreateDraft } from "@/actions";
+import { listOrCreateDraft, createDraft } from "@/actions";
 import { useRouter } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
+import useSWRMutation from "swr/mutation";
+import { useEffect } from "react";
+import styles from "./page.module.scss";
+import classNames from "classnames/bind";
+
+const cx = classNames.bind(styles);
 
 export default function ListDrafts() {
   const authState = useHookstate(gAuthState);
-  const shouldFetch = authState.type.get() === "login" ? "yes" : null;
-  const res = useSWR(
-    shouldFetch,
+  const swrKey = authState.type.get() === "login" ? "drafts" : null;
+  const list = useSWR(
+    swrKey,
     () => {
       if (gAuthState.value.type !== "login") throw new Error("Not logged in");
       return listOrCreateDraft(gAuthState.value.token);
@@ -23,22 +29,45 @@ export default function ListDrafts() {
       },
     },
   );
+  const create = useSWRMutation(swrKey, () => {
+    if (gAuthState.value.type !== "login") throw new Error("Not logged in");
+    return createDraft(gAuthState.value.token);
+  }, {
+    revalidate: false,
+    onError: () => {
+      alert("새 초안을 만드는 중 오류가 발생했습니다.");
+    }
+  });
   const router = useRouter();
 
-  if (!shouldFetch) {
+  useEffect(() => {
+    if (create.data) {
+      router.push(`/drafts/${create.data.id}`);
+    }
+  }, [create.data, router]);
+
+  if (!swrKey) {
     return <main>일지를 쓰려면 로그인하세요.</main>;
   }
-  if (res.error) {
+  if (list.error) {
     return <main>저장된 초안 목록을 불러오는 중 오류가 발생했습니다.</main>;
   }
-  if (!res.data || !Array.isArray(res.data)) {
+  if (!list.data || !Array.isArray(list.data)) {
     return <main>저장된 초안 목록을 불러오는 중...</main>;
   }
   return (
-    <main>
-      <h1>저장된 초안 목록</h1>
+    <main className={cx("draft-list")}>
+      <header>
+        <h1>저장된 초안 목록</h1>
+        <button
+          className={cx("new")}
+          onClick={() => {
+            void create.trigger();
+          }}
+        >새 초안</button>
+      </header>
       <ArticleList.Container>
-        {res.data.map((draft) => (
+        {list.data.map((draft) => (
           <ArticleList.DraftItem key={draft.id} draft={draft} />
         ))}
       </ArticleList.Container>

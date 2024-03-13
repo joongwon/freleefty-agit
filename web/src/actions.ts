@@ -213,6 +213,14 @@ export async function deleteDraft(tokenRaw: string, idRaw: number) {
   return await db.deleteDraft(id, userId);
 }
 
+export async function createDraft(tokenRaw: string) {
+  const token = stringSchema.parse(tokenRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.createDraft(userId);
+}
+
 export async function deleteArticle(tokenRaw: string, idRaw: number) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);

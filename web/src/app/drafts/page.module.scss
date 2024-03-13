@@ -1,0 +1,18 @@
+@use "@/styles/util" as *;
+
+main.draft-list {
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+
+    h1 {
+      margin: 0;
+    }
+
+    button.new {
+      @include button;
+    }
+  }
+}

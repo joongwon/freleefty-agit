@@ -58,7 +58,7 @@ main.article {
     /* buttons */
     button,
     a {
-      @include button;
+      @include button($disabled-color: initial);
 
       /* text and icon alignment */
       display: flex;

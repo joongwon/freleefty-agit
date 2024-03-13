@@ -150,10 +150,13 @@ export default function EditDraft(p: { params: { draftId: string } }) {
       <section className={cx("buttons")}>
         <p className={cx("error")}>{errorMessage}</p>
         <button
-          className={cx("save")}
-          disabled={submitDisabled}
-          title={submitDisabled ? "변경사항이 없습니다" : ""}
+          className={cx("save", { disabled: submitDisabled })}
+          title={submitDisabled ? "저장할 변경사항이 없습니다" : "초안 임시 저장"}
           onClick={() => {
+            if (submitDisabled) {
+              alert("저장할 변경사항이 없습니다");
+              return;
+            }
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in onSubmit");
             publish.reset();
@@ -167,20 +170,25 @@ export default function EditDraft(p: { params: { draftId: string } }) {
           저장
         </button>
         <button
-          className={cx("publish")}
+          className={cx("publish", { disabled: publishDisabled })}
           type="button"
-          title={publishDisabled ? "우선 저장하세요" : ""}
+          title={publishDisabled ? "발행하려면 우선 저장하세요" : "발행하여 공개하기"}
           onClick={() => {
+            if (publishDisabled) {
+              alert("발행하려면 우선 저장하세요");
+              return;
+            }
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in publish onClick");
-            update.reset();
-            void publish.trigger({ token: gAuthState.value.token });
+            if (confirm("발행하시겠습니까? 발행 이후에는 수정할 수 없습니다.")) {
+              publish.reset();
+              void publish.trigger({ token: gAuthState.value.token });
+            }
           }}
-          disabled={publishDisabled}
         >
           발행
         </button>
-        <Link href="/drafts">목록</Link>
+        <Link href="/drafts" title="초안 목록으로 돌아가기">목록</Link>
       </section>
     </main>
   );

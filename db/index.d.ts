@@ -81,6 +81,8 @@ export class QueryEngine {
   getUserByNaverId(naverId: string): Promise<User | null>
   getUserById(userId: string): Promise<User | null>
   createUser(naverId: string, userId: string, userName: string): Promise<UserConflict | null>
+  listDrafts(userId: string): Promise<Array<DraftSummary>>
+  createDraft(userId: string): Promise<DraftSummary>
   listOrCreateDraft(userId: string): Promise<DraftSummary | Array<DraftSummary>>
   getDraft(id: number, authorId: string): Promise<Draft | null>
   updateDraft(id: number, authorId: string, title: string, body: string): Promise<MaybeNotFound>

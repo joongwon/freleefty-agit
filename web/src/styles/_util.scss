@@ -11,7 +11,7 @@
 }
 
 /* button styles */
-@mixin button($bg-color: #ffffff, $hover-color: #ddd) {
+@mixin button($bg-color: #ffffff, $hover-color: #ddd, $disabled-color: #aaa) {
   @include reset;
   border: 1px solid #ddd;
   cursor: pointer;
@@ -20,17 +20,17 @@
   padding: 0.3rem 0.6rem;
   border-radius: 0.25rem;
   background-color: $bg-color;
+  border-color: $hover-color;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: $hover-color;
   }
 
-  &:disabled {
-    cursor: not-allowed;
-    border-color: #aaa;
-    &:hover {
-      background-color: $bg-color;
-    }
+  &.disabled {
+    cursor: default;
+    background-color: $bg-color;
+    color: $disabled-color;
   }
 }
 

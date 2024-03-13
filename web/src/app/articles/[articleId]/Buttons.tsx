@@ -26,14 +26,15 @@ export default function Buttons(p: { article: Article }) {
     <>
       <section className={cx("buttons")}>
         <button
-          onClick={() => setIsCommentOpen(!isCommentOpen)}
-          disabled={commentDisabled}
+          onClick={() => { if (commentDisabled ) alert("로그인 후 댓글을 달 수 있습니다"); else setIsCommentOpen(!isCommentOpen)}}
+          className={cx({ disabled: commentDisabled })}
+          title={commentDisabled ? "로그인 후 댓글을 달 수 있습니다" : "댓글 달기"}
         >
           {COMMENT} {p.article.comments.length}
         </button>
         <LikeButton article={p.article} />
         <hr />
-        <Link href="/articles">목록</Link>
+        <Link href="/articles" title="모든 일지 목록">목록</Link>
         <DeleteButton article={p.article} />
       </section>
       {isCommentOpen && (
@@ -98,21 +99,26 @@ function LikeButton(p: { article: Article }) {
   }, {
     onError: (e) => {
       console.error(e);
-      alert("추천 처리 중 오류가 발생했습니다.");
+      alert("공감 처리 중 오류가 발생했습니다.");
     },
     onSuccess: (data) => {
       if (data.res === 0) {
         if (data.req === true) {
-          alert("이미 추천한 일지입니다.");
+          alert("이미 공감한 일지입니다.");
         } else {
-          alert("아직 추천하지 않은 일지입니다.");
+          alert("아직 공감하지 않은 일지입니다.");
         }
       }
     }
   });
 
-  return <button className={cx("like", {liked: userInLike})} disabled={!canClick}
+  return <button className={cx("like", {liked: userInLike})}
+    title={!canClick ? "로그인 후 공감할 수 있습니다." : userInLike ? "공감을 취소합니다" : "이 글에 공감합니다"}
     onClick={() => {
+      if (!canClick) {
+        alert("로그인 후 공감할 수 있습니다.");
+        return;
+      }
       void toggleLike.trigger({ like: !userInLike });
     }}>
     {FAVORITE} {likes.data ? likes.data.length : "…"}
@@ -155,11 +161,6 @@ function DeleteButton(p: { article: Article }) {
     <button
       className={cx("delete")}
       onClick={() => {
-        if (auth.value.type !== "login") {
-          throw new Error(
-            "non-login state detected in delete article button",
-          );
-        }
         void handleDeleteArticle();
       }}
     >

@@ -125,6 +125,18 @@ impl QueryEngine {
   }
 
   #[napi]
+  pub async fn list_drafts(&self, user_id: String) -> Result<Vec<schema::DraftSummary>, napi::Error> {
+    debug!("QueryEngine.list_drafts");
+    list_drafts(&self.pool, &user_id).await.map_err(err("QueryEngine.list_drafts"))
+  }
+
+  #[napi]
+  pub async fn create_draft(&self, user_id: String) -> Result<schema::DraftSummary, napi::Error> {
+    debug!("QueryEngine.create_draft");
+    create_draft(&self.pool, &user_id).await.map_err(err("QueryEngine.create_draft"))
+  }
+
+  #[napi]
   pub async fn list_or_create_draft(
     &self,
     user_id: String,
