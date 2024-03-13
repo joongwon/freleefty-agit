@@ -64,6 +64,10 @@ $matsym: string.unquote(":global(.material-symbols-outlined)");
   @include button(#c0ffbd, #a8ff9e);
 }
 
+@mixin button-red {
+  @include button(#ff9e9e, #ff7e7e);
+}
+
 /* input styles */
 @mixin input {
   @include reset;

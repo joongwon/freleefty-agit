@@ -80,6 +80,22 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     },
   );
 
+  // delete draft
+  const del = useSWRMutation(
+    swrKey,
+    ([draftId], opt: { arg: { token: string } }) =>
+      deleteDraft(opt.arg.token, draftId),
+    {
+      // prevent not found error before navigating
+      revalidate: false,
+      onSuccess: (data) => {
+        if (data === "Ok") {
+          router.replace("/drafts");
+        }
+      },
+    },
+  );
+
   // ask before leaving
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -100,6 +116,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     if (update.error) return "일지를 저장하는 중 오류가 발생했습니다";
     if (publish.data === "Bad") return "발행하려면 제목을 입력하세요";
     if (publish.error) return "일지를 발행하는 중 오류가 발생했습니다";
+    if (del.data === "NotFound") return "이미 삭제된 일지입니다";
+    if (del.error) return "일지를 삭제하는 중 오류가 발생했습니다";
     return null;
   })();
 
@@ -116,7 +134,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     res.isValidating ||
     (title === undefined && content === undefined) ||
     update.isMutating ||
-    publish.isMutating;
+    publish.isMutating ||
+    del.isMutating;
 
   /*
    * cannot publish:
@@ -130,7 +149,10 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     content !== undefined ||
     res.data?.title === "" ||
     update.isMutating ||
-    publish.isMutating;
+    publish.isMutating ||
+    del.isMutating;
+
+  const delDisabled = del.isMutating || publish.isMutating || update.isMutating;
 
   return (
     <main className={cx("draft")}>
@@ -165,6 +187,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in onSubmit");
             publish.reset();
+            del.reset();
             void update.trigger({
               title: dTitle,
               content: dContent,
@@ -182,7 +205,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
               ? "발행하려면 제목을 입력하세요"
               : publishDisabled
                 ? "발행하려면 우선 저장하세요"
-                : "발행하여 공개하기"
+                : "발행하여 공개"
           }
           onClick={() => {
             if (publishDisabled) {
@@ -194,12 +217,32 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             if (
               confirm("발행하시겠습니까? 발행 이후에는 수정할 수 없습니다.")
             ) {
-              publish.reset();
+              update.reset();
+              del.reset();
               void publish.trigger({ token: gAuthState.value.token });
             }
           }}
         >
           발행
+        </button>
+        <button
+          className={cx("delete")}
+          type="button"
+          title="초안 삭제"
+          onClick={() => {
+            if (gAuthState.value.type !== "login")
+              throw new Error("non-login state found in delete onClick");
+            if (delDisabled) {
+              return;
+            }
+            if (confirm("삭제하시겠습니까?")) {
+              update.reset();
+              publish.reset();
+              void del.trigger({ token: gAuthState.value.token });
+            }
+          }}
+        >
+          삭제
         </button>
         <Link href="/drafts" title="초안 목록으로 돌아가기">
           목록

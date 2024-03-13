@@ -156,8 +156,8 @@ function LikeButton(p: { article: Article }) {
           !canClick
             ? "로그인 후 공감할 수 있습니다."
             : userInLike
-              ? "공감을 취소합니다"
-              : "이 글에 공감합니다"
+              ? "공감 취소"
+              : "공감"
         }
         onClick={() => {
           if (!canClick) {
@@ -208,6 +208,7 @@ function DeleteButton(p: { article: Article }) {
   return (
     canDeleteArticle && (
       <button
+        title="삭제"
         className={cx("delete")}
         onClick={() => {
           void handleDeleteArticle();

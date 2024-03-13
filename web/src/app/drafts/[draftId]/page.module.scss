@@ -53,5 +53,8 @@ main.draft {
     button.publish {
       @include button-blue;
     }
+    button.delete {
+      @include button-red;
+    }
   }
 }

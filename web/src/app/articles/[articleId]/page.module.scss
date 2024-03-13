@@ -146,8 +146,8 @@ main.article {
     }
 
     /* delete button */
-    button.delete:hover {
-      background-color: #ff8484;
+    button.delete {
+      @include button-red;
     }
   }
 
