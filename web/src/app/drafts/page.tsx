@@ -29,15 +29,19 @@ export default function ListDrafts() {
       },
     },
   );
-  const create = useSWRMutation(swrKey, () => {
-    if (gAuthState.value.type !== "login") throw new Error("Not logged in");
-    return createDraft(gAuthState.value.token);
-  }, {
-    revalidate: false,
-    onError: () => {
-      alert("새 초안을 만드는 중 오류가 발생했습니다.");
-    }
-  });
+  const create = useSWRMutation(
+    swrKey,
+    () => {
+      if (gAuthState.value.type !== "login") throw new Error("Not logged in");
+      return createDraft(gAuthState.value.token);
+    },
+    {
+      revalidate: false,
+      onError: () => {
+        alert("새 초안을 만드는 중 오류가 발생했습니다.");
+      },
+    },
+  );
   const router = useRouter();
 
   useEffect(() => {
@@ -64,7 +68,9 @@ export default function ListDrafts() {
           onClick={() => {
             void create.trigger();
           }}
-        >새 초안</button>
+        >
+          새 초안
+        </button>
       </header>
       <ArticleList.Container>
         {list.data.map((draft) => (

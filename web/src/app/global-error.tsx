@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   description: "오른손도 자주 씁니다",
 };
 
-export default function RootLayout(p: { error: Error & { digest?: string }; reset: () => void }) {
+export default function RootLayout(p: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   return (
     <html lang="ko">
       <head>

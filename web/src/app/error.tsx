@@ -1,5 +1,8 @@
 "use client";
-export default function Error(p: { error: Error & { digest?: string }; reset: () => void }) {
+export default function Error(p: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   return (
     <main>
       <h1>알 수 없는 오류!</h1>

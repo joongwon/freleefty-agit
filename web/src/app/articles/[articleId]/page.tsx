@@ -10,6 +10,7 @@ import Buttons from "./Buttons";
 import DeleteCommentButton from "./DeleteCommentButton";
 import { randomUUID } from "crypto";
 import SubmitView from "./SubmitView";
+import * as Viewer from "./Viewer";
 
 const cx = classnames.bind(styles);
 
@@ -48,11 +49,12 @@ export default async function ViewArticle(p: {
           {FAVORITE} {article.likesCount}
         </p>
       </header>
-      <article>
-        {article.content.split("\n").map((line, i) => (
-          <p key={i}>{line}</p>
-        ))}
-      </article>
+      <Viewer.OptionProvider content={article.content}>
+        <article>
+          <Viewer.Options />
+          <Viewer.Content />
+        </article>
+      </Viewer.OptionProvider>
       <Buttons article={article} />
       <section className={cx("comments")}>
         {article.comments.length === 0 && (

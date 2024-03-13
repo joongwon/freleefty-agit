@@ -17,6 +17,7 @@ body {
   margin: 0 auto 5rem;
 
   > header {
+    z-index: 1;
     grid-area: header;
 
     padding: 1rem;

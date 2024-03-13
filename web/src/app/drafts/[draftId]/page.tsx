@@ -154,7 +154,9 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         <p className={cx("error")}>{errorMessage}</p>
         <button
           className={cx("save", { disabled: submitDisabled })}
-          title={submitDisabled ? "저장할 변경사항이 없습니다" : "초안 임시 저장"}
+          title={
+            submitDisabled ? "저장할 변경사항이 없습니다" : "초안 임시 저장"
+          }
           onClick={() => {
             if (submitDisabled) {
               alert("저장할 변경사항이 없습니다");
@@ -176,8 +178,12 @@ export default function EditDraft(p: { params: { draftId: string } }) {
           className={cx("publish", { disabled: publishDisabled })}
           type="button"
           title={
-            res.data?.title === "" ? "발행하려면 제목을 입력하세요" :
-          publishDisabled ? "발행하려면 우선 저장하세요" : "발행하여 공개하기"}
+            res.data?.title === ""
+              ? "발행하려면 제목을 입력하세요"
+              : publishDisabled
+                ? "발행하려면 우선 저장하세요"
+                : "발행하여 공개하기"
+          }
           onClick={() => {
             if (publishDisabled) {
               alert("발행하려면 우선 저장하세요");
@@ -185,7 +191,9 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             }
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in publish onClick");
-            if (confirm("발행하시겠습니까? 발행 이후에는 수정할 수 없습니다.")) {
+            if (
+              confirm("발행하시겠습니까? 발행 이후에는 수정할 수 없습니다.")
+            ) {
               publish.reset();
               void publish.trigger({ token: gAuthState.value.token });
             }
@@ -193,7 +201,9 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         >
           발행
         </button>
-        <Link href="/drafts" title="초안 목록으로 돌아가기">목록</Link>
+        <Link href="/drafts" title="초안 목록으로 돌아가기">
+          목록
+        </Link>
       </section>
     </main>
   );
