@@ -27,12 +27,3 @@ export default function Time(p: { children: string }) {
     </Moment>
   );
 }
-
-// passing suppressHydrationWarning to Moment fails type checking
-declare global {
-  namespace JSX {
-    interface IntrinsicAttributes {
-      suppressHydrationWarning?: boolean;
-    }
-  }
-}
