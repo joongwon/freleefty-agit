@@ -20,8 +20,19 @@ export default function Time(p: { children: string }) {
       titleFormat="YYYY년 M월 D일 HH:mm:ss"
       local
       locale="ko"
+      // time may not match due to time zone differences
+      suppressHydrationWarning
     >
       {p.children}
     </Moment>
   );
+}
+
+// passing suppressHydrationWarning to Moment fails type checking
+declare global {
+  namespace JSX {
+    interface IntrinsicAttributes {
+      suppressHydrationWarning?: boolean;
+    }
+  }
 }
