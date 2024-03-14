@@ -9,7 +9,10 @@ import NavMenu from "./NavMenu";
 import Header from "./Header";
 
 export const metadata: Metadata = {
-  title: "왼손잡이해방연대 아지트",
+  title: {
+    template: "%s | 왼손잡이해방연대 아지트",
+    default: "왼손잡이해방연대 아지트",
+  },
   description: "오른손도 자주 씁니다",
 };
 

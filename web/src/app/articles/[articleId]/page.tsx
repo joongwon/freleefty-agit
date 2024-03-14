@@ -11,8 +11,34 @@ import DeleteCommentButton from "./DeleteCommentButton";
 import { randomUUID } from "crypto";
 import SubmitView from "./SubmitView";
 import * as Viewer from "./Viewer";
+import { cache } from "react";
 
 const cx = classnames.bind(styles);
+
+const getArticle = cache(async (articleId: number) => {
+  const db = getDB();
+  return await db.getArticle(articleId);
+});
+
+export async function generateMetadata(p: {
+  params: { articleId: string };
+}) {
+  const articleId = parseSafeInt(p.params.articleId);
+  if (articleId === null) {
+    return notFound();
+  }
+
+  const article = await getArticle(articleId);
+
+  if (article === null) {
+    return notFound();
+  }
+
+  return {
+    title: article.title,
+    description: article.content.slice(0, 100),
+  };
+}
 
 export default async function ViewArticle(p: {
   params: { articleId: string };
@@ -22,8 +48,7 @@ export default async function ViewArticle(p: {
     return notFound();
   }
 
-  const db = getDB();
-  const article = await db.getArticle(articleId);
+  const article = await getArticle(articleId);
 
   if (article === null) {
     return notFound();
