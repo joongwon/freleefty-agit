@@ -20,9 +20,7 @@ const getArticle = cache(async (articleId: number) => {
   return await db.getArticle(articleId);
 });
 
-export async function generateMetadata(p: {
-  params: { articleId: string };
-}) {
+export async function generateMetadata(p: { params: { articleId: string } }) {
   const articleId = parseSafeInt(p.params.articleId);
   if (articleId === null) {
     return notFound();

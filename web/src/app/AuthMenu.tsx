@@ -55,7 +55,10 @@ export default function AuthMenu() {
     case "login":
       return (
         <menu>
-          <li><span className="name">{authState.value.profile.name}</span><span>님 환영합니다!</span></li>
+          <li>
+            <span className="name">{authState.value.profile.name}</span>
+            <span>님 환영합니다!</span>
+          </li>
           <li>
             <Link href="/drafts">일지 쓰기</Link>
           </li>

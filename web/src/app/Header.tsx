@@ -31,7 +31,10 @@ export default function Header(p: { children: ReactNode }) {
     let ticking = false;
     let currentScrollY = window.scrollY;
     const scrollHandler = () => {
-      currentScrollY = Math.min(Math.max(window.scrollY, 0), document.documentElement.scrollHeight - window.innerHeight);
+      currentScrollY = Math.min(
+        Math.max(window.scrollY, 0),
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
       if (ticking) return;
       ticking = true;
       window.requestAnimationFrame(() => {

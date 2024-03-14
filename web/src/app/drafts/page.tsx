@@ -14,13 +14,10 @@ const cx = classNames.bind(styles);
 export default function ListDrafts() {
   const authState = useHookstate(gAuthState);
   const swrKey = authState.type.get() === "login" ? "drafts" : null;
-  const list = useSWR(
-    swrKey,
-    () => {
-      if (gAuthState.value.type !== "login") throw new Error("Not logged in");
-      return listDrafts(gAuthState.value.token);
-    },
-  );
+  const list = useSWR(swrKey, () => {
+    if (gAuthState.value.type !== "login") throw new Error("Not logged in");
+    return listDrafts(gAuthState.value.token);
+  });
   const create = useSWRMutation(
     swrKey,
     () => {
