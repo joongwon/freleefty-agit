@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MENU, CLOSE } from "@/components/icons";
+import { MENU, CLOSE, GOTO_TOP } from "@/components/icons";
 
 export default function NavMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,10 +16,8 @@ export default function NavMenu() {
           }
         }}
       >
+        <div className="overlay" onClick={() => setIsOpen(false)}></div>
         <ul>
-          <li className="top-link">
-            <a href="#top">맨 위로</a>
-          </li>
           <li>
             <Link href="/">소개</Link>
           </li>
@@ -35,6 +33,12 @@ export default function NavMenu() {
           }}
         >
           {isOpen ? CLOSE : MENU}
+        </button>
+        <button
+          className="top-link"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          {GOTO_TOP}
         </button>
       </nav>
     </>

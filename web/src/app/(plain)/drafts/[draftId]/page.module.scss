@@ -3,7 +3,7 @@
 main.draft {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 
   input,
   textarea {
@@ -11,12 +11,15 @@ main.draft {
     &::placeholder {
       color: #999;
     }
+    &:focus {
+      outline: none;
+      background: #f0f0f0;
+    }
   }
 
   textarea {
-    height: 30rem;
-    resize: vertical;
     line-height: 1.5;
+    resize: none;
   }
 
   .title {
@@ -65,17 +68,5 @@ main.draft {
 
 @include mobile {
   main.draft {
-    height: 100svh;
-    margin: 0;
-    padding: 1rem;
-    box-sizing: border-box;
-
-    textarea {
-      flex: 1;
-    }
-
-    section.buttons {
-      justify-content: flex-start;
-    }
   }
 }

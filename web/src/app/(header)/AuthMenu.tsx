@@ -1,6 +1,6 @@
 "use client";
 
-import { logout } from "@/actions";
+import { logout, devLogin } from "@/actions";
 import { useRouter } from "next/navigation";
 import { useHookstate } from "@hookstate/core";
 import { gAuthState, popRefreshToken } from "@/auth";
@@ -50,6 +50,23 @@ export default function AuthMenu() {
               로그인
             </a>
           </li>
+          {process.env.NODE_ENV === "development" && (
+            <li>
+              <button
+                onClick={() => {
+                  void devLogin().then((r) =>
+                    gAuthState.set({
+                      type: "login",
+                      token: r.accessToken,
+                      profile: r.profile,
+                    }),
+                  );
+                }}
+              >
+                개발모드 로그인
+              </button>
+            </li>
+          )}
         </menu>
       );
     case "login":

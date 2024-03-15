@@ -14,7 +14,7 @@ body {
   grid-gap: 1rem;
 
   max-width: 60rem;
-  margin: 0 auto;
+  margin: 0 auto 10rem;
 
   > header {
     z-index: 1;
@@ -103,7 +103,8 @@ body {
     }
 
     /* hide open button */
-    button.open-menu {
+    button.open-menu,
+    button.top-link {
       display: none;
     }
   }
@@ -112,12 +113,6 @@ body {
     grid-area: main;
     min-width: 0;
     margin: 1rem;
-  }
-}
-
-@include not-mobile {
-  body > nav li.top-link {
-    display: none;
   }
 }
 
@@ -136,38 +131,103 @@ body {
     }
 
     > nav {
+      background: transparent;
+      box-shadow: none;
+
       position: fixed;
       bottom: 0;
       right: 0;
+
+      padding: 0;
       margin: 2rem;
-      border-radius: 1.5rem;
-      font-size: 1.5rem;
+      font-size: 1.2rem;
 
       z-index: 1;
 
       li {
-        margin: 0.5rem;
+        margin: 0.5rem 0;
+        line-height: 1.5;
+        background-color: white;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
       }
 
-      &.closed {
-        width: 3rem;
-        height: 3rem;
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: -1;
 
+        transition: opacity 0.5s;
+      }
+
+      ul {
+        position: absolute;
+        white-space: nowrap;
+        right: 0;
+        bottom: 100%;
+        margin: 1rem 0;
+
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+
+        transition:
+          transform 0.5s,
+          opacity 0.5s;
+      }
+
+      &.open {
         ul {
-          display: none;
+          transform: translateY(0);
+          opacity: 1;
+        }
+
+        .overlay {
+          opacity: 1;
         }
       }
 
-      button.open-menu {
+      &.closed {
+        ul {
+          transform: translateY(20%);
+          opacity: 0;
+          animation: disappear 0.5s forwards;
+        }
+        .overlay {
+          opacity: 0;
+          animation: disappear 0.5s forwards;
+        }
+      }
+
+      button.open-menu,
+      button.top-link {
         @include reset;
         display: flex;
         align-items: center;
         justify-content: center;
+
+        border: 1px solid #ccc;
+        color: #666;
+        background-color: white;
+
+        border-radius: 50%;
+        width: 3rem;
+        height: 3rem;
+
+        margin: 0.5rem 0;
       }
     }
+  }
+}
+
+@keyframes disappear {
+  100% {
+  }
+  to {
+    visibility: hidden;
   }
 }

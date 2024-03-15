@@ -58,10 +58,10 @@ export default function Buttons(p: { article: Article }) {
         </button>
         <LikeButton article={p.article} />
         <hr />
+        <DeleteButton article={p.article} />
         <Link href="/articles" title="모든 일지 목록">
           목록
         </Link>
-        <DeleteButton article={p.article} />
       </section>
       {isCommentOpen && (
         <CommentForm

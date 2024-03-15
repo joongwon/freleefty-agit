@@ -325,3 +325,10 @@ export async function listLikers(articleIdRaw: number) {
   const db = getDB();
   return await db.listLikers(articleId);
 }
+
+export async function devLogin() {
+  if (process.env.NODE_ENV !== "development") {
+    throw new Error("This function is only available in development mode");
+  }
+  return await login("test");
+}

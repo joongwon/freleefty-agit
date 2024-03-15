@@ -10,16 +10,15 @@ import Link from "next/link";
 import classNames from "classnames/bind";
 import styles from "./page.module.scss";
 import { useRouter } from "next/navigation";
+import TextareaAutosize from "react-textarea-autosize";
+import { useRef } from "react";
+import getCaretCoordinates from "textarea-caret";
 
 const cx = classNames.bind(styles);
 
 export default function EditDraft(p: { params: { draftId: string } }) {
   const draftId = parseSafeInt(p.params.draftId);
   const authState = useHookstate(gAuthState);
-
-  // title and content; undefined if not changed
-  const [title, setTitle] = useState<string>();
-  const [content, setContent] = useState<string>();
 
   // key for draft SWR
   const swrKey =
@@ -28,28 +27,22 @@ export default function EditDraft(p: { params: { draftId: string } }) {
       : null;
 
   // fetch draft
-  const res = useSWR(
-    swrKey,
-    ([draftId]) => {
-      if (gAuthState.value.type !== "login")
-        throw new Error("non-login state found in useSWR([draftId, 'draft'])");
-      return getDraft(gAuthState.value.token, draftId);
-    },
-    {
-      onSuccess: (data) => {
-        if (data) {
-          setTitle((title) => (data.title !== title ? title : undefined));
-          setContent((content) =>
-            data.content !== content ? content : undefined,
-          );
-        }
-      },
-    },
-  );
+  const res = useSWR(swrKey, ([draftId]) => {
+    if (gAuthState.value.type !== "login")
+      throw new Error("non-login state found in useSWR([draftId, 'draft'])");
+    return getDraft(gAuthState.value.token, draftId);
+  });
 
-  // displayed title and content
-  const dTitle = title ?? res.data?.title ?? "";
-  const dContent = content ?? res.data?.content ?? "";
+  // title and content; undefined before loaded
+  const [sTitle, setTitle] = useState<string>();
+  const [sContent, setContent] = useState<string>();
+
+  if (res.data && (sTitle === undefined || sContent === undefined)) {
+    setTitle(res.data.title);
+    setContent(res.data.content);
+  }
+  const title = sTitle ?? res.data?.title ?? "";
+  const content = sContent ?? res.data?.content ?? "";
 
   // update draft
   const update = useSWRMutation(
@@ -90,55 +83,60 @@ export default function EditDraft(p: { params: { draftId: string } }) {
       revalidate: false,
       onSuccess: (data) => {
         if (data === "Ok") {
-          router.replace("/drafts?noredirect=true");
+          router.replace("/drafts");
         }
       },
     },
   );
 
-  // autosave 5 seconds after last change
+  // autosave 3 seconds after last change
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (title !== undefined || content !== undefined) {
+    if (
+      res.data &&
+      (title !== res.data.title || content !== res.data.content)
+    ) {
+      const timeout = setTimeout(() => {
         if (gAuthState.value.type !== "login") return;
         void update.trigger({
-          title: dTitle,
-          content: dContent,
+          title: title,
+          content: content,
           token: gAuthState.value.token,
         });
-      }
-    }, 3000);
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [dTitle, dContent, title, content]);
+      }, 3000);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [title, content]);
 
   const errorMessage = (() => {
     if (authState.type.value !== "login") return "일지를 쓰려면 로그인하세요";
     if (draftId === null || res.data === null || update.data === "NotFound")
-      return "일지를 찾을 수 없습니다";
+      return "초안을 찾을 수 없습니다";
     if (res.isLoading) return "저장된 일지를 불러오는 중...";
-    if (res.error) return "일지를 불러오는 중 오류가 발생했습니다";
-    if (update.error) return "일지를 저장하는 중 오류가 발생했습니다";
+    if (res.error) return "초안을 불러오는 중 오류가 발생했습니다";
+    if (update.error) return "초안을 저장하는 중 오류가 발생했습니다";
     if (publish.data === "Bad") return "발행하려면 제목을 입력하세요";
     if (publish.error) return "일지를 발행하는 중 오류가 발생했습니다";
-    if (del.data === "NotFound") return "이미 삭제된 일지입니다";
-    if (del.error) return "일지를 삭제하는 중 오류가 발생했습니다";
+    if (del.data === "NotFound") return "이미 삭제된 초안입니다";
+    if (del.error) return "초안을 삭제하는 중 오류가 발생했습니다";
     return null;
   })();
 
-  /* cannot edit before loaded */
-  const editDisabled = res.data === null;
+  /* cannot edit before loaded (undefined) or not found (null) */
+  const editDisabled = !res.data;
 
   /*
    * cannot submit:
    * - before loaded or during validation
+   * - not found
    * - not changed
    * - during submission or publishing
    */
   const submitDisabled =
     res.isValidating ||
-    (title === undefined && content === undefined) ||
+    res.data === null ||
+    (title === res.data?.title && content === res.data?.content) ||
     update.isMutating ||
     publish.isMutating ||
     del.isMutating;
@@ -146,40 +144,66 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   /*
    * cannot publish:
    * - before loaded or during validation
+   * - not found
    * - changed
    * - during submission or publishing
    */
   const publishDisabled =
     res.isValidating ||
-    title !== undefined ||
-    content !== undefined ||
+    res.data === null ||
+    title !== res.data?.title ||
+    content !== res.data?.content ||
     res.data?.title === "" ||
     update.isMutating ||
     publish.isMutating ||
     del.isMutating;
 
-  const delDisabled = del.isMutating || publish.isMutating || update.isMutating;
+  const delDisabled =
+    res.data === null ||
+    del.isMutating ||
+    publish.isMutating ||
+    update.isMutating;
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   return (
     <main className={cx("draft")}>
       <input
         className={cx("title")}
         type="text"
-        value={dTitle}
+        value={title}
         onChange={(e) => {
           setTitle(e.target.value);
         }}
         disabled={editDisabled}
         placeholder="(제목 없음)"
       />
-      <textarea
+      <TextareaAutosize
         className={cx("content")}
-        value={dContent}
+        value={content}
         onChange={(e) => {
           setContent(e.target.value);
         }}
         disabled={editDisabled}
         placeholder="(빈 일지)"
+        minRows={10}
+        onHeightChange={() => {
+          if (!textareaRef.current || !window.visualViewport) return;
+          const textareaTop = textareaRef.current.getBoundingClientRect().top;
+          const caretTop =
+            getCaretCoordinates(
+              textareaRef.current,
+              textareaRef.current.selectionStart,
+            ).top + textareaTop;
+          const viewportHeight = window.visualViewport.height;
+          const scrollY = caretTop - viewportHeight / 2;
+          if (scrollY < 0) return;
+          window.scrollTo({
+            top: window.scrollY + scrollY,
+            behavior: "smooth",
+          });
+        }}
+        ref={textareaRef}
       />
       <section className={cx("buttons")}>
         <button
@@ -197,8 +221,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             publish.reset();
             del.reset();
             void update.trigger({
-              title: dTitle,
-              content: dContent,
+              title: title,
+              content: content,
               token: gAuthState.value.token,
             });
           }}
@@ -216,6 +240,10 @@ export default function EditDraft(p: { params: { draftId: string } }) {
                 : "발행하여 공개"
           }
           onClick={() => {
+            if (res.data?.title === "") {
+              alert("발행하려면 제목을 입력하세요");
+              return;
+            }
             if (publishDisabled) {
               alert("발행하려면 우선 저장하세요");
               return;
@@ -234,13 +262,14 @@ export default function EditDraft(p: { params: { draftId: string } }) {
           발행
         </button>
         <button
-          className={cx("delete")}
+          className={cx("delete", { disabled: delDisabled })}
           type="button"
           title="초안 삭제"
           onClick={() => {
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in delete onClick");
             if (delDisabled) {
+              alert("삭제할 수 없습니다");
               return;
             }
             if (confirm("삭제하시겠습니까?")) {
