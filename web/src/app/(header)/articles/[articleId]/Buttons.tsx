@@ -4,6 +4,7 @@ import Link from "next/link";
 import classnames from "classnames/bind";
 import styles from "./page.module.scss";
 import type { Article } from "db";
+import type { MaybeNotFoundForbidden } from "@/db";
 import {
   deleteArticle,
   createComment,
@@ -184,7 +185,7 @@ function DeleteButton(p: { article: Article }) {
       return;
     }
     try {
-      const res = await deleteArticle(auth.value.token, p.article.id);
+      const res: MaybeNotFoundForbidden = await deleteArticle(auth.value.token, p.article.id);
       switch (res) {
         case "Ok":
           router.push("/articles");

@@ -192,14 +192,16 @@ pub async fn create_edition_from_draft<'e, E>(
   draft_id: i32,
   author_id: &str,
   article_id: i32,
+  notes: &str,
 ) -> Result<i64, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"INSERT INTO editions (article_id, title, content)
-    SELECT $1, title, content FROM drafts WHERE id = $2 AND author_id = $3"#,
+    r#"INSERT INTO editions (article_id, title, content, notes)
+    SELECT $1, title, content, $2 FROM drafts WHERE id = $3 AND author_id = $4"#,
     article_id,
+    notes,
     draft_id,
     author_id,
   )

@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import TextareaAutosize from "react-textarea-autosize";
 import { useRef } from "react";
 import getCaretCoordinates from "textarea-caret";
+import type { MaybeNotFound, BadRequest } from "@/db";
 
 const cx = classNames.bind(styles);
 
@@ -81,7 +82,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     {
       // prevent not found error before navigating
       revalidate: false,
-      onSuccess: (data) => {
+      onSuccess: (data: MaybeNotFound) => {
         if (data === "Ok") {
           router.replace("/drafts");
         }
@@ -107,18 +108,21 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         clearTimeout(timeout);
       };
     }
-  }, [title, content]);
+  }, [title, content, res.data, update]);
 
+  const updateData: MaybeNotFound | undefined = update.data;
+  const delData: MaybeNotFound | undefined = del.data;
+  const publishData: number | BadRequest | undefined = publish.data;
   const errorMessage = (() => {
     if (authState.type.value !== "login") return "일지를 쓰려면 로그인하세요";
-    if (draftId === null || res.data === null || update.data === "NotFound")
+    if (draftId === null || res.data === null || updateData === "NotFound")
       return "초안을 찾을 수 없습니다";
     if (res.isLoading) return "저장된 일지를 불러오는 중...";
     if (res.error) return "초안을 불러오는 중 오류가 발생했습니다";
     if (update.error) return "초안을 저장하는 중 오류가 발생했습니다";
-    if (publish.data === "Bad") return "발행하려면 제목을 입력하세요";
+    if (publishData === "Bad") return "발행하려면 제목을 입력하세요";
     if (publish.error) return "일지를 발행하는 중 오류가 발생했습니다";
-    if (del.data === "NotFound") return "이미 삭제된 초안입니다";
+    if (delData === "NotFound") return "이미 삭제된 초안입니다";
     if (del.error) return "초안을 삭제하는 중 오류가 발생했습니다";
     return null;
   })();
@@ -285,7 +289,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
           목록
         </Link>
       </section>
-      {title === undefined && content === undefined && update.data === "Ok" && (
+      {title === undefined && content === undefined && updateData === "Ok" && (
         <p className={cx("save")}>저장됨</p>
       )}
       {update.isMutating && <p className={cx("save")}>저장 중...</p>}

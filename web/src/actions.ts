@@ -1,6 +1,6 @@
 "use server";
 
-import { getDB, getRedis } from "@/db";
+import { getDB, getRedis, UserConflict } from "@/db";
 import * as jwt from "jsonwebtoken";
 import { getEnv } from "@/env";
 import { z } from "zod";
@@ -136,7 +136,7 @@ export async function createUser(
     throw new Error("Register code is expired");
   }
 
-  const conflict = await db.createUser(naverId, id, name);
+  const conflict: UserConflict | null = await db.createUser(naverId, id, name);
   if (conflict === "NaverId") {
     // 이미 사용중인 네이버 아이디, 로그인 재시도
     return { type: "fatal" as const, conflict: conflict };

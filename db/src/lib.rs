@@ -275,6 +275,7 @@ impl QueryEngine {
     &self,
     id: i32,
     author_id: String,
+    notes: Option<String>,
   ) -> Result<napi::Either<i32, BadRequest>, napi::Error> {
     debug!("QueryEngine.publish_draft");
     let err = err("QueryEngine.publish_draft");
@@ -303,7 +304,7 @@ impl QueryEngine {
         create_article(&mut *tx, &author_id).await.map_err(err.imp())?
       },
     };
-    create_edition_from_draft(&mut *tx, id, &author_id, article_id)
+    create_edition_from_draft(&mut *tx, id, &author_id, article_id, &notes.unwrap_or_default())
       .await
       .map_err(err.imp())?;
     delete_draft(&mut *tx, id, &author_id).await.map_err(err.imp())?;

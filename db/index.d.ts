@@ -34,7 +34,7 @@ export interface Comment {
   createdAt: string
   author: Author
 }
-export const enum Role {
+export enum Role {
   Admin = 'Admin',
   User = 'User'
 }
@@ -60,21 +60,21 @@ export interface LikeLog {
   user: Author
   createdAt: string
 }
-export const enum UserConflict {
+export enum UserConflict {
   NaverId = 'NaverId',
   Id = 'Id',
   Name = 'Name'
 }
-export const enum MaybeNotFound {
+export enum MaybeNotFound {
   Ok = 'Ok',
   NotFound = 'NotFound'
 }
-export const enum MaybeNotFoundForbidden {
+export enum MaybeNotFoundForbidden {
   Ok = 'Ok',
   Forbidden = 'Forbidden',
   NotFound = 'NotFound'
 }
-export const enum BadRequest {
+export enum BadRequest {
   Bad = 'Bad'
 }
 export class QueryEngine {
@@ -92,7 +92,7 @@ export class QueryEngine {
   updateDraft(id: number, authorId: string, title: string, body: string): Promise<MaybeNotFound>
   deleteDraft(id: number, authorId: string): Promise<MaybeNotFound>
   deleteArticle(id: number, userId: string): Promise<MaybeNotFoundForbidden>
-  publishDraft(id: number, authorId: string): Promise<number | BadRequest>
+  publishDraft(id: number, authorId: string, notes?: string | undefined | null): Promise<number | BadRequest>
   createComment(articleId: number, authorId: string, body: string): Promise<number>
   deleteComment(id: number, userId: string): Promise<MaybeNotFoundForbidden>
   createViewLog(articleId: number): Promise<void>

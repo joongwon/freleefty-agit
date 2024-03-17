@@ -22,6 +22,6 @@ export default function SubmitView(p: { viewToken: string; authorId: string }) {
       void submitView(p.viewToken);
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [p.viewToken]);
+  }, [p.viewToken, p.authorId]);
   return null;
 }

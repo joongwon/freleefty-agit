@@ -87,6 +87,8 @@ export default function NaverCallback(p: PageProps) {
   switch (login.value.type) {
     case "loading":
       return <main>로그인 중...</main>;
+    case "login":
+    case "register":
     case "redirect":
       return <main>리다이렉트 중...</main>;
     case "error":

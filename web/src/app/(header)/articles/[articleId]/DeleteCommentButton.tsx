@@ -1,5 +1,6 @@
 "use client";
 import type { Comment } from "db";
+import type { MaybeNotFoundForbidden } from "@/db";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
 import { deleteComment } from "@/actions";
@@ -24,7 +25,7 @@ export default function DeleteCommentButton(p: {
       return;
     }
     try {
-      const res = await deleteComment(
+      const res: MaybeNotFoundForbidden = await deleteComment(
         auth.value.token,
         p.articleId,
         p.comment.id,
