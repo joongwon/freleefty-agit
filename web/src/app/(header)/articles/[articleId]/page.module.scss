@@ -33,31 +33,6 @@ main.article {
     }
   }
 
-  /* options section */
-  article section.options {
-    position: absolute;
-    right: 0;
-    top: -2rem;
-
-    button {
-      @include button;
-      border-radius: 0;
-      border-right-width: 0;
-      &:first-child {
-        border-top-left-radius: 0.5rem;
-        border-bottom-left-radius: 0.5rem;
-      }
-      &:last-child {
-        border-top-right-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
-        border-right-width: 1px;
-      }
-      &.selected {
-        background-color: #f0f0f0;
-      }
-    }
-  }
-
   /* article and comment contents */
   article {
     text-align: justify;
@@ -109,14 +84,13 @@ main.article {
     }
 
     /* buttons */
-    button,
-    a {
+    .button {
       @include button($disabled-color: initial);
 
       /* text and icon alignment */
-      display: flex;
       align-items: center;
       gap: 0.25rem;
+      line-height: 1.2;
 
       /* color transition */
       transition: all 0.2s ease-in-out;
@@ -131,7 +105,7 @@ main.article {
     }
 
     /* like button */
-    button.like {
+    .button.like {
       color: red;
 
       /* like button icon */
@@ -142,13 +116,62 @@ main.article {
     }
 
     /* unlike button icon */
-    button.like.liked #{$matsym} {
+    .button.like.liked #{$matsym} {
       /* filled heart */
       font-variation-settings: "FILL" 1;
     }
 
+    .author-menu-wrapper {
+      position: relative;
+    }
+
+    button.open-author-menu {
+      @include reset;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  menu.author-menu {
+    @include reset;
+
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+
+    margin-right: 0.5rem;
+    background-color: #eee;
+    border-radius: 0.5rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+
+    padding: 0.5rem;
+
+    transition: all 0.2s ease-in-out;
+    &.closed {
+      visibility: hidden;
+      opacity: 0;
+      transform: translate(10%, -50%);
+    }
+
+    /* triangle */
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 100%;
+      transform: translateY(-50%);
+      border: 0.5rem solid transparent;
+      border-left-color: #eee;
+    }
+
     /* delete button */
-    button.delete {
+    .button.delete {
       @include button-red;
     }
   }
@@ -208,7 +231,6 @@ main.article {
         position: absolute;
         right: 0;
         top: 0;
-        bottom: 0;
 
         height: fit-content;
         margin: auto;

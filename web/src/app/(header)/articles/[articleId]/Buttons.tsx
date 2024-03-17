@@ -1,5 +1,5 @@
 "use client";
-import { COMMENT, FAVORITE } from "@/components/icons";
+import { COMMENT, FAVORITE, MORE } from "@/components/icons";
 import Link from "next/link";
 import classnames from "classnames/bind";
 import styles from "./page.module.scss";
@@ -50,7 +50,7 @@ export default function Buttons(p: { article: Article }) {
             if (commentDisabled) alert("로그인 후 댓글을 달 수 있습니다");
             else setIsCommentOpen(!isCommentOpen);
           }}
-          className={cx({ disabled: commentDisabled })}
+          className={cx("button", { disabled: commentDisabled })}
           title={
             commentDisabled ? "로그인 후 댓글을 달 수 있습니다" : "댓글 달기"
           }
@@ -59,8 +59,8 @@ export default function Buttons(p: { article: Article }) {
         </button>
         <LikeButton article={p.article} />
         <hr />
-        <DeleteButton article={p.article} />
-        <Link href="/articles" title="모든 일지 목록">
+        <AuthorMenu article={p.article} />
+        <Link href="/articles" title="모든 일지 목록" className={cx("button")}>
           목록
         </Link>
       </section>
@@ -152,7 +152,7 @@ function LikeButton(p: { article: Article }) {
   return (
     <>
       <button
-        className={cx("like", { liked: userInLike, disabled: !canClick })}
+        className={cx("like", "button", { liked: userInLike, disabled: !canClick })}
         title={
           !canClick
             ? "로그인 후 공감할 수 있습니다."
@@ -174,7 +174,7 @@ function LikeButton(p: { article: Article }) {
   );
 }
 
-function DeleteButton(p: { article: Article }) {
+function AuthorMenu(p: { article: Article }) {
   const auth = useHookstate(gAuthState);
   const router = useRouter();
   const handleDeleteArticle = async () => {
@@ -203,20 +203,35 @@ function DeleteButton(p: { article: Article }) {
     }
   };
 
-  const canDeleteArticle =
+  const isAuthor =
     auth.value.type === "login" &&
     auth.value.profile.id === p.article.author.id;
-  return (
-    canDeleteArticle && (
-      <button
-        title="삭제"
-        className={cx("delete")}
-        onClick={() => {
-          void handleDeleteArticle();
-        }}
-      >
-        삭제
-      </button>
-    )
-  );
+
+  const [isOpen, setIsOpen] = useState(true);
+
+  return <div className={cx("author-menu-wrapper")}>
+    <button onClick={() => setIsOpen(!isOpen)} className={cx("open-author-menu")}>
+      {MORE}
+    </button>
+    <menu className={cx("author-menu", { closed: !isOpen })} onClick={(e) => e.stopPropagation()}>
+      {isAuthor &&
+      <li>
+        <button
+          title="삭제"
+          className={cx("button", "delete")}
+          onClick={() => {
+            void handleDeleteArticle();
+          }}
+        >
+          삭제
+        </button>
+      </li>}
+      <li>
+        <Link href={`/articles/${p.article.id}/editions`}
+          className={cx("button")}>
+          다른 판
+        </Link>
+      </li>
+    </menu>
+  </div>;
 }

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import Markdown from "react-markdown";
-import styles from "./page.module.scss";
+import styles from "./Viewer.module.scss";
 import classNames from "classnames/bind";
 import { useState, Fragment } from "react";
 
@@ -41,7 +41,7 @@ export function Options() {
   return (
     <section className={cx("options")}>
       <button
-        className={cx("option", {
+        className={cx({
           selected: viewerOption?.type === "markdown",
         })}
         onClick={() => viewerOption?.setType("markdown")}
@@ -49,7 +49,7 @@ export function Options() {
         Markdown
       </button>
       <button
-        className={cx("option", { selected: viewerOption?.type === "text" })}
+        className={cx({ selected: viewerOption?.type === "text" })}
         onClick={() => viewerOption?.setType("text")}
       >
         Text
