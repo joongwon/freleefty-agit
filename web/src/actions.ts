@@ -170,14 +170,6 @@ export async function logout(refreshTokenRaw: string) {
   await redis.del("refreshToken:" + refreshToken);
 }
 
-export async function listOrCreateDraft(tokenRaw: string) {
-  const token = stringSchema.parse(tokenRaw);
-
-  const db = getDB();
-  const userId = (await decodeToken(token)).id;
-  return await db.listOrCreateDraft(userId);
-}
-
 export async function listDrafts(tokenRaw: string) {
   const token = stringSchema.parse(tokenRaw);
 

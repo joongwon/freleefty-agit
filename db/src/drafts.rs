@@ -4,17 +4,19 @@ use crate::schema::{Draft, DraftSummary};
 /// # Arguments
 /// * `con` - The database connection
 /// * `author_id` - The author ID
+/// * `article_id` - The article ID (if the draft is for an existing article)
 /// # Returns
 /// The created draft
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn create_draft<'e, E>(con: E, author_id: &str) -> Result<DraftSummary, sqlx::Error>
+pub async fn create_draft<'e, E>(con: E, author_id: &str, article_id: Option<i32>) -> Result<DraftSummary, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"INSERT INTO drafts (author_id) VALUES ($1) RETURNING id, title, created_at, updated_at"#,
+    r#"INSERT INTO drafts (author_id, article_id) VALUES ($1, $2) RETURNING id, title, created_at, updated_at"#,
     author_id,
+    article_id,
   )
   .fetch_one(con)
   .await
@@ -175,31 +177,61 @@ where
   .map(|r| r.length.unwrap_or(0))
 }
 
-/// Copy a draft to an article (used for publishing)
+/// Create an edition of an article from a draft
+/// # Arguments
+/// * `con` - The database connection
+/// * `draft_id` - The draft ID
+/// * `author_id` - The author ID
+/// * `article_id` - The article ID
+/// # Returns
+/// The number of rows affected
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn create_edition_from_draft<'e, E>(
+  con: E,
+  draft_id: i32,
+  author_id: &str,
+  article_id: i32,
+) -> Result<i64, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(
+    r#"INSERT INTO editions (article_id, title, content)
+    SELECT $1, title, content FROM drafts WHERE id = $2 AND author_id = $3"#,
+    article_id,
+    draft_id,
+    author_id,
+  )
+  .execute(con)
+  .await
+  .map(|r| r.rows_affected() as i64)
+}
+
+/// Get the article id of a draft (used for publishing)
 /// # Arguments
 /// * `con` - The database connection
 /// * `id` - The draft ID
 /// * `author_id` - The author ID
 /// # Returns
-/// The id of the new article
+/// * Some(id): The article ID
+/// * None: The draft is for a new article
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn copy_draft_to_article<'e, E>(
+pub async fn get_article_id_from_draft<'e, E>(
   con: E,
-  id: i32,
+  draft_id: i32,
   author_id: &str,
-) -> Result<i32, sqlx::Error>
+) -> Result<Option<i32>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"INSERT INTO articles (title, content, author_id)
-    SELECT title, content, author_id FROM drafts WHERE id = $1 AND author_id = $2
-    RETURNING id"#,
-    id,
+    r#"SELECT article_id FROM drafts WHERE id = $1 AND author_id = $2"#,
+    draft_id,
     author_id,
   )
   .fetch_one(con)
   .await
-  .map(|r| r.id)
+  .map(|r| r.article_id)
 }

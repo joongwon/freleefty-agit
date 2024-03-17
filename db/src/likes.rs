@@ -69,10 +69,7 @@ where
 /// A list of users who liked the article
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn list_likers<'e, E>(
-  con: E,
-  article_id: i32,
-) -> Result<Vec<LikeLog>, sqlx::Error>
+pub async fn list_likers<'e, E>(con: E, article_id: i32) -> Result<Vec<LikeLog>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
@@ -87,13 +84,16 @@ where
   )
   .fetch_all(con)
   .await
-  .map(|res| res.into_iter().map(|row|
-    LikeLog {
-      user: Author {
-        id: row.id,
-        name: row.name,
-      },
-      created_at: row.created_at.to_string(),
-    }
-  ).collect())
+  .map(|res| {
+    res
+      .into_iter()
+      .map(|row| LikeLog {
+        user: Author {
+          id: row.id,
+          name: row.name,
+        },
+        created_at: row.created_at.to_string(),
+      })
+      .collect()
+  })
 }

@@ -8,35 +8,42 @@ use crate::schema::{Article, ArticleSummary, Author};
 /// A vector of `ArticleSummary` containing the most recent articles
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn list_articles<'e, E>(con: E) -> Result<Vec<ArticleSummary>, sqlx::Error>
+pub async fn list_articles<'e, E>(con: E) -> Result<Vec<ArticleSummary>, anyhow::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-  sqlx::query!(
-        r#"SELECT articles.id, title, author_id, name, published_at, comments_count, views_count, likes_count
-        FROM articles
-        JOIN users ON articles.author_id = users.id
-        JOIN article_stats ON articles.id = article_stats.id
+  let rows = sqlx::query!(
+    r#"SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+        FROM last_editions e
+        JOIN articles a ON e.article_id = a.id
+        JOIN users u ON a.author_id = u.id
+        JOIN article_stats s ON a.id = s.id
         ORDER BY published_at DESC"#,
-    )
-    .fetch_all(con)
-    .await
-    .map(|rows| {
-        rows.into_iter()
-            .map(|r| ArticleSummary {
-                id: r.id,
-                title: r.title,
-                published_at: r.published_at.to_string(),
-                author: Author {
-                    id: r.author_id,
-                    name: r.name,
-                },
-                comments_count: r.comments_count.unwrap_or(0),
-                views_count: r.views_count.unwrap_or(0),
-                likes_count: r.likes_count.unwrap_or(0),
-            })
-            .collect()
+  )
+  .fetch_all(con)
+  .await?;
+  rows
+    .into_iter()
+    .map(|r| {
+      Ok(ArticleSummary {
+        id: r.id,
+        title: r
+          .title
+          .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
+        published_at: r
+          .published_at
+          .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
+          .to_string(),
+        author: Author {
+          id: r.author_id,
+          name: r.name,
+        },
+        comments_count: r.comments_count.unwrap_or(0),
+        views_count: r.views_count.unwrap_or(0),
+        likes_count: r.likes_count.unwrap_or(0),
+      })
     })
+    .collect()
 }
 
 /// List articles sorted by views count
@@ -55,18 +62,19 @@ pub async fn list_popular_articles<'e, E>(
   con: E,
   n: i64,
   days: i32,
-) -> Result<Vec<ArticleSummary>, sqlx::Error>
+) -> Result<Vec<ArticleSummary>, anyhow::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-  sqlx::query!(
+  let rows = sqlx::query!(
     r#"SELECT * FROM (
-            SELECT articles.id, title, author_id, name, published_at, comments_count, likes_count,
-            (SELECT COUNT(*) FROM views WHERE views.article_id = articles.id
+            SELECT a.id, title, author_id, name, published_at, comments_count, likes_count,
+            (SELECT COUNT(*) FROM views WHERE views.article_id = a.id
                 AND (now() - views.created_at < $2)) AS views_count
-            FROM articles
-            JOIN users ON articles.author_id = users.id
-            JOIN article_stats ON articles.id = article_stats.id
+            FROM last_editions e
+            JOIN articles a ON e.article_id = a.id
+            JOIN users u ON a.author_id = u.id
+            JOIN article_stats s ON a.id = s.id
             ORDER BY views_count DESC LIMIT $1
         ) AS t WHERE views_count > 0"#,
     n,
@@ -77,14 +85,19 @@ where
     },
   )
   .fetch_all(con)
-  .await
-  .map(|rows| {
-    rows
-      .into_iter()
-      .map(|r| ArticleSummary {
+  .await?;
+  rows
+    .into_iter()
+    .map(|r| {
+      Ok(ArticleSummary {
         id: r.id,
-        title: r.title,
-        published_at: r.published_at.to_string(),
+        title: r
+          .title
+          .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
+        published_at: r
+          .published_at
+          .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
+          .to_string(),
         author: Author {
           id: r.author_id,
           name: r.name,
@@ -93,8 +106,8 @@ where
         views_count: r.views_count.unwrap_or(0),
         likes_count: r.likes_count.unwrap_or(0),
       })
-      .collect()
-  })
+    })
+    .collect()
 }
 
 /// Get an article by its ID
@@ -106,26 +119,35 @@ where
 /// An `Article` containing the article
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn get_article<'e, E>(con: E, id: i32) -> Result<Option<Article>, sqlx::Error>
+pub async fn get_article<'e, E>(con: E, id: i32) -> Result<Option<Article>, anyhow::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-  sqlx::query!(
-    r#"SELECT articles.id, title, content, author_id, name, published_at, views_count, likes_count
-        FROM articles
-        JOIN users ON articles.author_id = users.id
-        JOIN article_stats ON articles.id = article_stats.id
-        WHERE articles.id = $1"#,
+  let r = sqlx::query!(
+    r#"SELECT a.id, title, content, author_id, name, published_at, views_count, likes_count
+        FROM last_editions e
+        JOIN articles a ON e.article_id = a.id
+        JOIN users u ON a.author_id = u.id
+        JOIN article_stats s ON a.id = s.id
+        WHERE a.id = $1"#,
     id,
   )
   .fetch_optional(con)
-  .await
-  .map(|r| {
-    r.map(|r| Article {
+  .await?;
+  match r {
+    None => Ok(None),
+    Some(r) => Ok(Some(Article {
       id: r.id,
-      title: r.title,
-      content: r.content,
-      published_at: r.published_at.to_string(),
+      title: r
+        .title
+        .ok_or(crate::Error::UnexpectedNone("Article.title"))?,
+      content: r
+        .content
+        .ok_or(crate::Error::UnexpectedNone("Article.content"))?,
+      published_at: r
+        .published_at
+        .ok_or(crate::Error::UnexpectedNone("Article.published_at"))?
+        .to_string(),
       author: Author {
         id: r.author_id,
         name: r.name,
@@ -136,8 +158,8 @@ where
       comments: vec![],
       next: None,
       prev: None,
-    })
-  })
+    })),
+  }
 }
 
 /// Get next article ordered by publication date
@@ -148,35 +170,45 @@ where
 /// An `Option<ArticleSummary>` containing the next article
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn get_next_article<'e, E>(con: E, id: i32) -> Result<Option<ArticleSummary>, sqlx::Error>
+pub async fn get_next_article<'e, E>(
+  con: E,
+  id: i32,
+) -> Result<Option<ArticleSummary>, anyhow::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-  sqlx::query!(
-        r#"SELECT articles.id, title, author_id, name, published_at, comments_count, views_count, likes_count
-        FROM articles
-        JOIN users ON articles.author_id = users.id
-        JOIN article_stats ON articles.id = article_stats.id
-        WHERE published_at > (SELECT published_at FROM articles WHERE id = $1)
+  let r = sqlx::query!(
+    r#"SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+        FROM last_editions e
+        JOIN articles a ON e.article_id = a.id
+        JOIN users u ON a.author_id = u.id
+        JOIN article_stats s ON a.id = s.id
+        WHERE published_at > (SELECT published_at FROM last_editions WHERE id = $1)
         ORDER BY published_at ASC LIMIT 1"#,
-        id,
-    )
-    .fetch_optional(con)
-    .await
-    .map(|r| {
-        r.map(|r| ArticleSummary {
-            id: r.id,
-            title: r.title,
-            published_at: r.published_at.to_string(),
-            author: Author {
-                id: r.author_id,
-                name: r.name,
-            },
-            comments_count: r.comments_count.unwrap_or(0),
-            views_count: r.views_count.unwrap_or(0),
-            likes_count: r.likes_count.unwrap_or(0),
-        })
-    })
+    id,
+  )
+  .fetch_optional(con)
+  .await?;
+  match r {
+    None => Ok(None),
+    Some(r) => Ok(Some(ArticleSummary {
+      id: r.id,
+      title: r
+        .title
+        .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
+      published_at: r
+        .published_at
+        .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
+        .to_string(),
+      author: Author {
+        id: r.author_id,
+        name: r.name,
+      },
+      comments_count: r.comments_count.unwrap_or(0),
+      views_count: r.views_count.unwrap_or(0),
+      likes_count: r.likes_count.unwrap_or(0),
+    })),
+  }
 }
 
 /// Get previous article ordered by publication date
@@ -190,35 +222,42 @@ where
 pub async fn get_previous_article<'e, E>(
   con: E,
   id: i32,
-) -> Result<Option<ArticleSummary>, sqlx::Error>
+) -> Result<Option<ArticleSummary>, anyhow::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-  sqlx::query!(
-        r#"SELECT articles.id, title, author_id, name, published_at, comments_count, views_count, likes_count
-        FROM articles
-        JOIN users ON articles.author_id = users.id
-        JOIN article_stats ON articles.id = article_stats.id
+  let r = sqlx::query!(
+    r#"SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+        FROM last_editions e
+        JOIN articles a ON e.article_id = a.id
+        JOIN users u ON a.author_id = u.id
+        JOIN article_stats s ON a.id = s.id
         WHERE published_at < (SELECT published_at FROM articles WHERE id = $1)
         ORDER BY published_at DESC LIMIT 1"#,
-        id,
-    )
-    .fetch_optional(con)
-    .await
-    .map(|r| {
-        r.map(|r| ArticleSummary {
-            id: r.id,
-            title: r.title,
-            published_at: r.published_at.to_string(),
-            author: Author {
-                id: r.author_id,
-                name: r.name,
-            },
-            comments_count: r.comments_count.unwrap_or(0),
-            views_count: r.views_count.unwrap_or(0),
-            likes_count: r.likes_count.unwrap_or(0),
-        })
-    })
+    id,
+  )
+  .fetch_optional(con)
+  .await?;
+  match r {
+    None => Ok(None),
+    Some(r) => Ok(Some(ArticleSummary {
+      id: r.id,
+      title: r
+        .title
+        .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
+      published_at: r
+        .published_at
+        .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
+        .to_string(),
+      author: Author {
+        id: r.author_id,
+        name: r.name,
+      },
+      comments_count: r.comments_count.unwrap_or(0),
+      views_count: r.views_count.unwrap_or(0),
+      likes_count: r.likes_count.unwrap_or(0),
+    })),
+  }
 }
 
 /// Delete an article by its ID
@@ -259,4 +298,25 @@ where
     .fetch_optional(con)
     .await
     .map(|r| r.map(|r| r.author_id))
+}
+
+/// Create an empty article
+/// # Arguments
+/// * `con` - The database connection
+/// * `author_id` - The author ID
+/// # Returns
+/// The ID of the new article
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn create_article<'e, E>(con: E, author_id: &str) -> Result<i32, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(
+    r#"INSERT INTO articles (author_id) VALUES ($1) RETURNING id"#,
+    author_id,
+  )
+  .fetch_one(con)
+  .await
+  .map(|r| r.id)
 }

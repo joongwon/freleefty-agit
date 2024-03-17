@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT articles.id, title, author_id, name, published_at, comments_count, views_count, likes_count\n        FROM articles\n        JOIN users ON articles.author_id = users.id\n        JOIN article_stats ON articles.id = article_stats.id\n        WHERE published_at < (SELECT published_at FROM articles WHERE id = $1)\n        ORDER BY published_at DESC LIMIT 1",
+  "query": "SELECT * FROM (\n            SELECT a.id, title, author_id, name, published_at, comments_count, likes_count,\n            (SELECT COUNT(*) FROM views WHERE views.article_id = a.id\n                AND (now() - views.created_at < $2)) AS views_count\n            FROM last_editions e\n            JOIN articles a ON e.article_id = a.id\n            JOIN users u ON a.author_id = u.id\n            JOIN article_stats s ON a.id = s.id\n            ORDER BY views_count DESC LIMIT $1\n        ) AS t WHERE views_count > 0",
   "describe": {
     "columns": [
       {
@@ -35,30 +35,31 @@
       },
       {
         "ordinal": 6,
-        "name": "views_count",
+        "name": "likes_count",
         "type_info": "Int8"
       },
       {
         "ordinal": 7,
-        "name": "likes_count",
+        "name": "views_count",
         "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
-        "Int4"
+        "Int8",
+        "Interval"
       ]
     },
     "nullable": [
       false,
-      false,
-      false,
+      true,
       false,
       false,
       true,
       true,
-      true
+      true,
+      null
     ]
   },
-  "hash": "37ed72cfe9fbb856a2bfbbbd1f89329c3a87ff8ad2098c16175532cb9bb43bf5"
+  "hash": "259212bb98fb8d9641897a4ef6cac93ce5297d2e8ad1710cbee566f5c795dfe6"
 }
