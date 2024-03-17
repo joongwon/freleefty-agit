@@ -183,7 +183,7 @@ where
         JOIN articles a ON e.article_id = a.id
         JOIN users u ON a.author_id = u.id
         JOIN article_stats s ON a.id = s.id
-        WHERE published_at > (SELECT published_at FROM last_editions WHERE id = $1)
+        WHERE published_at > (SELECT published_at FROM last_editions WHERE article_id = $1)
         ORDER BY published_at ASC LIMIT 1"#,
     id,
   )
@@ -232,7 +232,7 @@ where
         JOIN articles a ON e.article_id = a.id
         JOIN users u ON a.author_id = u.id
         JOIN article_stats s ON a.id = s.id
-        WHERE published_at < (SELECT published_at FROM articles WHERE id = $1)
+        WHERE published_at < (SELECT published_at FROM last_editions WHERE article_id = $1)
         ORDER BY published_at DESC LIMIT 1"#,
     id,
   )

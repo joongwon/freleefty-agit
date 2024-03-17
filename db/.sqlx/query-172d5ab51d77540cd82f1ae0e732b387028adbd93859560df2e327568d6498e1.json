@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count\n        FROM last_editions e\n        JOIN articles a ON e.article_id = a.id\n        JOIN users u ON a.author_id = u.id\n        JOIN article_stats s ON a.id = s.id\n        WHERE published_at < (SELECT published_at FROM articles WHERE id = $1)\n        ORDER BY published_at DESC LIMIT 1",
+  "query": "SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count\n        FROM last_editions e\n        JOIN articles a ON e.article_id = a.id\n        JOIN users u ON a.author_id = u.id\n        JOIN article_stats s ON a.id = s.id\n        WHERE published_at > (SELECT published_at FROM last_editions WHERE article_id = $1)\n        ORDER BY published_at ASC LIMIT 1",
   "describe": {
     "columns": [
       {
@@ -60,5 +60,5 @@
       true
     ]
   },
-  "hash": "ceb09097ed9c5a5c6d8da9d0524148b1bcf70d71d81ac8ae19a05d6578aeced5"
+  "hash": "172d5ab51d77540cd82f1ae0e732b387028adbd93859560df2e327568d6498e1"
 }
