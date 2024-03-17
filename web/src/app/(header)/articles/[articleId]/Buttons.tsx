@@ -97,7 +97,7 @@ function CommentForm(p: { articleId: number; afterSubmit: () => void }) {
         void handleComment();
       }}
     >
-      <textarea
+      <input
         required
         minLength={1}
         maxLength={1023}
@@ -207,7 +207,7 @@ function AuthorMenu(p: { article: Article }) {
     auth.value.type === "login" &&
     auth.value.profile.id === p.article.author.id;
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   return <div className={cx("author-menu-wrapper")}>
     <button onClick={() => setIsOpen(!isOpen)} className={cx("open-author-menu")}>

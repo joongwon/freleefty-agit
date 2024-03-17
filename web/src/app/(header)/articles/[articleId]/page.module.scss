@@ -183,7 +183,7 @@ main.article {
     margin: 1rem 0;
 
     /* input */
-    textarea {
+    input {
       @include input;
       flex: 1;
       line-height: 1.5;
@@ -225,15 +225,14 @@ main.article {
       }
 
       button.delete {
-        display: none;
-
         @include button;
         position: absolute;
         right: 0;
         top: 0;
 
         height: fit-content;
-        margin: auto;
+        margin: 0.5rem;
+        display: none;
       }
 
       /* delete button */
