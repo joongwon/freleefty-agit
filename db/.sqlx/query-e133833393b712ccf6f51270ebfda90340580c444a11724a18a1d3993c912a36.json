@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE drafts.id = article_id) = $2\n    RETURNING article_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "article_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e133833393b712ccf6f51270ebfda90340580c444a11724a18a1d3993c912a36"
+}

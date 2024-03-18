@@ -21,12 +21,12 @@ mod views;
 
 use articles::{
   delete_article, get_article, get_article_author_id, get_next_article, get_previous_article,
-  list_articles, list_popular_articles, create_article,
+  list_articles, list_popular_articles, create_article, delete_article_if_no_editions
 };
 use comments::{create_comment, delete_comment, get_comment_author, list_comments};
 use drafts::{
   create_draft, delete_draft, get_draft, get_draft_title_length,
-  list_drafts, update_draft, get_article_id_from_draft, create_edition_from_draft,
+  list_drafts, update_draft, create_edition_from_draft,
 };
 use likes::{like_article, list_likers, unlike_article};
 use log::{debug, error};
@@ -155,9 +155,14 @@ impl QueryEngine {
   #[napi]
   pub async fn create_draft(&self, user_id: String) -> Result<schema::DraftSummary, napi::Error> {
     debug!("QueryEngine.create_draft");
-    create_draft(&self.pool, &user_id, None)
+    let err = err("QueryEngine.create_draft");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let article_id = create_article(&mut *tx, &user_id).await.map_err(err.imp())?;
+    let res = create_draft(&self.pool, article_id)
       .await
-      .map_err(err("QueryEngine.create_draft").imp())
+      .map_err(err.imp())?;
+    tx.commit().await.map_err(err.imp())?;
+    Ok(res)
   }
 
   #[napi]
@@ -173,7 +178,7 @@ impl QueryEngine {
     match author_id {
       Some(author_id) if author_id == user_id => {
         debug!("QueryEngine.create_draft_with_article: ok");
-        create_draft(&self.pool, &user_id, Some(article_id))
+        create_draft(&self.pool, article_id)
           .await
           .map_err(err("QueryEngine.create_draft_with_article").imp())
           .map(napi::Either::A)
@@ -229,15 +234,23 @@ impl QueryEngine {
     author_id: String,
   ) -> Result<MaybeNotFound, napi::Error> {
     debug!("QueryEngine.delete_draft");
-    let res = delete_draft(&self.pool, id, &author_id)
+    let err = err("QueryEngine.delete_draft");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let article_id = delete_draft(&mut *tx, id, &author_id)
       .await
-      .map_err(err("QueryEngine.delete_draft").imp())?;
-    if res == 0 {
-      debug!("QueryEngine.delete_draft: not found");
-      Ok(MaybeNotFound::NotFound)
-    } else {
-      debug!("QueryEngine.delete_draft: ok");
-      Ok(MaybeNotFound::Ok)
+      .map_err(err.imp())?;
+    match article_id {
+      Some(article_id) => {
+        debug!("QueryEngine.delete_draft: ok");
+        delete_article_if_no_editions(&mut *tx, article_id).await.map_err(err.imp())?;
+        tx.commit().await.map_err(err.imp())?;
+        Ok(MaybeNotFound::Ok)
+      }
+      None => {
+        debug!("QueryEngine.delete_draft: not found");
+        tx.commit().await.map_err(err.imp())?;
+        Ok(MaybeNotFound::NotFound)
+      }
     }
   }
 
@@ -291,20 +304,7 @@ impl QueryEngine {
       return Ok(napi::Either::B(BadRequest::Bad))
     }
 
-    let article_id = get_article_id_from_draft(&mut *tx, id, &author_id)
-      .await
-      .map_err(err.imp())?;
-    let article_id = match article_id {
-      Some(article_id) => {
-        debug!("QueryEngine.publish_draft: update");
-        article_id
-      },
-      None => {
-        debug!("QueryEngine.publish_draft: create");
-        create_article(&mut *tx, &author_id).await.map_err(err.imp())?
-      },
-    };
-    create_edition_from_draft(&mut *tx, id, &author_id, article_id, &notes.unwrap_or_default())
+    let article_id = create_edition_from_draft(&mut *tx, id, &author_id, &notes.unwrap_or_default())
       .await
       .map_err(err.imp())?;
     delete_draft(&mut *tx, id, &author_id).await.map_err(err.imp())?;

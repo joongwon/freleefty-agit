@@ -25,7 +25,7 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release --no-const-enum",
+    "build": "SQLX_OFFLINE=true napi build --platform --release --no-const-enum",
     "build:debug": "napi build --no-const-enum --platform",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",

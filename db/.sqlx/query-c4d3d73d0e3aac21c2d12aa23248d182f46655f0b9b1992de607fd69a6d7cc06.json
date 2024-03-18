@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, title, content, created_at, updated_at FROM drafts WHERE id = $1 AND author_id = $2",
+  "query": "SELECT drafts.id, title, created_at, updated_at\n    FROM drafts\n    JOIN articles ON drafts.article_id = articles.id\n    WHERE author_id = $1\n    ORDER BY updated_at DESC",
   "describe": {
     "columns": [
       {
@@ -15,23 +15,17 @@
       },
       {
         "ordinal": 2,
-        "name": "content",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 3,
         "name": "created_at",
         "type_info": "Timestamp"
       },
       {
-        "ordinal": 4,
+        "ordinal": 3,
         "name": "updated_at",
         "type_info": "Timestamp"
       }
     ],
     "parameters": {
       "Left": [
-        "Int4",
         "Text"
       ]
     },
@@ -39,9 +33,8 @@
       false,
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "acf614e762b3930c05fcc3274ae0a0a4d76332ee748b03094c5f747e963b219e"
+  "hash": "c4d3d73d0e3aac21c2d12aa23248d182f46655f0b9b1992de607fd69a6d7cc06"
 }

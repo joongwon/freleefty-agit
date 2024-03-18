@@ -282,6 +282,28 @@ where
   }
 }
 
+/// Delete an article if it has no editions
+/// # Arguments
+/// * `con` - The database connection
+/// * `id` - The article ID
+/// # Returns
+/// The number of rows affected
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn delete_article_if_no_editions<'e, E>(con: E, id: i32) -> Result<u64, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(
+    r#"DELETE FROM articles WHERE id = $1 AND id NOT IN (SELECT article_id FROM editions)"#,
+    id,
+  )
+  .execute(con)
+  .await
+  .map(|r| r.rows_affected())
+}
+
+
 /// Get author of an article by its ID
 /// # Arguments
 /// * `con` - The database connection

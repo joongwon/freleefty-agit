@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO drafts (author_id, article_id) VALUES ($1, $2) RETURNING id, title, created_at, updated_at",
+  "query": "INSERT INTO drafts (article_id) VALUES ($1) RETURNING id, title, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -26,7 +26,6 @@
     ],
     "parameters": {
       "Left": [
-        "Varchar",
         "Int4"
       ]
     },
@@ -37,5 +36,5 @@
       false
     ]
   },
-  "hash": "165a3395fcb43ee5ecca0ff241339485390be2e5fcf9d49b647537e95b927fee"
+  "hash": "f9e02c25a3d54b07e7c6cdb277ab4285128e817feec1700a61903228dd39b24d"
 }

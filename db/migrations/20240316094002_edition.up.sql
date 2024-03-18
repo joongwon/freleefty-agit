@@ -17,9 +17,29 @@ ALTER TABLE articles
   DROP COLUMN published_at;
 
 ALTER TABLE drafts
-  -- 개정하고자 하는 일지. 새로운 일지를 쓰고자 한다면 NULL
+  -- 개정하고자 하는 일지. 새 일지를 쓸 때에도 빈 일지가 설정된다.
   -- 한 일지에 대해 한번에 하나의 개정 초안만을 만들 수 있다.
-  ADD COLUMN article_id INT UNIQUE;
+  ADD COLUMN article_id INT UNIQUE REFERENCES articles(id);
+
+-- 기존 초안들에 새로운 일지 할당
+ALTER TABLE articles
+  ADD COLUMN _draft_id INT;
+
+INSERT INTO articles (_draft_id, author_id)
+  SELECT id, author_id
+  FROM drafts;
+
+UPDATE drafts
+  SET article_id = articles.id
+  FROM articles
+  WHERE drafts.id = articles._draft_id;
+
+ALTER TABLE articles
+  DROP COLUMN _draft_id;
+
+ALTER TABLE drafts
+  ALTER COLUMN article_id SET NOT NULL,
+  DROP COLUMN author_id;
 
 CREATE VIEW last_editions AS
   SELECT * FROM editions e

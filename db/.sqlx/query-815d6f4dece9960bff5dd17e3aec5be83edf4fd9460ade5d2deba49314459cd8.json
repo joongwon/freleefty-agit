@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT article_id FROM drafts WHERE id = $1 AND author_id = $2",
+  "query": "SELECT LENGTH(title) FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE drafts.id = article_id) = $2",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "article_id",
+        "name": "length",
         "type_info": "Int4"
       }
     ],
@@ -16,8 +16,8 @@
       ]
     },
     "nullable": [
-      true
+      null
     ]
   },
-  "hash": "9012dcc2a41e15105b70dd889f57cf57f0b6e9addeffdcef6c5ec96f2a8af30b"
+  "hash": "815d6f4dece9960bff5dd17e3aec5be83edf4fd9460ade5d2deba49314459cd8"
 }
