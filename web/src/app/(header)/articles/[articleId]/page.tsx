@@ -10,7 +10,7 @@ import Buttons from "./Buttons";
 import DeleteCommentButton from "./DeleteCommentButton";
 import { randomUUID } from "crypto";
 import SubmitView from "./SubmitView";
-import * as Viewer from "./Viewer";
+import Viewer from "@/components/Viewer";
 import { cache } from "react";
 
 const cx = classnames.bind(styles);
@@ -64,6 +64,13 @@ export default async function ViewArticle(p: {
           {article.author.name}
           {", "}
           <Time>{article.publishedAt}</Time>
+          {article.publishedAt !== article.firstPublishedAt ? (
+            <>
+              {" (초판 "}
+              <Time>{article.firstPublishedAt}</Time>
+              {")"}
+            </>
+          ) : null}
         </p>
         <p className={cx("stat")}>
           {VISIBILITY} {article.viewsCount}
@@ -72,12 +79,7 @@ export default async function ViewArticle(p: {
           {FAVORITE} {article.likesCount}
         </p>
       </header>
-      <Viewer.OptionProvider content={article.content}>
-        <article>
-          <Viewer.Options />
-          <Viewer.Content />
-        </article>
-      </Viewer.OptionProvider>
+      <Viewer content={article.content} />
       <Buttons article={article} />
       <section className={cx("comments")}>
         {article.comments.length === 0 && (

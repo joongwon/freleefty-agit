@@ -18,12 +18,15 @@ pub struct Author {
 #[napi(object)]
 pub struct Article {
   pub id: i32,
+  pub edition_id: i32,
   pub title: String,
   pub content: String,
   pub published_at: String,
+  pub first_published_at: String,
   pub author: Author,
   pub views_count: i64,
   pub likes_count: i64,
+  pub editions_count: i64,
   pub comments: Vec<Comment>,
   pub next: Option<ArticleSummary>,
   pub prev: Option<ArticleSummary>,
@@ -55,6 +58,7 @@ pub struct User {
 #[napi(object)]
 pub struct DraftSummary {
   pub id: i32,
+  pub article_id: Option<i32>,
   pub title: String,
   pub created_at: String,
   pub updated_at: String,
@@ -63,6 +67,7 @@ pub struct DraftSummary {
 #[napi(object)]
 pub struct Draft {
   pub id: i32,
+  pub article_id: Option<i32>,
   pub title: String,
   pub content: String,
   pub created_at: String,
@@ -80,4 +85,23 @@ pub enum UserConflict {
   NaverId,
   Id,
   Name,
+}
+
+#[napi(object)]
+pub struct EditionSummary {
+  pub id: i32,
+  pub title: String,
+  pub notes: String,
+  pub published_at: String,
+}
+
+#[napi(object)]
+pub struct Edition {
+  pub id: i32,
+  pub article_id: i32,
+  pub title: String,
+  pub content: String,
+  pub notes: String,
+  pub published_at: String,
+  pub editions: Vec<EditionSummary>,
 }

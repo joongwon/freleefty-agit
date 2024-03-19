@@ -25,6 +25,8 @@ ul.article-list > li {
   justify-content: space-between;
   flex-wrap: wrap;
 
+  gap: 0.5rem;
+
   /* prevent title text overflow */
   .link {
     overflow: hidden;
@@ -63,12 +65,28 @@ ul.article-list > li {
       display: flex;
       align-items: center;
     }
+
+    .before {
+      width: 1.5rem;
+    }
   }
 
   /* placeholder, empty text */
   .link.empty .title,
   .title.untitled {
     color: #999;
+  }
+
+  /* edition notes */
+  .title .notes {
+    color: #999;
+    font-size: 0.9rem;
+  }
+
+  /* latest edition */
+  .latest {
+    color: #666;
+    font-size: 0.9rem;
   }
 
   /* metadata: author, date */
@@ -80,6 +98,17 @@ ul.article-list > li {
     flex: 1;
     text-align: right;
     white-space: nowrap;
+
+    /* text vertical align */
+    line-height: 1;
+  }
+
+  /* publication link for drafts */
+  .pub {
+    font-size: 0.9rem;
+    color: #888;
+
+    text-decoration: underline;
 
     /* text vertical align */
     line-height: 1;

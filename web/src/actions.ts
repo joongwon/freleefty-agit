@@ -324,3 +324,21 @@ export async function devLogin() {
   }
   return await login("test");
 }
+
+export async function editArticle(tokenRaw: string, articleIdRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const articleId = numberSchema.parse(articleIdRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.editArticle(userId, articleId);
+}
+
+export async function getArticleDraftId(tokenRaw: string, articleIdRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const articleId = numberSchema.parse(articleIdRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.getArticleDraftId(userId, articleId);
+}

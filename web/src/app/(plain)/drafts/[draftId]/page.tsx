@@ -244,6 +244,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
                 : "발행하여 공개"
           }
           onClick={() => {
+            // TODO: 발행 버튼을 누르면 미리보기로 이동 후 메모를 남기고 발행할 수 있게 한다
             if (res.data?.title === "") {
               alert("발행하려면 제목을 입력하세요");
               return;
@@ -285,6 +286,16 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         >
           삭제
         </button>
+        {
+          res.data?.articleId && (
+            <Link
+              href={`/articles/${res.data.articleId}`}
+              title="이 초안이 덮어씌울 일지의 최신 발행판"
+            >
+              발행판
+            </Link>
+          )
+        }
         <Link href="/drafts" title="초안 목록으로 돌아가기">
           목록
         </Link>

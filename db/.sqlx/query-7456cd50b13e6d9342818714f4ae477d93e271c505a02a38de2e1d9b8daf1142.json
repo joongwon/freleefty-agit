@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT drafts.id, title, content, created_at, updated_at\n    FROM drafts\n    JOIN articles ON drafts.article_id = articles.id\n    WHERE drafts.id = $1 AND author_id = $2",
+  "query": "SELECT drafts.id, title, content, created_at, updated_at, article_id,\n      EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published\n    FROM drafts\n    JOIN articles ON drafts.article_id = articles.id\n    WHERE drafts.id = $1 AND author_id = $2",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,16 @@
         "ordinal": 4,
         "name": "updated_at",
         "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 5,
+        "name": "article_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "published",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -40,8 +50,10 @@
       false,
       false,
       false,
-      false
+      false,
+      false,
+      null
     ]
   },
-  "hash": "3ee3a4307386b2b28bfa82147ecf9f7507af833bbd3c30173d38aa6177f4b792"
+  "hash": "7456cd50b13e6d9342818714f4ae477d93e271c505a02a38de2e1d9b8daf1142"
 }

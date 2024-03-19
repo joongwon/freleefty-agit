@@ -295,7 +295,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Role, UserConflict, QueryEngine, MaybeNotFound, MaybeNotFoundForbidden, BadRequest } = nativeBinding
+const { Role, UserConflict, QueryEngine, MaybeNotFound, MaybeNotFoundForbidden, BadRequest, NotFoundForbidden } = nativeBinding
 
 module.exports.Role = Role
 module.exports.UserConflict = UserConflict
@@ -303,3 +303,4 @@ module.exports.QueryEngine = QueryEngine
 module.exports.MaybeNotFound = MaybeNotFound
 module.exports.MaybeNotFoundForbidden = MaybeNotFoundForbidden
 module.exports.BadRequest = BadRequest
+module.exports.NotFoundForbidden = NotFoundForbidden

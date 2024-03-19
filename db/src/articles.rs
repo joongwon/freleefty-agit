@@ -124,7 +124,9 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   let r = sqlx::query!(
-    r#"SELECT a.id, title, content, author_id, name, published_at, views_count, likes_count
+    r#"SELECT a.id, title, content, author_id, name, published_at, views_count, likes_count, e.id AS edition_id,
+        (SELECT MIN(published_at) FROM editions WHERE article_id = a.id) AS first_published_at,
+        (SELECT COUNT(*) FROM editions WHERE article_id = a.id) AS editions_count
         FROM last_editions e
         JOIN articles a ON e.article_id = a.id
         JOIN users u ON a.author_id = u.id
@@ -138,6 +140,13 @@ where
     None => Ok(None),
     Some(r) => Ok(Some(Article {
       id: r.id,
+      first_published_at: r
+        .first_published_at
+        .ok_or(crate::Error::UnexpectedNone("Article.first_published_at"))?
+        .to_string(),
+      edition_id: r
+        .edition_id
+        .ok_or(crate::Error::UnexpectedNone("Article.edition_id"))?,
       title: r
         .title
         .ok_or(crate::Error::UnexpectedNone("Article.title"))?,
@@ -152,8 +161,15 @@ where
         id: r.author_id,
         name: r.name,
       },
-      views_count: r.views_count.unwrap_or(0),
-      likes_count: r.likes_count.unwrap_or(0),
+      views_count: r
+        .views_count
+        .ok_or(crate::Error::UnexpectedNone("Article.views_count"))?,
+      likes_count: r
+        .likes_count
+        .ok_or(crate::Error::UnexpectedNone("Article.likes_count"))?,
+      editions_count: r
+        .editions_count
+        .ok_or(crate::Error::UnexpectedNone("Article.editions_count"))?,
       /* these fields will be filled by following queries */
       comments: vec![],
       next: None,
@@ -303,7 +319,6 @@ where
   .map(|r| r.rows_affected())
 }
 
-
 /// Get author of an article by its ID
 /// # Arguments
 /// * `con` - The database connection
@@ -322,23 +337,22 @@ where
     .map(|r| r.map(|r| r.author_id))
 }
 
-/// Create an empty article
+/// Get the draft for an article if it exists
 /// # Arguments
 /// * `con` - The database connection
 /// * `author_id` - The author ID
+/// * `id` - The article ID
 /// # Returns
-/// The ID of the new article
+/// Draft's id
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn create_article<'e, E>(con: E, author_id: &str) -> Result<i32, sqlx::Error>
+pub async fn get_article_draft_id<'e, E>(con: E, author_id: &str, id: i32) -> Result<Option<i32>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
-  sqlx::query!(
-    r#"INSERT INTO articles (author_id) VALUES ($1) RETURNING id"#,
-    author_id,
-  )
-  .fetch_one(con)
-  .await
-  .map(|r| r.id)
+  sqlx::query!(r#"SELECT id FROM drafts WHERE article_id = $1 AND (SELECT author_id FROM articles WHERE articles.id = article_id) = $2"#,
+    id, author_id)
+    .fetch_optional(con)
+    .await
+    .map(|r| r.map(|r| r.id))
 }

@@ -18,12 +18,15 @@ export interface Author {
 }
 export interface Article {
   id: number
+  editionId: number
   title: string
   content: string
   publishedAt: string
+  firstPublishedAt: string
   author: Author
   viewsCount: number
   likesCount: number
+  editionsCount: number
   comments: Array<Comment>
   next?: ArticleSummary
   prev?: ArticleSummary
@@ -45,12 +48,14 @@ export interface User {
 }
 export interface DraftSummary {
   id: number
+  articleId?: number
   title: string
   createdAt: string
   updatedAt: string
 }
 export interface Draft {
   id: number
+  articleId?: number
   title: string
   content: string
   createdAt: string
@@ -65,6 +70,21 @@ export enum UserConflict {
   Id = 'Id',
   Name = 'Name'
 }
+export interface EditionSummary {
+  id: number
+  title: string
+  notes: string
+  publishedAt: string
+}
+export interface Edition {
+  id: number
+  articleId: number
+  title: string
+  content: string
+  notes: string
+  publishedAt: string
+  editions: Array<EditionSummary>
+}
 export enum MaybeNotFound {
   Ok = 'Ok',
   NotFound = 'NotFound'
@@ -77,6 +97,10 @@ export enum MaybeNotFoundForbidden {
 export enum BadRequest {
   Bad = 'Bad'
 }
+export enum NotFoundForbidden {
+  NotFound = 'NotFound',
+  Forbidden = 'Forbidden'
+}
 export class QueryEngine {
   static new(databaseUrl: string): QueryEngine
   listArticles(): Promise<Array<ArticleSummary>>
@@ -87,7 +111,8 @@ export class QueryEngine {
   createUser(naverId: string, userId: string, userName: string): Promise<UserConflict | null>
   listDrafts(userId: string): Promise<Array<DraftSummary>>
   createDraft(userId: string): Promise<DraftSummary>
-  createDraftWithArticle(userId: string, articleId: number): Promise<DraftSummary | MaybeNotFoundForbidden>
+  getArticleDraftId(userId: string, articleId: number): Promise<number | null>
+  editArticle(userId: string, articleId: number): Promise<number | NotFoundForbidden>
   getDraft(id: number, authorId: string): Promise<Draft | null>
   updateDraft(id: number, authorId: string, title: string, body: string): Promise<MaybeNotFound>
   deleteDraft(id: number, authorId: string): Promise<MaybeNotFound>
@@ -99,4 +124,5 @@ export class QueryEngine {
   likeArticle(articleId: number, userId: string): Promise<number>
   unlikeArticle(articleId: number, userId: string): Promise<number>
   listLikers(articleId: number): Promise<Array<LikeLog>>
+  getEdition(editionId: number): Promise<Edition | null>
 }

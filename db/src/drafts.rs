@@ -1,30 +1,58 @@
 use crate::schema::{Draft, DraftSummary};
 
-/// Create an empty draft
+/// Create an empty draft with new article
 /// # Arguments
 /// * `con` - The database connection
 /// * `author_id` - The author ID
-/// * `article_id` - The article ID (if the draft is for an existing article)
 /// # Returns
 /// The created draft
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn create_draft<'e, E>(con: E, article_id: i32) -> Result<DraftSummary, sqlx::Error>
+pub async fn create_draft<'e, E>(con: E, author_id: &str) -> Result<DraftSummary, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"INSERT INTO drafts (article_id) VALUES ($1) RETURNING id, title, created_at, updated_at"#,
-    article_id,
+    r#"WITH new_article AS (
+      INSERT INTO articles (author_id) VALUES ($1) RETURNING id
+    )
+    INSERT INTO drafts (article_id) SELECT id FROM new_article
+    RETURNING id, title, created_at, updated_at"#,
+    author_id,
   )
   .fetch_one(con)
   .await
   .map(|r| DraftSummary {
     id: r.id,
+    article_id: None, // filled in by the caller
     title: r.title,
     created_at: r.created_at.to_string(),
     updated_at: r.updated_at.to_string(),
   })
+}
+
+/// Create a draft with its title and content from an existing article
+/// # Arguments
+/// * `con` - The database connection
+/// * `author_id` - The author ID
+/// * `article_id` - The article ID
+/// # Returns
+/// The created draft's id
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn create_draft_from_article<'e, E>(con: E, article_id: i32) -> Result<i32, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(
+    r#"INSERT INTO drafts (article_id, title, content)
+    SELECT article_id, title, content FROM last_editions WHERE article_id = $1
+    RETURNING drafts.id"#,
+    article_id,
+  )
+  .fetch_one(con)
+  .await
+  .map(|r| r.id)
 }
 
 /// List drafts sorted by last update date
@@ -40,7 +68,7 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"SELECT drafts.id, title, created_at, updated_at
+    r#"SELECT drafts.id, title, created_at, updated_at, article_id, EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published
     FROM drafts
     JOIN articles ON drafts.article_id = articles.id
     WHERE author_id = $1
@@ -50,9 +78,14 @@ where
   .fetch_all(con)
   .await
   .map(|rows| {
-    rows.into_iter()
+    rows
+      .into_iter()
       .map(|r| DraftSummary {
         id: r.id,
+        article_id: match r.published {
+          Some(true) => Some(r.article_id),
+          _ => None,
+        },
         title: r.title,
         created_at: r.created_at.to_string(),
         updated_at: r.updated_at.to_string(),
@@ -79,7 +112,8 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"SELECT drafts.id, title, content, created_at, updated_at
+    r#"SELECT drafts.id, title, content, created_at, updated_at, article_id,
+      EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published
     FROM drafts
     JOIN articles ON drafts.article_id = articles.id
     WHERE drafts.id = $1 AND author_id = $2"#,
@@ -91,6 +125,10 @@ where
   .map(|r| {
     r.map(|r| Draft {
       id: r.id,
+      article_id: match r.published {
+        Some(true) => Some(r.article_id),
+        _ => None,
+      },
       title: r.title,
       content: r.content,
       created_at: r.created_at.to_string(),
@@ -122,7 +160,7 @@ where
 {
   sqlx::query!(
     r#"UPDATE drafts SET title = $1, content = $2, updated_at = now()
-    WHERE id = $3 AND (SELECT author_id FROM articles WHERE drafts.id = article_id) = $4"#,
+    WHERE id = $3 AND (SELECT author_id FROM articles WHERE articles.id = article_id) = $4"#,
     title,
     content,
     id,
@@ -143,12 +181,16 @@ where
 /// * None: If the draft was not found
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn delete_draft<'e, E>(con: E, id: i32, author_id: &str) -> Result<Option<i32>, sqlx::Error>
+pub async fn delete_draft<'e, E>(
+  con: E,
+  id: i32,
+  author_id: &str,
+) -> Result<Option<i32>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"DELETE FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE drafts.id = article_id) = $2
+    r#"DELETE FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE articles.id = article_id) = $2
     RETURNING article_id"#,
     id,
     author_id,
@@ -176,44 +218,11 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"SELECT LENGTH(title) FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE drafts.id = article_id) = $2"#,
+    r#"SELECT LENGTH(title) FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE articles.id = article_id) = $2"#,
     id,
     author_id,
   )
   .fetch_one(con)
   .await
   .map(|r| r.length.unwrap_or(0))
-}
-
-/// Create an edition of an article from a draft
-/// # Arguments
-/// * `con` - The database connection
-/// * `draft_id` - The draft ID
-/// * `author_id` - The author ID
-/// # Returns
-/// The article ID of the created edition
-/// # Errors
-/// Returns a `sqlx::Error` if the query fails
-pub async fn create_edition_from_draft<'e, E>(
-  con: E,
-  draft_id: i32,
-  author_id: &str,
-  notes: &str,
-) -> Result<i32, sqlx::Error>
-where
-  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
-{
-  sqlx::query!(
-    r#"INSERT INTO editions (article_id, title, content, notes)
-    SELECT article_id, title, content, $1
-    FROM drafts
-    WHERE id = $2 AND (SELECT author_id FROM articles WHERE drafts.id = article_id) = $3
-    RETURNING article_id"#,
-    notes,
-    draft_id,
-    author_id,
-  )
-  .fetch_one(con)
-  .await
-  .map(|r| r.article_id)
 }

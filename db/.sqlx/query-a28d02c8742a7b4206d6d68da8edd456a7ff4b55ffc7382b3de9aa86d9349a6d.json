@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "DELETE FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE drafts.id = article_id) = $2\n    RETURNING article_id",
+  "query": "DELETE FROM drafts WHERE id = $1 AND (SELECT author_id FROM articles WHERE articles.id = article_id) = $2\n    RETURNING article_id",
   "describe": {
     "columns": [
       {
@@ -19,5 +19,5 @@
       false
     ]
   },
-  "hash": "e133833393b712ccf6f51270ebfda90340580c444a11724a18a1d3993c912a36"
+  "hash": "a28d02c8742a7b4206d6d68da8edd456a7ff4b55ffc7382b3de9aa86d9349a6d"
 }

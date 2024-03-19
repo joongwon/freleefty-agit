@@ -82,3 +82,14 @@ export function Content() {
       ));
   }
 }
+
+export default function Viewer(p: { content: string }) {
+  return (
+    <article className={cx("viewer")}>
+      <OptionProvider content={p.content}>
+        <Options />
+        <Content />
+      </OptionProvider>
+    </article>
+  );
+}

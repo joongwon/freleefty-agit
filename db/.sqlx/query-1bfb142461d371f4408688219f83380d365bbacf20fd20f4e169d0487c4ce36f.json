@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO drafts (article_id) VALUES ($1) RETURNING id, title, created_at, updated_at",
+  "query": "SELECT id, title, notes, published_at\n    FROM editions\n    WHERE article_id = $1\n    ORDER BY published_at DESC",
   "describe": {
     "columns": [
       {
@@ -15,12 +15,12 @@
       },
       {
         "ordinal": 2,
-        "name": "created_at",
-        "type_info": "Timestamp"
+        "name": "notes",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "updated_at",
+        "name": "published_at",
         "type_info": "Timestamp"
       }
     ],
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "f9e02c25a3d54b07e7c6cdb277ab4285128e817feec1700a61903228dd39b24d"
+  "hash": "1bfb142461d371f4408688219f83380d365bbacf20fd20f4e169d0487c4ce36f"
 }

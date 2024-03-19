@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT drafts.id, title, created_at, updated_at\n    FROM drafts\n    JOIN articles ON drafts.article_id = articles.id\n    WHERE author_id = $1\n    ORDER BY updated_at DESC",
+  "query": "WITH new_article AS (\n      INSERT INTO articles (author_id) VALUES ($1) RETURNING id\n    )\n    INSERT INTO drafts (article_id) SELECT id FROM new_article\n    RETURNING id, title, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -26,7 +26,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Varchar"
       ]
     },
     "nullable": [
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "c4d3d73d0e3aac21c2d12aa23248d182f46655f0b9b1992de607fd69a6d7cc06"
+  "hash": "f09dd16713a70274e95ec529c364e74722f97097e4ffbbe627508d7c3f463ae6"
 }

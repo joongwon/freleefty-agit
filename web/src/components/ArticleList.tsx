@@ -1,10 +1,10 @@
-import type { ArticleSummary, DraftSummary } from "db";
+import type { ArticleSummary, DraftSummary, EditionSummary } from "db";
 import Link from "next/link";
 import { ReactNode } from "react";
 import classnames from "classnames/bind";
 import styles from "./ArticleList.module.scss";
 import Time from "@/components/Time";
-import { COMMENT, VISIBILITY, FAVORITE } from "@/components/icons";
+import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
 
 const cx = classnames.bind(styles);
 
@@ -21,9 +21,9 @@ export function Item(p: { article: ArticleSummary; before?: ReactNode }) {
       <Link href={`/articles/${p.article.id}`} className={cx("link")}>
         {p.before && <div className={cx("before")}>{p.before}</div>}
         <div
-          className={cx("title", { untitled: p.article.title.length === 0 })}
+          className={cx("title")}
         >
-          {p.article.title.length > 0 ? p.article.title : "(제목없음)"}
+          {p.article.title}
         </div>
         {p.article.commentsCount > 0 && (
           <div className={cx("n-comments")}>
@@ -63,6 +63,33 @@ export function DraftItem(p: { draft: DraftSummary }) {
       </Link>
       <div className={cx("author")}>
         <Time>{p.draft.updatedAt}</Time>
+      </div>
+      {p.draft.articleId && (
+        <Link href={`/articles/${p.draft.articleId}`} className={cx("pub")}>
+          [발행판 보기]
+        </Link>
+      )}
+    </li>
+  );
+}
+
+export function EditionItem(p: { edition: EditionSummary, selected: boolean, latest: boolean }) {
+  return (
+    <li>
+      <Link href={`/editions/${p.edition.id}`} className={cx("link")}>
+        <div className={cx("before")}>{p.selected && ARROW_RIGHT}</div>
+        <div className={cx("title")}>
+          {p.edition.title}
+          {p.latest ? <span className={cx("latest")}>[최신]</span> : null}
+          {p.edition.notes.length > 0 &&
+            <span className={cx("notes")}>
+              ({p.edition.notes})
+            </span>
+          }
+        </div>
+      </Link>
+      <div className={cx("author")}>
+        <Time>{p.edition.publishedAt}</Time>
       </div>
     </li>
   );

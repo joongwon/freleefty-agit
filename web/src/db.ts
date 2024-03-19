@@ -28,6 +28,7 @@ export async function getRedis() {
 export type UserConflict = "NaverId" | "Name" | "Id";
 export type MaybeNotFound = "Ok" | "NotFound";
 export type MaybeNotFoundForbidden = "Ok" | "NotFound" | "Forbidden";
+export type NotFoundForbidden = "NotFound" | "Forbidden";
 export type BadRequest = "Ok" | "Bad";
 
 /*

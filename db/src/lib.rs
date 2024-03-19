@@ -14,20 +14,23 @@ fn init_dbpool(database_url: &str) -> Result<DbPool, sqlx::Error> {
 mod articles;
 mod comments;
 mod drafts;
+mod editions;
 mod likes;
 mod schema;
 mod users;
 mod views;
 
 use articles::{
-  delete_article, get_article, get_article_author_id, get_next_article, get_previous_article,
-  list_articles, list_popular_articles, create_article, delete_article_if_no_editions
+  delete_article, delete_article_if_no_editions, get_article,
+  get_article_author_id, get_article_draft_id, get_next_article, get_previous_article,
+  list_articles, list_popular_articles,
 };
 use comments::{create_comment, delete_comment, get_comment_author, list_comments};
 use drafts::{
-  create_draft, delete_draft, get_draft, get_draft_title_length,
-  list_drafts, update_draft, create_edition_from_draft,
+  create_draft, create_draft_from_article, delete_draft, get_draft, get_draft_title_length,
+  list_drafts, update_draft,
 };
+use editions::{create_edition_from_draft, get_edition, list_editions};
 use likes::{like_article, list_likers, unlike_article};
 use log::{debug, error};
 use users::{create_user, get_user_by_id, get_user_by_naver_id};
@@ -50,7 +53,8 @@ struct ErrHelper {
 
 impl ErrHelper {
   fn imp<E>(&self) -> impl Fn(E) -> napi::Error
-  where E: std::fmt::Display
+  where
+    E: std::fmt::Display,
   {
     let scope = self.scope.to_owned();
     move |e| {
@@ -61,8 +65,7 @@ impl ErrHelper {
   }
 }
 
-fn err(scope: &'static str) -> ErrHelper
-{
+fn err(scope: &'static str) -> ErrHelper {
   ErrHelper { scope }
 }
 
@@ -101,7 +104,9 @@ impl QueryEngine {
       debug!("QueryEngine.get_article: exists");
       article.comments = list_comments(&mut *tx, id).await.map_err(err.imp())?;
       article.next = get_next_article(&mut *tx, id).await.map_err(err.imp())?;
-      article.prev = get_previous_article(&mut *tx, id).await.map_err(err.imp())?;
+      article.prev = get_previous_article(&mut *tx, id)
+        .await
+        .map_err(err.imp())?;
     } else {
       debug!("QueryEngine.get_article: not found");
     }
@@ -155,41 +160,53 @@ impl QueryEngine {
   #[napi]
   pub async fn create_draft(&self, user_id: String) -> Result<schema::DraftSummary, napi::Error> {
     debug!("QueryEngine.create_draft");
-    let err = err("QueryEngine.create_draft");
-    let mut tx = self.pool.begin().await.map_err(err.imp())?;
-    let article_id = create_article(&mut *tx, &user_id).await.map_err(err.imp())?;
-    let res = create_draft(&self.pool, article_id)
+    create_draft(&self.pool, &user_id)
       .await
-      .map_err(err.imp())?;
-    tx.commit().await.map_err(err.imp())?;
-    Ok(res)
+      .map_err(err("QueryEngine.create_draft").imp())
   }
 
   #[napi]
-  pub async fn create_draft_with_article(
+  pub async fn get_article_draft_id(
     &self,
     user_id: String,
     article_id: i32,
-  ) -> Result<napi::Either<schema::DraftSummary, MaybeNotFoundForbidden>, napi::Error> {
-    debug!("QueryEngine.create_draft_with_article");
-    let author_id = get_article_author_id(&self.pool, article_id)
+  ) -> Result<Option<i32>, napi::Error> {
+    debug!("QueryEngine.get_article_draft_id");
+    get_article_draft_id(&self.pool, &user_id, article_id)
       .await
-      .map_err(err("QueryEngine.create_draft_with_article").imp())?;
+      .map_err(err("QueryEngine.get_article_draft_id").imp())
+  }
+
+  #[napi]
+  pub async fn edit_article(
+    &self,
+    user_id: String,
+    article_id: i32,
+  ) -> Result<napi::Either<i32, NotFoundForbidden>, napi::Error> {
+    debug!("QueryEngine.edit_article");
+    let err = err("QueryEngine.edit_article");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let author_id = get_article_author_id(&mut *tx, article_id)
+      .await
+      .map_err(err.imp())?;
     match author_id {
       Some(author_id) if author_id == user_id => {
-        debug!("QueryEngine.create_draft_with_article: ok");
-        create_draft(&self.pool, article_id)
+        debug!("QueryEngine.edit_article: create draft");
+        let draft_id = create_draft_from_article(&mut *tx, article_id)
           .await
-          .map_err(err("QueryEngine.create_draft_with_article").imp())
-          .map(napi::Either::A)
+          .map_err(err.imp())?;
+          tx.commit().await.map_err(err.imp())?;
+          Ok(napi::Either::A(draft_id))
       }
       Some(_) => {
-        debug!("QueryEngine.create_draft_with_article: forbidden");
-        Ok(napi::Either::B(MaybeNotFoundForbidden::Forbidden))
+        debug!("QueryEngine.edit_article: forbidden");
+        tx.commit().await.map_err(err.imp())?;
+        Ok(napi::Either::B(NotFoundForbidden::Forbidden))
       }
       None => {
-        debug!("QueryEngine.create_draft_with_article: not found");
-        Ok(napi::Either::B(MaybeNotFoundForbidden::NotFound))
+        debug!("QueryEngine.edit_article: not found");
+        tx.commit().await.map_err(err.imp())?;
+        Ok(napi::Either::B(NotFoundForbidden::NotFound))
       }
     }
   }
@@ -242,7 +259,9 @@ impl QueryEngine {
     match article_id {
       Some(article_id) => {
         debug!("QueryEngine.delete_draft: ok");
-        delete_article_if_no_editions(&mut *tx, article_id).await.map_err(err.imp())?;
+        delete_article_if_no_editions(&mut *tx, article_id)
+          .await
+          .map_err(err.imp())?;
         tx.commit().await.map_err(err.imp())?;
         Ok(MaybeNotFound::Ok)
       }
@@ -263,7 +282,10 @@ impl QueryEngine {
     debug!("QueryEngine.delete_article");
     let err = err("QueryEngine.delete_article");
     let mut tx = self.pool.begin().await.map_err(err.imp())?;
-    match get_article_author_id(&mut *tx, id).await.map_err(err.imp())? {
+    match get_article_author_id(&mut *tx, id)
+      .await
+      .map_err(err.imp())?
+    {
       Some(author_id) if author_id == user_id => {
         debug!("QueryEngine.delete_article: ok");
         delete_article(&mut *tx, id).await.map_err(err.imp())?;
@@ -301,13 +323,16 @@ impl QueryEngine {
     if draft_len == 0 {
       debug!("QueryEngine.publish_draft: bad");
       tx.commit().await.map_err(err.imp())?;
-      return Ok(napi::Either::B(BadRequest::Bad))
+      return Ok(napi::Either::B(BadRequest::Bad));
     }
 
-    let article_id = create_edition_from_draft(&mut *tx, id, &author_id, &notes.unwrap_or_default())
+    let article_id =
+      create_edition_from_draft(&mut *tx, id, &author_id, &notes.unwrap_or_default())
+        .await
+        .map_err(err.imp())?;
+    delete_draft(&mut *tx, id, &author_id)
       .await
       .map_err(err.imp())?;
-    delete_draft(&mut *tx, id, &author_id).await.map_err(err.imp())?;
     tx.commit().await.map_err(err.imp())?;
     Ok(napi::Either::A(article_id))
   }
@@ -385,6 +410,20 @@ impl QueryEngine {
       .await
       .map_err(err("QueryEngine.list_likers").imp())
   }
+
+  #[napi]
+  pub async fn get_edition(&self, edition_id: i32) -> Result<Option<schema::Edition>, napi::Error> {
+    debug!("QueryEngine.get_edition");
+    let err = err("QueryEngine.get_edition");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let mut edition = get_edition(&mut *tx, edition_id).await.map_err(err.imp())?;
+    if let Some(ref mut edition) = edition {
+      edition.editions = list_editions(&mut *tx, edition.article_id)
+        .await
+        .map_err(err.imp())?;
+    }
+    Ok(edition)
+  }
 }
 
 #[napi(string_enum)]
@@ -403,4 +442,10 @@ pub enum MaybeNotFoundForbidden {
 #[napi(string_enum)]
 pub enum BadRequest {
   Bad,
+}
+
+#[napi(string_enum)]
+pub enum NotFoundForbidden {
+  NotFound,
+  Forbidden,
 }
