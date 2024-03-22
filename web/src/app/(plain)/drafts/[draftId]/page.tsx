@@ -3,7 +3,7 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { getDraft, updateDraft, publishDraft, deleteDraft } from "@/actions";
+import { getDraft, updateDraft, deleteDraft } from "@/actions";
 import { parseSafeInt } from "@/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import TextareaAutosize from "react-textarea-autosize";
 import { useRef } from "react";
 import getCaretCoordinates from "textarea-caret";
-import type { MaybeNotFound, BadRequest } from "@/db";
+import type { MaybeNotFound } from "@/db";
 
 const cx = classNames.bind(styles);
 
@@ -58,22 +58,6 @@ export default function EditDraft(p: { params: { draftId: string } }) {
 
   const router = useRouter();
 
-  // publish draft
-  const publish = useSWRMutation(
-    swrKey,
-    ([draftId], opt: { arg: { token: string } }) =>
-      publishDraft(opt.arg.token, draftId),
-    {
-      // prevent not found error before navigating
-      revalidate: false,
-      onSuccess: (data) => {
-        if (typeof data === "number") {
-          router.replace(`/articles/${data}`);
-        }
-      },
-    },
-  );
-
   // delete draft
   const del = useSWRMutation(
     swrKey,
@@ -112,7 +96,6 @@ export default function EditDraft(p: { params: { draftId: string } }) {
 
   const updateData: MaybeNotFound | undefined = update.data;
   const delData: MaybeNotFound | undefined = del.data;
-  const publishData: number | BadRequest | undefined = publish.data;
   const errorMessage = (() => {
     if (authState.type.value !== "login") return "일지를 쓰려면 로그인하세요";
     if (draftId === null || res.data === null || updateData === "NotFound")
@@ -120,8 +103,6 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     if (res.isLoading) return "저장된 일지를 불러오는 중...";
     if (res.error) return "초안을 불러오는 중 오류가 발생했습니다";
     if (update.error) return "초안을 저장하는 중 오류가 발생했습니다";
-    if (publishData === "Bad") return "발행하려면 제목을 입력하세요";
-    if (publish.error) return "일지를 발행하는 중 오류가 발생했습니다";
     if (delData === "NotFound") return "이미 삭제된 초안입니다";
     if (del.error) return "초안을 삭제하는 중 오류가 발생했습니다";
     return null;
@@ -129,6 +110,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
 
   /* cannot edit before loaded (undefined) or not found (null) */
   const editDisabled = !res.data;
+
+  const changed = title !== res.data?.title || content !== res.data?.content;
 
   /*
    * cannot submit:
@@ -140,33 +123,11 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   const submitDisabled =
     res.isValidating ||
     res.data === null ||
-    (title === res.data?.title && content === res.data?.content) ||
+    !changed ||
     update.isMutating ||
-    publish.isMutating ||
     del.isMutating;
 
-  /*
-   * cannot publish:
-   * - before loaded or during validation
-   * - not found
-   * - changed
-   * - during submission or publishing
-   */
-  const publishDisabled =
-    res.isValidating ||
-    res.data === null ||
-    title !== res.data?.title ||
-    content !== res.data?.content ||
-    res.data?.title === "" ||
-    update.isMutating ||
-    publish.isMutating ||
-    del.isMutating;
-
-  const delDisabled =
-    res.data === null ||
-    del.isMutating ||
-    publish.isMutating ||
-    update.isMutating;
+  const delDisabled = res.data === null || del.isMutating || update.isMutating;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -222,7 +183,6 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             }
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in onSubmit");
-            publish.reset();
             del.reset();
             void update.trigger({
               title: title,
@@ -231,41 +191,21 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             });
           }}
         >
-          저장
+          {update.isMutating
+            ? "저장 중..."
+            : !changed && updateData === "Ok"
+              ? "저장됨"
+              : "저장"}
         </button>
-        <button
-          className={cx("publish", { disabled: publishDisabled })}
-          type="button"
-          title={
-            res.data?.title === ""
-              ? "발행하려면 제목을 입력하세요"
-              : publishDisabled
-                ? "발행하려면 우선 저장하세요"
-                : "발행하여 공개"
-          }
-          onClick={() => {
-            // TODO: 발행 버튼을 누르면 미리보기로 이동 후 메모를 남기고 발행할 수 있게 한다
-            if (res.data?.title === "") {
-              alert("발행하려면 제목을 입력하세요");
-              return;
-            }
-            if (publishDisabled) {
-              alert("발행하려면 우선 저장하세요");
-              return;
-            }
-            if (gAuthState.value.type !== "login")
-              throw new Error("non-login state found in publish onClick");
-            if (
-              confirm("발행하시겠습니까? 발행 이후에는 수정할 수 없습니다.")
-            ) {
-              update.reset();
-              del.reset();
-              void publish.trigger({ token: gAuthState.value.token });
-            }
-          }}
+        <Link
+          className={cx("preview", {
+            disabled: update.isMutating || del.isMutating || changed,
+          })}
+          title={changed ? "우선 저장하세요" : "검토 후 발행"}
+          href={changed ? "" : `/drafts/${draftId}/preview`}
         >
-          발행
-        </button>
+          검토 후 발행
+        </Link>
         <button
           className={cx("delete", { disabled: delDisabled })}
           type="button"
@@ -279,31 +219,24 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             }
             if (confirm("삭제하시겠습니까?")) {
               update.reset();
-              publish.reset();
               void del.trigger({ token: gAuthState.value.token });
             }
           }}
         >
           삭제
         </button>
-        {
-          res.data?.articleId && (
-            <Link
-              href={`/articles/${res.data.articleId}`}
-              title="이 초안이 덮어씌울 일지의 최신 발행판"
-            >
-              발행판
-            </Link>
-          )
-        }
+        {res.data?.articleId && (
+          <Link
+            href={`/articles/${res.data.articleId}`}
+            title="이 초안이 덮어씌울 일지의 최신 발행판"
+          >
+            발행판
+          </Link>
+        )}
         <Link href="/drafts" title="초안 목록으로 돌아가기">
           목록
         </Link>
       </section>
-      {title === undefined && content === undefined && updateData === "Ok" && (
-        <p className={cx("save")}>저장됨</p>
-      )}
-      {update.isMutating && <p className={cx("save")}>저장 중...</p>}
       {errorMessage && <p className={cx("error")}>{errorMessage}</p>}
     </main>
   );

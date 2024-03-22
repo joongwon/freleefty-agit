@@ -121,6 +121,11 @@ main.article {
       font-variation-settings: "FILL" 1;
     }
 
+    /* delete button */
+    .button.delete {
+      @include button-red-color-only;
+    }
+
     .author-menu-wrapper {
       position: relative;
     }
@@ -168,11 +173,6 @@ main.article {
       transform: translateY(-50%);
       border: 0.5rem solid transparent;
       border-left-color: #eee;
-    }
-
-    /* delete button */
-    .button.delete {
-      @include button-red;
     }
   }
 

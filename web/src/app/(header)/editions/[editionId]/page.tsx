@@ -12,7 +12,8 @@ const cx = classNames.bind(styles);
 export default async function Edition(p: { params: { editionId: string } }) {
   const editionId = parseSafeInt(p.params.editionId);
   if (editionId === null) {
-    return notFound(); }
+    return notFound();
+  }
 
   const db = getDB();
   const edition = await db.getEdition(editionId);
@@ -29,7 +30,12 @@ export default async function Edition(p: { params: { editionId: string } }) {
       </header>
       <ArticleList.Container>
         {edition.editions.map((edition, i) => (
-          <ArticleList.EditionItem key={edition.id} edition={edition} selected={edition.id === editionId} latest={i === 0} />
+          <ArticleList.EditionItem
+            key={edition.id}
+            edition={edition}
+            selected={edition.id === editionId}
+            latest={i === 0}
+          />
         ))}
       </ArticleList.Container>
       <section className={cx("content")}>

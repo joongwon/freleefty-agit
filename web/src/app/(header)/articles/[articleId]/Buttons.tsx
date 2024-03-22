@@ -3,7 +3,7 @@ import { COMMENT, FAVORITE, MORE } from "@/components/icons";
 import Link from "next/link";
 import classnames from "classnames/bind";
 import styles from "./page.module.scss";
-import type { Article, } from "db";
+import type { Article } from "db";
 import type { MaybeNotFoundForbidden, NotFoundForbidden } from "@/db";
 import {
   deleteArticle,
@@ -12,7 +12,7 @@ import {
   unlikeArticle,
   likeArticle,
   editArticle,
-  getArticleDraftId
+  getArticleDraftId,
 } from "@/actions";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
@@ -154,7 +154,10 @@ function LikeButton(p: { article: Article }) {
   return (
     <>
       <button
-        className={cx("like", "button", { liked: userInLike, disabled: !canClick })}
+        className={cx("like", "button", {
+          liked: userInLike,
+          disabled: !canClick,
+        })}
         title={
           !canClick
             ? "로그인 후 공감할 수 있습니다."
@@ -179,7 +182,8 @@ function LikeButton(p: { article: Article }) {
 function AuthorMenu(p: { article: Article }) {
   const auth = useHookstate(gAuthState);
   const router = useRouter();
-  const swrKey = auth.value.type === "login" ? [p.article.id, "draftId"] as const : null;
+  const swrKey =
+    auth.value.type === "login" ? ([p.article.id, "draftId"] as const) : null;
   const draftId = useSWR(swrKey, async ([id]) => {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in author menu");
@@ -194,7 +198,10 @@ function AuthorMenu(p: { article: Article }) {
       return;
     }
     try {
-      const res: MaybeNotFoundForbidden = await deleteArticle(auth.value.token, p.article.id);
+      const res: MaybeNotFoundForbidden = await deleteArticle(
+        auth.value.token,
+        p.article.id,
+      );
       switch (res) {
         case "Ok":
           router.push("/articles");
@@ -215,7 +222,10 @@ function AuthorMenu(p: { article: Article }) {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleUpdateArticle");
     }
-    const res: NotFoundForbidden | number = await editArticle(auth.value.token, p.article.id);
+    const res: NotFoundForbidden | number = await editArticle(
+      auth.value.token,
+      p.article.id,
+    );
     switch (res) {
       case "NotFound":
         alert("일지를 찾을 수 없습니다");
@@ -227,7 +237,7 @@ function AuthorMenu(p: { article: Article }) {
         router.push(`/drafts/${res}`);
         return;
     }
-  }
+  };
 
   const isAuthor =
     auth.value.type === "login" &&
@@ -251,13 +261,21 @@ function AuthorMenu(p: { article: Article }) {
     };
   }, [isOpen]);
 
-  return <div className={cx("author-menu-wrapper")}>
-    <button onClick={() => setIsOpen(!isOpen)} className={cx("open-author-menu")}>
-      {MORE}
-    </button>
-    <menu className={cx("author-menu", { closed: !isOpen })} onClick={(e) => e.stopPropagation()}>
-      {!isAuthor || draftId.isLoading || draftId.error ? null :
-        draftId.data === null ?
+  return (
+    <div className={cx("author-menu-wrapper")}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cx("open-author-menu")}
+      >
+        {MORE}
+      </button>
+      <menu
+        className={cx("author-menu", { closed: !isOpen })}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {!isAuthor ||
+        draftId.isLoading ||
+        draftId.error ? null : draftId.data === null ? (
           <>
             <li>
               <button
@@ -281,25 +299,32 @@ function AuthorMenu(p: { article: Article }) {
                 삭제
               </button>
             </li>
-          </>:
+          </>
+        ) : (
           <li>
-            <Link href={`/drafts/${draftId.data}`} title="수정중인 개정판으로 이동"
-              className={cx("button")}>
+            <Link
+              href={`/drafts/${draftId.data}`}
+              title="수정중인 개정판으로 이동"
+              className={cx("button")}
+            >
               개정판 초안 편집
             </Link>
           </li>
-      }
-      <li>
-        {p.article.editionsCount > 1 ?
-          <Link href={`/editions/${p.article.editionId}`} title="이 일지로서 발행한 판의 목록"
-            className={cx("button")}>
-            다른 판 ({p.article.editionsCount})
-          </Link> :
-          <span className={cx("button", "disabled")}>
-            (초판입니다)
-          </span>
-        }
-      </li>
-    </menu>
-  </div>;
+        )}
+        <li>
+          {p.article.editionsCount > 1 ? (
+            <Link
+              href={`/editions/${p.article.editionId}`}
+              title="이 일지로서 발행한 판의 목록"
+              className={cx("button")}
+            >
+              다른 판 ({p.article.editionsCount})
+            </Link>
+          ) : (
+            <span className={cx("button", "disabled")}>(초판입니다)</span>
+          )}
+        </li>
+      </menu>
+    </div>
+  );
 }

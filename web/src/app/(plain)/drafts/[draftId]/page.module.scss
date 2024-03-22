@@ -46,7 +46,7 @@ main.draft {
     button.save {
       @include button-green;
     }
-    button.publish {
+    a.preview {
       @include button-blue;
     }
     button.delete {

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { ReactNode } from "react";
 import "./global.scss";
+import "./layout.scss"; // layout has global styles; load in both plain and header groups
 import { InitToken } from "@/auth";
 
 export const metadata: Metadata = {

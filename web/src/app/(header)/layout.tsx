@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import "./layout.scss";
 import AuthMenu from "./AuthMenu";
 import NavMenu from "./NavMenu";
 import Header from "./Header";

@@ -20,11 +20,7 @@ export function Item(p: { article: ArticleSummary; before?: ReactNode }) {
     <li>
       <Link href={`/articles/${p.article.id}`} className={cx("link")}>
         {p.before && <div className={cx("before")}>{p.before}</div>}
-        <div
-          className={cx("title")}
-        >
-          {p.article.title}
-        </div>
+        <div className={cx("title")}>{p.article.title}</div>
         {p.article.commentsCount > 0 && (
           <div className={cx("n-comments")}>
             {COMMENT}
@@ -73,7 +69,11 @@ export function DraftItem(p: { draft: DraftSummary }) {
   );
 }
 
-export function EditionItem(p: { edition: EditionSummary, selected: boolean, latest: boolean }) {
+export function EditionItem(p: {
+  edition: EditionSummary;
+  selected: boolean;
+  latest: boolean;
+}) {
   return (
     <li>
       <Link href={`/editions/${p.edition.id}`} className={cx("link")}>
@@ -81,11 +81,9 @@ export function EditionItem(p: { edition: EditionSummary, selected: boolean, lat
         <div className={cx("title")}>
           {p.edition.title}
           {p.latest ? <span className={cx("latest")}>[최신]</span> : null}
-          {p.edition.notes.length > 0 &&
-            <span className={cx("notes")}>
-              ({p.edition.notes})
-            </span>
-          }
+          {p.edition.notes.length > 0 && (
+            <span className={cx("notes")}>({p.edition.notes})</span>
+          )}
         </div>
       </Link>
       <div className={cx("author")}>

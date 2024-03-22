@@ -232,13 +232,18 @@ export async function deleteArticle(tokenRaw: string, idRaw: number) {
   return res;
 }
 
-export async function publishDraft(tokenRaw: string, idRaw: number) {
+export async function publishDraft(
+  tokenRaw: string,
+  idRaw: number,
+  notesRaw: string,
+) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);
+  const notes = stringSchema.parse(notesRaw);
 
   const db = getDB();
   const userId = (await decodeToken(token)).id;
-  const res = await db.publishDraft(id, userId);
+  const res = await db.publishDraft(id, userId, notes);
   revalidatePath("/articles");
   return res;
 }
@@ -334,7 +339,10 @@ export async function editArticle(tokenRaw: string, articleIdRaw: number) {
   return await db.editArticle(userId, articleId);
 }
 
-export async function getArticleDraftId(tokenRaw: string, articleIdRaw: number) {
+export async function getArticleDraftId(
+  tokenRaw: string,
+  articleIdRaw: number,
+) {
   const token = stringSchema.parse(tokenRaw);
   const articleId = numberSchema.parse(articleIdRaw);
 

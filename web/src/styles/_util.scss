@@ -34,6 +34,7 @@ $matsym: string.unquote(":global(.material-symbols-outlined)");
 
   cursor: pointer;
   font-size: 0.8rem;
+  line-height: 1.2rem;
   padding: 0.3rem 0.6rem;
 
   color: #313131;
@@ -66,6 +67,28 @@ $matsym: string.unquote(":global(.material-symbols-outlined)");
 
 @mixin button-red {
   @include button(#ff9e9e, #ff7e7e);
+}
+
+@mixin button-color-only(
+  $bg-color: #ffffff,
+  $hover-color: #ddd,
+  $disabled-color: #aaa
+) {
+  border-color: $hover-color;
+
+  background-color: $bg-color;
+  &:hover {
+    background-color: $hover-color;
+  }
+
+  &.disabled {
+    background-color: $bg-color;
+    color: $disabled-color;
+  }
+}
+
+@mixin button-red-color-only {
+  @include button-color-only(#ff9e9e, #ff7e7e);
 }
 
 /* input styles */
