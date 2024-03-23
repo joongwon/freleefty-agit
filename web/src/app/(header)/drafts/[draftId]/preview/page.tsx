@@ -46,7 +46,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
         alert("먼저 로그인하세요");
         return;
       }
-      if (!res.data) {
+      if (draftId === null || !res.data) {
         alert("초안을 찾을 수 없습니다");
         return;
       }
@@ -86,7 +86,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            publish.trigger(notes);
+            void publish.trigger(notes);
           }}
         >
           <input
