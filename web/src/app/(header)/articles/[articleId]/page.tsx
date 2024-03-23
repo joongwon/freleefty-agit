@@ -64,10 +64,10 @@ export default async function ViewArticle(p: {
           {article.author.name}
           {", "}
           <Time>{article.publishedAt}</Time>
-          {article.publishedAt !== article.firstPublishedAt ? (
+          {article.publishedAt !== article.lastPublishedAt ? (
             <>
-              {" (초판 "}
-              <Time>{article.firstPublishedAt}</Time>
+              {" (개정: "}
+              <Time>{article.lastPublishedAt}</Time>
               {")"}
             </>
           ) : null}

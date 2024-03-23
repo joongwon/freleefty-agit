@@ -22,7 +22,7 @@ pub struct Article {
   pub title: String,
   pub content: String,
   pub published_at: String,
-  pub first_published_at: String,
+  pub last_published_at: String,
   pub author: Author,
   pub views_count: i64,
   pub likes_count: i64,

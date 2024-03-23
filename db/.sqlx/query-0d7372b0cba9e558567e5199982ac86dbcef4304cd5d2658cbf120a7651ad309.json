@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count\n        FROM last_editions e\n        JOIN articles a ON e.article_id = a.id\n        JOIN users u ON a.author_id = u.id\n        JOIN article_stats s ON a.id = s.id\n        ORDER BY published_at DESC",
+  "query": "SELECT a.id, title, author_id, name, first_published_at, comments_count, views_count, likes_count\n        FROM last_editions e\n        JOIN articles a ON e.article_id = a.id\n        JOIN users u ON a.author_id = u.id\n        JOIN article_stats s ON a.id = s.id\n        WHERE first_published_at > (SELECT first_published_at FROM last_editions WHERE article_id = $1)\n        ORDER BY first_published_at ASC LIMIT 1",
   "describe": {
     "columns": [
       {
@@ -25,7 +25,7 @@
       },
       {
         "ordinal": 4,
-        "name": "published_at",
+        "name": "first_published_at",
         "type_info": "Timestamp"
       },
       {
@@ -45,7 +45,9 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Int4"
+      ]
     },
     "nullable": [
       false,
@@ -58,5 +60,5 @@
       true
     ]
   },
-  "hash": "03e9624249ff7a2b3d63309eef3e9901d5d583e43a5338a42271d7fed69ab89c"
+  "hash": "0d7372b0cba9e558567e5199982ac86dbcef4304cd5d2658cbf120a7651ad309"
 }

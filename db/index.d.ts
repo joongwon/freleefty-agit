@@ -22,7 +22,7 @@ export interface Article {
   title: string
   content: string
   publishedAt: string
-  firstPublishedAt: string
+  lastPublishedAt: string
   author: Author
   viewsCount: number
   likesCount: number

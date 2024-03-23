@@ -13,12 +13,12 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   let rows = sqlx::query!(
-    r#"SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+    r#"SELECT a.id, title, author_id, name, first_published_at, comments_count, views_count, likes_count
         FROM last_editions e
         JOIN articles a ON e.article_id = a.id
         JOIN users u ON a.author_id = u.id
         JOIN article_stats s ON a.id = s.id
-        ORDER BY published_at DESC"#,
+        ORDER BY first_published_at DESC"#,
   )
   .fetch_all(con)
   .await?;
@@ -31,7 +31,7 @@ where
           .title
           .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
         published_at: r
-          .published_at
+          .first_published_at
           .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
           .to_string(),
         author: Author {
@@ -68,7 +68,7 @@ where
 {
   let rows = sqlx::query!(
     r#"SELECT * FROM (
-            SELECT a.id, title, author_id, name, published_at, comments_count, likes_count,
+            SELECT a.id, title, author_id, name, first_published_at, comments_count, likes_count,
             (SELECT COUNT(*) FROM views WHERE views.article_id = a.id
                 AND (now() - views.created_at < $2)) AS views_count
             FROM last_editions e
@@ -95,7 +95,7 @@ where
           .title
           .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
         published_at: r
-          .published_at
+          .first_published_at
           .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
           .to_string(),
         author: Author {
@@ -124,8 +124,8 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   let r = sqlx::query!(
-    r#"SELECT a.id, title, content, author_id, name, published_at, views_count, likes_count, e.id AS edition_id,
-        (SELECT MIN(published_at) FROM editions WHERE article_id = a.id) AS first_published_at,
+    r#"SELECT a.id, title, content, author_id, name, views_count, likes_count, e.id AS edition_id,
+        first_published_at, last_published_at,
         (SELECT COUNT(*) FROM editions WHERE article_id = a.id) AS editions_count
         FROM last_editions e
         JOIN articles a ON e.article_id = a.id
@@ -140,8 +140,8 @@ where
     None => Ok(None),
     Some(r) => Ok(Some(Article {
       id: r.id,
-      first_published_at: r
-        .first_published_at
+      last_published_at: r
+        .last_published_at
         .ok_or(crate::Error::UnexpectedNone("Article.first_published_at"))?
         .to_string(),
       edition_id: r
@@ -154,7 +154,7 @@ where
         .content
         .ok_or(crate::Error::UnexpectedNone("Article.content"))?,
       published_at: r
-        .published_at
+        .first_published_at
         .ok_or(crate::Error::UnexpectedNone("Article.published_at"))?
         .to_string(),
       author: Author {
@@ -194,13 +194,13 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   let r = sqlx::query!(
-    r#"SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+    r#"SELECT a.id, title, author_id, name, first_published_at, comments_count, views_count, likes_count
         FROM last_editions e
         JOIN articles a ON e.article_id = a.id
         JOIN users u ON a.author_id = u.id
         JOIN article_stats s ON a.id = s.id
-        WHERE published_at > (SELECT published_at FROM last_editions WHERE article_id = $1)
-        ORDER BY published_at ASC LIMIT 1"#,
+        WHERE first_published_at > (SELECT first_published_at FROM last_editions WHERE article_id = $1)
+        ORDER BY first_published_at ASC LIMIT 1"#,
     id,
   )
   .fetch_optional(con)
@@ -213,7 +213,7 @@ where
         .title
         .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
       published_at: r
-        .published_at
+        .first_published_at
         .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
         .to_string(),
       author: Author {
@@ -243,13 +243,13 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   let r = sqlx::query!(
-    r#"SELECT a.id, title, author_id, name, published_at, comments_count, views_count, likes_count
+    r#"SELECT a.id, title, author_id, name, first_published_at, comments_count, views_count, likes_count
         FROM last_editions e
         JOIN articles a ON e.article_id = a.id
         JOIN users u ON a.author_id = u.id
         JOIN article_stats s ON a.id = s.id
-        WHERE published_at < (SELECT published_at FROM last_editions WHERE article_id = $1)
-        ORDER BY published_at DESC LIMIT 1"#,
+        WHERE first_published_at < (SELECT first_published_at FROM last_editions WHERE article_id = $1)
+        ORDER BY first_published_at DESC LIMIT 1"#,
     id,
   )
   .fetch_optional(con)
@@ -262,7 +262,7 @@ where
         .title
         .ok_or(crate::Error::UnexpectedNone("ArticleSummary.title"))?,
       published_at: r
-        .published_at
+        .first_published_at
         .ok_or(crate::Error::UnexpectedNone("ArticleSummary.published_at"))?
         .to_string(),
       author: Author {
@@ -346,7 +346,11 @@ where
 /// Draft's id
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
-pub async fn get_article_draft_id<'e, E>(con: E, author_id: &str, id: i32) -> Result<Option<i32>, sqlx::Error>
+pub async fn get_article_draft_id<'e, E>(
+  con: E,
+  author_id: &str,
+  id: i32,
+) -> Result<Option<i32>, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {

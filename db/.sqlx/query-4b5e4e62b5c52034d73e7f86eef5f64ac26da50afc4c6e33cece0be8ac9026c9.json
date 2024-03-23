@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, title, content, author_id, name, published_at, views_count, likes_count, e.id AS edition_id,\n        (SELECT MIN(published_at) FROM editions WHERE article_id = a.id) AS first_published_at,\n        (SELECT COUNT(*) FROM editions WHERE article_id = a.id) AS editions_count\n        FROM last_editions e\n        JOIN articles a ON e.article_id = a.id\n        JOIN users u ON a.author_id = u.id\n        JOIN article_stats s ON a.id = s.id\n        WHERE a.id = $1",
+  "query": "SELECT a.id, title, content, author_id, name, views_count, likes_count, e.id AS edition_id,\n        first_published_at, last_published_at,\n        (SELECT COUNT(*) FROM editions WHERE article_id = a.id) AS editions_count\n        FROM last_editions e\n        JOIN articles a ON e.article_id = a.id\n        JOIN users u ON a.author_id = u.id\n        JOIN article_stats s ON a.id = s.id\n        WHERE a.id = $1",
   "describe": {
     "columns": [
       {
@@ -30,27 +30,27 @@
       },
       {
         "ordinal": 5,
-        "name": "published_at",
-        "type_info": "Timestamp"
-      },
-      {
-        "ordinal": 6,
         "name": "views_count",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "likes_count",
         "type_info": "Int8"
       },
       {
-        "ordinal": 8,
+        "ordinal": 7,
         "name": "edition_id",
         "type_info": "Int4"
       },
       {
-        "ordinal": 9,
+        "ordinal": 8,
         "name": "first_published_at",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 9,
+        "name": "last_published_at",
         "type_info": "Timestamp"
       },
       {
@@ -74,9 +74,9 @@
       true,
       true,
       true,
-      null,
+      true,
       null
     ]
   },
-  "hash": "500f0de0ec436ab7cca4580a963aca64bbe4c1ef807cdf570296335a6e2bd1ae"
+  "hash": "4b5e4e62b5c52034d73e7f86eef5f64ac26da50afc4c6e33cece0be8ac9026c9"
 }

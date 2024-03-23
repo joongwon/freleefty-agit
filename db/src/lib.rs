@@ -21,9 +21,9 @@ mod users;
 mod views;
 
 use articles::{
-  delete_article, delete_article_if_no_editions, get_article,
-  get_article_author_id, get_article_draft_id, get_next_article, get_previous_article,
-  list_articles, list_popular_articles,
+  delete_article, delete_article_if_no_editions, get_article, get_article_author_id,
+  get_article_draft_id, get_next_article, get_previous_article, list_articles,
+  list_popular_articles,
 };
 use comments::{create_comment, delete_comment, get_comment_author, list_comments};
 use drafts::{
@@ -195,8 +195,8 @@ impl QueryEngine {
         let draft_id = create_draft_from_article(&mut *tx, article_id)
           .await
           .map_err(err.imp())?;
-          tx.commit().await.map_err(err.imp())?;
-          Ok(napi::Either::A(draft_id))
+        tx.commit().await.map_err(err.imp())?;
+        Ok(napi::Either::A(draft_id))
       }
       Some(_) => {
         debug!("QueryEngine.edit_article: forbidden");
