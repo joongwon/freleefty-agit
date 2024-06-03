@@ -6,6 +6,9 @@ import { getEnv } from "@/env";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
+import fs from "fs";
+import tmp from "tmp";
+import { Writable } from "stream";
 
 const stringSchema = z.string();
 const numberSchema = z.number();
@@ -349,4 +352,32 @@ export async function getArticleDraftId(
   const db = getDB();
   const userId = (await decodeToken(token)).id;
   return await db.getArticleDraftId(userId, articleId);
+}
+
+export async function createFile(tokenRaw: string, draftId: number, formData: FormData) {
+  const token = stringSchema.parse(tokenRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  const file = formData.get("file");
+  if (!(file instanceof File)) {
+    throw new Error("Invalid file");
+  }
+  const name = file.name;
+  const path = new Promise<string>((resolve, reject) => {
+    tmp.file((err, path) => {
+      if (err) reject(err);
+      const stream = Writable.toWeb(fs.createWriteStream(path));
+      file.stream().pipeTo(stream).then(() => resolve(path), reject);
+    });
+  });
+  return await db.createFile(draftId, name, userId, path);
+}
+
+export async function deleteFile(tokenRaw: string, fileId: number) {
+  const token = stringSchema.parse(tokenRaw);
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
+  return await db.deleteFile(fileId, userId);
 }

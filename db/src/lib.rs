@@ -15,10 +15,13 @@ mod articles;
 mod comments;
 mod drafts;
 mod editions;
+mod files;
 mod likes;
 mod schema;
 mod users;
 mod views;
+
+use std::path::{Path, PathBuf};
 
 use articles::{
   delete_article, delete_article_if_no_editions, get_article, get_article_author_id,
@@ -27,12 +30,14 @@ use articles::{
 };
 use comments::{create_comment, delete_comment, get_comment_author, list_comments};
 use drafts::{
-  create_draft, create_draft_from_article, delete_draft, get_draft, get_draft_title_length,
-  list_drafts, update_draft,
+  create_draft, create_draft_from_article, delete_draft, get_draft, get_draft_author,
+  get_draft_title_length, list_drafts, update_draft,
 };
-use editions::{create_edition_from_draft, get_edition, list_editions};
+use editions::{create_edition_from_draft, get_edition, list_edition_ids, list_editions};
+use files::{copy_article_files_to_draft, move_draft_files_to_edition, create_file, delete_file, get_file_info, list_article_files, list_draft_files, list_edition_files, CreateFileResult};
 use likes::{like_article, list_likers, unlike_article};
 use log::{debug, error};
+use napi::bindgen_prelude::Promise;
 use users::{create_user, get_user_by_id, get_user_by_naver_id};
 use views::create_view_log;
 
@@ -45,6 +50,7 @@ pub enum Error {
 #[napi]
 pub struct QueryEngine {
   pool: DbPool,
+  upload_dir: String,
 }
 
 struct ErrHelper {
@@ -69,13 +75,25 @@ fn err(scope: &'static str) -> ErrHelper {
   ErrHelper { scope }
 }
 
+fn file_path(base: &Path, id: i32, name: &str) -> PathBuf {
+  base.join(&id.to_string()).join(name)
+}
+
 #[napi]
 impl QueryEngine {
   #[napi(factory)]
-  pub fn new(database_url: String) -> Result<Self, napi::Error> {
+  pub fn new(database_url: String, upload_dir: String) -> Result<Self, napi::Error> {
     debug!("QueryEngine.new");
     let pool = init_dbpool(&database_url).map_err(err("QueryEngine.new").imp())?;
-    Ok(Self { pool })
+    Ok(Self { pool, upload_dir })
+  }
+
+  fn draft_path(&self, id: i32) -> PathBuf {
+    Path::new(&self.upload_dir).join("d").join(&id.to_string())
+  }
+
+  fn edition_path(&self, id: i32) -> PathBuf {
+    Path::new(&self.upload_dir).join("e").join(&id.to_string())
   }
 
   #[napi]
@@ -107,6 +125,7 @@ impl QueryEngine {
       article.prev = get_previous_article(&mut *tx, id)
         .await
         .map_err(err.imp())?;
+      article.files = list_article_files(&mut *tx, id).await.map_err(err.imp())?;
     } else {
       debug!("QueryEngine.get_article: not found");
     }
@@ -192,23 +211,32 @@ impl QueryEngine {
     match author_id {
       Some(author_id) if author_id == user_id => {
         debug!("QueryEngine.edit_article: create draft");
-        let draft_id = create_draft_from_article(&mut *tx, article_id)
-          .await
-          .map_err(err.imp())?;
-        tx.commit().await.map_err(err.imp())?;
-        Ok(napi::Either::A(draft_id))
       }
       Some(_) => {
         debug!("QueryEngine.edit_article: forbidden");
         tx.commit().await.map_err(err.imp())?;
-        Ok(napi::Either::B(NotFoundForbidden::Forbidden))
+        return Ok(napi::Either::B(NotFoundForbidden::Forbidden))
       }
       None => {
         debug!("QueryEngine.edit_article: not found");
         tx.commit().await.map_err(err.imp())?;
-        Ok(napi::Either::B(NotFoundForbidden::NotFound))
+        return Ok(napi::Either::B(NotFoundForbidden::NotFound))
       }
     }
+    let draft_id = create_draft_from_article(&mut *tx, article_id)
+      .await
+      .map_err(err.imp())?;
+    let files = copy_article_files_to_draft(&mut *tx, article_id, draft_id)
+      .await
+      .map_err(err.imp())?;
+    for (old_id, new_id, name) in files {
+      let old_path = file_path(&self.edition_path(article_id), old_id, &name);
+      let new_path = file_path(&self.draft_path(draft_id), new_id, &name);
+      std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
+      std::fs::hard_link(&old_path, &new_path).map_err(err.imp())?;
+    }
+    tx.commit().await.map_err(err.imp())?;
+    Ok(napi::Either::A(draft_id))
   }
 
   #[napi]
@@ -218,9 +246,19 @@ impl QueryEngine {
     author_id: String,
   ) -> Result<Option<schema::Draft>, napi::Error> {
     debug!("QueryEngine.get_draft");
-    get_draft(&self.pool, id, &author_id)
+    let err = err("QueryEngine.get_draft");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let mut draft = get_draft(&mut *tx, id, &author_id)
       .await
-      .map_err(err("QueryEngine.get_draft").imp())
+      .map_err(err.imp())?;
+    if let Some(ref mut draft) = draft {
+      draft.files = list_draft_files(&mut *tx, id).await.map_err(err.imp())?;
+      debug!("QueryEngine.get_draft: exists");
+    } else {
+      debug!("QueryEngine.get_draft: not found");
+    }
+    tx.commit().await.map_err(err.imp())?;
+    Ok(draft)
   }
 
   #[napi]
@@ -256,21 +294,29 @@ impl QueryEngine {
     let article_id = delete_draft(&mut *tx, id, &author_id)
       .await
       .map_err(err.imp())?;
-    match article_id {
+    let article_id = match article_id {
       Some(article_id) => {
         debug!("QueryEngine.delete_draft: ok");
-        delete_article_if_no_editions(&mut *tx, article_id)
-          .await
-          .map_err(err.imp())?;
-        tx.commit().await.map_err(err.imp())?;
-        Ok(MaybeNotFound::Ok)
+        article_id
       }
       None => {
         debug!("QueryEngine.delete_draft: not found");
         tx.commit().await.map_err(err.imp())?;
-        Ok(MaybeNotFound::NotFound)
+        return Ok(MaybeNotFound::NotFound)
       }
+    };
+    delete_article_if_no_editions(&mut *tx, article_id)
+    .await
+    .map_err(err.imp())?;
+
+    // delete files
+    let path = self.draft_path(id);
+    if path.exists() {
+      std::fs::remove_dir_all(path).map_err(err.imp())?;
     }
+
+    tx.commit().await.map_err(err.imp())?;
+    Ok(MaybeNotFound::Ok)
   }
 
   #[napi]
@@ -288,21 +334,42 @@ impl QueryEngine {
     {
       Some(author_id) if author_id == user_id => {
         debug!("QueryEngine.delete_article: ok");
-        delete_article(&mut *tx, id).await.map_err(err.imp())?;
-        tx.commit().await.map_err(err.imp())?;
-        Ok(MaybeNotFoundForbidden::Ok)
       }
       Some(_) => {
         debug!("QueryEngine.delete_article: forbidden");
         tx.commit().await.map_err(err.imp())?;
-        Ok(MaybeNotFoundForbidden::Forbidden)
+        return Ok(MaybeNotFoundForbidden::Forbidden)
       }
       None => {
         debug!("QueryEngine.delete_article: not found");
         tx.commit().await.map_err(err.imp())?;
-        Ok(MaybeNotFoundForbidden::NotFound)
+        return Ok(MaybeNotFoundForbidden::NotFound)
       }
     }
+    delete_article(&mut *tx, id).await.map_err(err.imp())?;
+
+    // delete files
+    let editions = list_edition_ids(&mut *tx, id)
+      .await
+      .map_err(err.imp())?;
+    for edition_id in editions {
+      let path = self.edition_path(edition_id);
+      if path.exists() {
+        std::fs::remove_dir_all(path).map_err(err.imp())?;
+      }
+    }
+    let draft_id = get_article_draft_id(&mut *tx, &user_id, id)
+      .await
+      .map_err(err.imp())?;
+    if let Some(draft_id) = draft_id {
+      let path = self.draft_path(draft_id);
+      if path.exists() {
+        std::fs::remove_dir_all(path).map_err(err.imp())?;
+      }
+    }
+
+    tx.commit().await.map_err(err.imp())?;
+    Ok(MaybeNotFoundForbidden::Ok)
   }
 
   #[napi]
@@ -326,13 +393,20 @@ impl QueryEngine {
       return Ok(napi::Either::B(BadRequest::Bad));
     }
 
-    let article_id =
+    let (article_id, edition_id) =
       create_edition_from_draft(&mut *tx, id, &author_id, &notes.unwrap_or_default())
         .await
         .map_err(err.imp())?;
+    move_draft_files_to_edition(&mut *tx, id, edition_id)
+      .await
+      .map_err(err.imp())?;
     delete_draft(&mut *tx, id, &author_id)
       .await
       .map_err(err.imp())?;
+    let old_path = self.draft_path(id);
+    let new_path = self.edition_path(edition_id);
+    std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
+    std::fs::rename(old_path, new_path).map_err(err.imp())?;
     tx.commit().await.map_err(err.imp())?;
     Ok(napi::Either::A(article_id))
   }
@@ -421,8 +495,77 @@ impl QueryEngine {
       edition.editions = list_editions(&mut *tx, edition.article_id)
         .await
         .map_err(err.imp())?;
+      edition.files = list_edition_files(&mut *tx, edition_id)
+        .await
+        .map_err(err.imp())?;
     }
     Ok(edition)
+  }
+
+  #[napi]
+  pub async fn create_file(
+    &self,
+    draft_id: i32,
+    name: String,
+    user_id: String,
+    old_path: Promise<String>,
+  ) -> Result<napi::Either<i32, NotFoundBadRequest>, napi::Error> {
+    debug!("QueryEngine.create_file");
+    let err = err("QueryEngine.create_file");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let author_id = get_draft_author(&mut *tx, draft_id)
+      .await
+      .map_err(err.imp())?;
+    if author_id != Some(user_id) {
+      debug!("QueryEngine.create_file: not found");
+      tx.commit().await.map_err(err.imp())?;
+      return Ok(napi::Either::B(NotFoundBadRequest::NotFound));
+    }
+    let file = create_file(&mut *tx, draft_id, &name)
+      .await
+      .map_err(err.imp())?;
+    let id = match file {
+      CreateFileResult::NameConflict => {
+        tx.commit().await.map_err(err.imp())?;
+        return Ok(napi::Either::B(NotFoundBadRequest::Bad))
+      },
+      CreateFileResult::Ok(id) => id,
+    };
+    let new_path = file_path(&self.draft_path(draft_id), id, &name);
+    std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
+    std::fs::rename(&old_path.await?, &new_path).map_err(err.imp())?;
+    tx.commit().await.map_err(err.imp())?;
+    Ok(napi::Either::A(id))
+  }
+
+  #[napi]
+  pub async fn delete_file(
+    &self,
+    file_id: i32,
+    user_id: String,
+  ) -> Result<MaybeNotFound, napi::Error> {
+    debug!("QueryEngine.remove_file");
+    let err = err("QueryEngine.remove_file");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let info = get_file_info(&mut *tx, file_id)
+      .await
+      .map_err(err.imp())?;
+    let info = match info {
+      Some(info) if info.author_id == user_id => {
+        debug!("QueryEngine.remove_file: ok");
+        info
+      }
+      _ => {
+        debug!("QueryEngine.remove_file: not found");
+        tx.commit().await.map_err(err.imp())?;
+        return Ok(MaybeNotFound::NotFound);
+      }
+    };
+    delete_file(&mut *tx, file_id).await.map_err(err.imp())?;
+    let file_path = file_path(&self.draft_path(info.draft_id), file_id, &info.name);
+    std::fs::remove_file(&file_path).map_err(err.imp())?;
+    tx.commit().await.map_err(err.imp())?;
+    Ok(MaybeNotFound::Ok)
   }
 }
 
@@ -448,4 +591,10 @@ pub enum BadRequest {
 pub enum NotFoundForbidden {
   NotFound,
   Forbidden,
+}
+
+#[napi(string_enum)]
+pub enum NotFoundBadRequest {
+  NotFound,
+  Bad,
 }

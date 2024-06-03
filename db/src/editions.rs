@@ -6,7 +6,7 @@ use crate::schema::{Edition, EditionSummary};
 /// * `draft_id` - The draft ID
 /// * `author_id` - The author ID
 /// # Returns
-/// The article ID of the created edition
+/// (article_id, edition_id) of the created edition
 /// # Errors
 /// Returns a `sqlx::Error` if the query fails
 pub async fn create_edition_from_draft<'e, E>(
@@ -14,7 +14,7 @@ pub async fn create_edition_from_draft<'e, E>(
   draft_id: i32,
   author_id: &str,
   notes: &str,
-) -> Result<i32, sqlx::Error>
+) -> Result<(i32, i32), sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
@@ -23,14 +23,14 @@ where
     SELECT article_id, title, content, $1
     FROM drafts
     WHERE id = $2 AND (SELECT author_id FROM articles WHERE articles.id = article_id) = $3
-    RETURNING article_id"#,
+    RETURNING article_id, id"#,
     notes,
     draft_id,
     author_id,
   )
   .fetch_one(con)
   .await
-  .map(|r| r.article_id)
+  .map(|r| (r.article_id, r.id))
 }
 
 /// List editions of an article
@@ -70,6 +70,29 @@ where
   })
 }
 
+/// List edition ids of an article
+/// # Arguments
+/// * `con` - The database connection
+/// * `article_id` - The article ID
+/// # Returns
+/// A vector of edition IDs
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn list_edition_ids<'e, E>(con: E, article_id: i32) -> Result<Vec<i32>, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(
+    r#"SELECT id
+    FROM editions
+    WHERE article_id = $1"#,
+    article_id,
+  )
+  .fetch_all(con)
+  .await
+  .map(|rows| rows.into_iter().map(|r| r.id).collect())
+}
+
 /// Get an edition by its ID
 /// # Arguments
 /// * `con` - The database connection
@@ -99,6 +122,7 @@ where
       notes: r.notes,
       published_at: r.published_at.to_string(),
       editions: vec![],
+      files: vec![],
     })
   })
 }

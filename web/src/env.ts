@@ -4,6 +4,7 @@ const keys = [
   "JWT_SECRET",
   "DATABASE_URL",
   "REDIS_URL",
+  "UPLOAD_DIR",
 ] as const;
 
 type Env = { [key in (typeof keys)[number]]: string };

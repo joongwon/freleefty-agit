@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE files\n        SET edition_id = $1, draft_id = NULL\n        WHERE draft_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0e20be3e9d65fdf5c00dca7a6169644bef1730399e74860a1a1df88516c568e1"
+}

@@ -27,6 +27,7 @@ export interface Article {
   viewsCount: number
   likesCount: number
   editionsCount: number
+  files: Array<File>
   comments: Array<Comment>
   next?: ArticleSummary
   prev?: ArticleSummary
@@ -60,6 +61,7 @@ export interface Draft {
   content: string
   createdAt: string
   updatedAt: string
+  files: Array<File>
 }
 export interface LikeLog {
   user: Author
@@ -84,6 +86,11 @@ export interface Edition {
   notes: string
   publishedAt: string
   editions: Array<EditionSummary>
+  files: Array<File>
+}
+export interface File {
+  id: number
+  name: string
 }
 export enum MaybeNotFound {
   Ok = 'Ok',
@@ -101,8 +108,12 @@ export enum NotFoundForbidden {
   NotFound = 'NotFound',
   Forbidden = 'Forbidden'
 }
+export enum NotFoundBadRequest {
+  NotFound = 'NotFound',
+  Bad = 'Bad'
+}
 export class QueryEngine {
-  static new(databaseUrl: string): QueryEngine
+  static new(databaseUrl: string, uploadDir: string): QueryEngine
   listArticles(): Promise<Array<ArticleSummary>>
   listPopularArticles(): Promise<Array<ArticleSummary>>
   getArticle(id: number): Promise<Article | null>
@@ -125,4 +136,6 @@ export class QueryEngine {
   unlikeArticle(articleId: number, userId: string): Promise<number>
   listLikers(articleId: number): Promise<Array<LikeLog>>
   getEdition(editionId: number): Promise<Edition | null>
+  createFile(draftId: number, name: string, userId: string, oldPath: Promise<string>): Promise<number | NotFoundBadRequest>
+  deleteFile(fileId: number, userId: string): Promise<MaybeNotFound>
 }

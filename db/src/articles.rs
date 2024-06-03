@@ -172,6 +172,7 @@ where
         .ok_or(crate::Error::UnexpectedNone("Article.editions_count"))?,
       /* these fields will be filled by following queries */
       comments: vec![],
+      files: vec![],
       next: None,
       prev: None,
     })),

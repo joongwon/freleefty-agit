@@ -133,6 +133,7 @@ where
       content: r.content,
       created_at: r.created_at.to_string(),
       updated_at: r.updated_at.to_string(),
+      files: vec![],
     })
   })
 }
@@ -225,4 +226,28 @@ where
   .fetch_one(con)
   .await
   .map(|r| r.length.unwrap_or(0))
+}
+
+/// Get the author of a draft by its ID
+/// # Arguments
+/// * `con` - The database connection
+/// * `id` - The draft ID
+/// # Returns
+/// The author ID
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn get_draft_author<'e, E>(con: E, id: i32) -> Result<Option<String>, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(
+    r#"SELECT author_id
+    FROM drafts
+    JOIN articles ON drafts.article_id = articles.id
+    WHERE drafts.id = $1"#,
+    id,
+  )
+  .fetch_optional(con)
+  .await
+  .map(|r| r.map(|r| r.author_id))
 }

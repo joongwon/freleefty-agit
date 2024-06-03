@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT author_id, name, draft_id\n        FROM files\n        JOIN drafts ON files.draft_id = drafts.id\n        JOIN articles ON drafts.article_id = articles.id\n        WHERE files.id = $1 AND draft_id IS NOT NULL",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "author_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "draft_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "cac1c7100e5f00afc32905c02ebd059d84463e48f7e2a191525a9fdaf760d19b"
+}

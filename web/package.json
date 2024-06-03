@@ -12,6 +12,7 @@
     "@hookstate/core": "^4.0.1",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/textarea-caret": "^3.0.3",
+    "@types/tmp": "^0.2.6",
     "@types/uuid": "^9.0.8",
     "classnames": "^2.5.1",
     "db": "file:../db",
@@ -28,6 +29,7 @@
     "sass": "^1.71.1",
     "swr": "^2.2.5",
     "textarea-caret": "^3.1.0",
+    "tmp": "^0.2.3",
     "typescript-eslint": "^7.1.1",
     "zod": "^3.22.4"
   },

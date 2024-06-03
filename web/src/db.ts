@@ -9,7 +9,8 @@ let redis: Redis.RedisClientType | null = null;
 export function getDB(): QueryEngine {
   if (db === null) {
     const dbUrl = getEnv().DATABASE_URL;
-    db = QueryEngine.new(dbUrl);
+    const uploadDir = getEnv().UPLOAD_DIR;
+    db = QueryEngine.new(dbUrl, uploadDir);
   }
   return db;
 }

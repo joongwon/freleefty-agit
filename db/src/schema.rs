@@ -27,6 +27,7 @@ pub struct Article {
   pub views_count: i64,
   pub likes_count: i64,
   pub editions_count: i64,
+  pub files: Vec<File>,
   pub comments: Vec<Comment>,
   pub next: Option<ArticleSummary>,
   pub prev: Option<ArticleSummary>,
@@ -72,6 +73,7 @@ pub struct Draft {
   pub content: String,
   pub created_at: String,
   pub updated_at: String,
+  pub files: Vec<File>,
 }
 
 #[napi(object)]
@@ -104,4 +106,11 @@ pub struct Edition {
   pub notes: String,
   pub published_at: String,
   pub editions: Vec<EditionSummary>,
+  pub files: Vec<File>,
+}
+
+#[napi(object)]
+pub struct File {
+  pub id: i32,
+  pub name: String,
 }
