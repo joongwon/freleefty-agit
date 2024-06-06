@@ -36,7 +36,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   const router = useRouter();
 
   const publish = useSWRMutation(
-    [draftId, "publish"] as const,
+    swrKey,
     ([draftId], opt: { arg: string }) => {
       if (notes.length === 0) {
         alert("변경사항을 적어주세요");

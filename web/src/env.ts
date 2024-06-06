@@ -1,3 +1,5 @@
+import "server-only";
+
 const keys = [
   "NAVER_ID",
   "NAVER_SECRET",
@@ -5,6 +7,7 @@ const keys = [
   "DATABASE_URL",
   "REDIS_URL",
   "UPLOAD_DIR",
+  "STATIC_URL",
 ] as const;
 
 type Env = { [key in (typeof keys)[number]]: string };

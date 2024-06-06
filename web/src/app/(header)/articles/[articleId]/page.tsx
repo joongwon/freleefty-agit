@@ -12,6 +12,7 @@ import { randomUUID } from "crypto";
 import SubmitView from "./SubmitView";
 import Viewer from "@/components/Viewer";
 import { cache } from "react";
+import { getEnv } from "@/env";
 
 const cx = classnames.bind(styles);
 
@@ -56,6 +57,8 @@ export default async function ViewArticle(p: {
   const redis = await getRedis();
   await redis.set(`view:${viewToken}`, articleId, { EX: 60 });
 
+  const staticUrl = getEnv().STATIC_URL;
+
   return (
     <main className={cx("article")}>
       <header>
@@ -79,7 +82,7 @@ export default async function ViewArticle(p: {
           {FAVORITE} {article.likesCount}
         </p>
       </header>
-      <Viewer content={article.content} files={article.files} fileSuffix={`/files/${article.editionId}`} />
+      <Viewer content={article.content} files={article.files} fileSuffix={`${staticUrl}/${article.editionId}`} />
       <Buttons article={article} />
       <section className={cx("comments")}>
         {article.comments.length === 0 && (

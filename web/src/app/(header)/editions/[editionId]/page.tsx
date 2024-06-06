@@ -6,6 +6,7 @@ import Viewer from "@/components/Viewer";
 import Link from "next/link";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
+import { getEnv } from "@/env";
 
 const cx = classNames.bind(styles);
 
@@ -21,6 +22,8 @@ export default async function Edition(p: { params: { editionId: string } }) {
   if (!edition) {
     return notFound();
   }
+
+  const staticUrl = getEnv().STATIC_URL;
 
   return (
     <main className={cx("edition")}>
@@ -40,7 +43,7 @@ export default async function Edition(p: { params: { editionId: string } }) {
       </ArticleList.Container>
       <section className={cx("content")}>
         <h1>{edition.title}</h1>
-        <Viewer content={edition.content} files={edition.files} fileSuffix={`/files/${edition.id}`} />
+        <Viewer content={edition.content} files={edition.files} fileSuffix={`${staticUrl}/${edition.id}`} />
       </section>
     </main>
   );

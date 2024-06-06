@@ -78,11 +78,13 @@ export function Content() {
   const files = viewerOption?.files ?? [];
   const fileSuffix = viewerOption?.fileSuffix ?? "";
 
+
   const urlTransform = (url: string) => {
     if (url.startsWith("./")) {
-      const fileName = url.slice(2);
+      const fileName = decodeURI(url.slice(2));
+      console.log(files, fileName);
       const fileId = files.find((f) => f.name === fileName)?.id;
-      if (fileId) {
+      if (fileId !== undefined) {
         return `${fileSuffix}/${fileId}/${fileName}`;
       } else {
         return "";
@@ -112,6 +114,20 @@ export default function Viewer(p: { content: string; files: File[]; fileSuffix: 
       <OptionProvider content={p.content} files={p.files} fileSuffix={p.fileSuffix}>
         <Options />
         <Content />
+        {p.files.length > 0 && (
+          <details className={cx("files")}>
+            <summary>첨부파일</summary>
+            <ul>
+              {p.files.map((file) => (
+                <li key={file.id}>
+                  <a href={`${p.fileSuffix}/${file.id}/${file.name}`}>
+                    {file.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </OptionProvider>
     </article>
   );

@@ -314,13 +314,14 @@ impl QueryEngine {
       .await
       .map_err(err.imp())?;
 
+    tx.commit().await.map_err(err.imp())?;
+
     // delete files
     let path = self.draft_path(id);
     if path.exists() {
       std::fs::remove_dir_all(path).map_err(err.imp())?;
     }
 
-    tx.commit().await.map_err(err.imp())?;
     Ok(MaybeNotFound::Ok)
   }
 
@@ -351,19 +352,20 @@ impl QueryEngine {
         return Ok(MaybeNotFoundForbidden::NotFound);
       }
     }
+    let editions = list_edition_ids(&mut *tx, id).await.map_err(err.imp())?;
+    let draft_id = get_article_draft_id(&mut *tx, &user_id, id)
+      .await
+      .map_err(err.imp())?;
     delete_article(&mut *tx, id).await.map_err(err.imp())?;
+    tx.commit().await.map_err(err.imp())?;
 
     // delete files
-    let editions = list_edition_ids(&mut *tx, id).await.map_err(err.imp())?;
     for edition_id in editions {
       let path = self.edition_path(edition_id);
       if path.exists() {
         std::fs::remove_dir_all(path).map_err(err.imp())?;
       }
     }
-    let draft_id = get_article_draft_id(&mut *tx, &user_id, id)
-      .await
-      .map_err(err.imp())?;
     if let Some(draft_id) = draft_id {
       let path = self.draft_path(draft_id);
       if path.exists() {
@@ -371,7 +373,6 @@ impl QueryEngine {
       }
     }
 
-    tx.commit().await.map_err(err.imp())?;
     Ok(MaybeNotFoundForbidden::Ok)
   }
 
@@ -410,6 +411,7 @@ impl QueryEngine {
     let new_path = self.edition_path(edition_id);
     std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
     std::fs::rename(old_path, new_path).map_err(err.imp())?;
+
     tx.commit().await.map_err(err.imp())?;
     Ok(napi::Either::A(article_id))
   }
@@ -564,9 +566,9 @@ impl QueryEngine {
       }
     };
     delete_file(&mut *tx, file_id).await.map_err(err.imp())?;
-    let file_path = file_path(&self.draft_path(info.draft_id), file_id, &info.name);
-    std::fs::remove_file(&file_path).map_err(err.imp())?;
     tx.commit().await.map_err(err.imp())?;
+    let file_path = file_path(&self.draft_path(info.draft_id), file_id, &info.name);
+    std::fs::remove_dir_all(file_path.parent().unwrap()).map_err(err.imp())?;
     Ok(MaybeNotFound::Ok)
   }
 

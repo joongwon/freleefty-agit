@@ -3,7 +3,7 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { getDraft, updateDraft, deleteDraft, createFile } from "@/actions";
+import { getDraft, updateDraft, deleteDraft, createFile, deleteFile } from "@/actions";
 import { parseSafeInt } from "@/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -179,6 +179,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
                 <a href={`/files/private/${file.id}/${file.name}`} title={file.name}>
                   {file.name}
                 </a>
+                <DeleteFileButton swrKey={swrKey} fileId={file.id} />
               </li>
             ))}
           </ul>
@@ -271,10 +272,7 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
       return createFile(gAuthState.value.token, draftId, opt.arg.name, formData);
     },
     {
-      onSuccess: (data: MaybeNotFoundConflict | number | "Error" | "TooLarge") => {
-        if (typeof data === "number") {
-          setFile(null);
-        }
+      onSuccess: (data: MaybeNotFoundConflict | "Error" | "TooLarge") => {
         switch (data) {
           case "NotFound":
             alert("초안을 찾을 수 없습니다");
@@ -287,6 +285,9 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
             break;
           case "TooLarge":
             alert("파일이 너무 큽니다");
+            break;
+          case "Ok":
+            setFile(null);
             break;
         }
       },
@@ -345,5 +346,40 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
           </button>
         </>}
     </form>
+  );
+}
+
+function DeleteFileButton(p: { swrKey: readonly [number, "draft"] | null; fileId: number }) {
+  const del = useSWRMutation(
+    p.swrKey,
+    () => {
+      if (gAuthState.value.type !== "login")
+        throw new Error("non-login state found in deleteFile");
+      return deleteFile(gAuthState.value.token, p.fileId);
+    },
+    {
+      onSuccess: (data: MaybeNotFound) => {
+        switch (data) {
+          case "NotFound":
+            alert("파일을 찾을 수 없습니다");
+            break;
+          case "Ok":
+            break;
+        }
+      }
+    },
+  );
+  return (
+    <button
+      onClick={() => {
+        if (gAuthState.value.type !== "login")
+          throw new Error("non-login state found in deleteFile onClick");
+        if (del.isMutating) return;
+        if (!confirm("파일을 삭제하시겠습니까?")) return;
+        void del.trigger();
+      }}
+    >
+      삭제
+    </button>
   );
 }
