@@ -111,16 +111,18 @@ pub async fn create_file<'e, E>(
   con: E,
   draft_id: i32,
   name: &str,
+  mime_type: &str,
 ) -> Result<CreateFileResult, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   let result = sqlx::query!(
-    r#"INSERT INTO files (draft_id, name)
-        VALUES ($1, $2)
+    r#"INSERT INTO files (draft_id, name, mime_type)
+        VALUES ($1, $2, $3)
         RETURNING id"#,
     draft_id,
-    name
+    name,
+    mime_type
   )
   .fetch_one(con)
   .await
@@ -148,7 +150,7 @@ where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
   sqlx::query!(
-    r#"SELECT author_id, name, draft_id
+    r#"SELECT author_id, name, draft_id, mime_type
         FROM files
         JOIN drafts ON files.draft_id = drafts.id
         JOIN articles ON drafts.article_id = articles.id
@@ -161,6 +163,7 @@ where
     row.map(|row| FileInfo {
       author_id: row.author_id,
       name: row.name,
+      mime_type: row.mime_type,
       draft_id: row.draft_id.unwrap(),
     })
   })
@@ -207,8 +210,8 @@ where
 {
   sqlx::query!(
     r#"WITH new_files as (
-        INSERT INTO files (draft_id, name)
-          SELECT $1, name
+        INSERT INTO files (draft_id, name, mime_type)
+          SELECT $1, name, mime_type
           FROM files
           WHERE edition_id = (SELECT id FROM last_editions WHERE article_id = $2)
         RETURNING id, name)

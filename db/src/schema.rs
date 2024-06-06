@@ -119,5 +119,6 @@ pub struct File {
 pub struct FileInfo {
   pub author_id: String,
   pub name: String,
+  pub mime_type: String,
   pub draft_id: i32,
 }

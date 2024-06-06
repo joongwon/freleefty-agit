@@ -79,7 +79,7 @@ export default async function ViewArticle(p: {
           {FAVORITE} {article.likesCount}
         </p>
       </header>
-      <Viewer content={article.content} />
+      <Viewer content={article.content} files={article.files} fileSuffix={`/files/${article.editionId}`} />
       <Buttons article={article} />
       <section className={cx("comments")}>
         {article.comments.length === 0 && (

@@ -82,7 +82,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
         <h1>
           {res.data.title} <span className={cx("small")}>(미리보기)</span>
         </h1>
-        <Viewer content={res.data.content} />
+        <Viewer content={res.data.content} files={res.data.files} fileSuffix="/files/private"/>
         <form
           onSubmit={(e) => {
             e.preventDefault();

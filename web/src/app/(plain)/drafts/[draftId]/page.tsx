@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import TextareaAutosize from "react-textarea-autosize";
 import { useRef } from "react";
 import getCaretCoordinates from "textarea-caret";
-import type { MaybeNotFound, NotFoundBadRequest } from "@/db";
+import type { MaybeNotFound, MaybeNotFoundConflict } from "@/db";
 
 const cx = classNames.bind(styles);
 
@@ -176,9 +176,9 @@ export default function EditDraft(p: { params: { draftId: string } }) {
           <ul>
             {res.data?.files.map((file) => (
               <li key={file.id}>
-                <Link href={`/drafts/${draftId}/${file.id}/${file.name}`} title={file.name}>
+                <a href={`/files/private/${file.id}/${file.name}`} title={file.name}>
                   {file.name}
-                </Link>
+                </a>
               </li>
             ))}
           </ul>
@@ -271,7 +271,7 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
       return createFile(gAuthState.value.token, draftId, opt.arg.name, formData);
     },
     {
-      onSuccess: (data: NotFoundBadRequest | number | "Error") => {
+      onSuccess: (data: MaybeNotFoundConflict | number | "Error" | "TooLarge") => {
         if (typeof data === "number") {
           setFile(null);
         }
@@ -279,11 +279,14 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
           case "NotFound":
             alert("초안을 찾을 수 없습니다");
             break;
-          case "Bad":
-            alert("파일명이 올바르지 않습니다");
+          case "Conflict":
+            alert("이미 같은 이름의 파일이 있습니다");
             break;
           case "Error":
-            alert("파일 업로드 중 오류가 발생했습니다");
+            alert("파일을 올리는 중 오류가 발생했습니다");
+            break;
+          case "TooLarge":
+            alert("파일이 너무 큽니다");
             break;
         }
       },

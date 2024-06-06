@@ -7,7 +7,6 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import fs from "fs";
-import tmp from "tmp";
 import { Writable } from "stream";
 import { setRefreshToken, getRefreshToken } from "@/serverAuth";
 
@@ -362,25 +361,33 @@ export async function getArticleDraftId(
   return await db.getArticleDraftId(userId, articleId);
 }
 
-export async function createFile(tokenRaw: string, draftId: number, fileName: string, formData: FormData) {
+const fileNameSchema = z.string().max(255).regex(/^[^/\\.][^/\\]*$/);
+export async function createFile(tokenRaw: string, draftIdRaw: number, fileNameRaw: string, formData: FormData) {
   const token = stringSchema.parse(tokenRaw);
-
-  const db = getDB();
-  const userId = (await decodeToken(token)).id;
+  const draftId = numberSchema.parse(draftIdRaw);
+  const fileName = fileNameSchema.parse(fileNameRaw);
+  if (!(formData instanceof FormData)) {
+    throw new Error("Invalid form data");
+  }
   const file = formData.get("file");
   if (!(file instanceof File)) {
     throw new Error("Invalid file");
   }
+  if (file.size > 1024 * 1024 * 10) {
+    return "TooLarge" as const;
+  }
+
+  const db = getDB();
+  const userId = (await decodeToken(token)).id;
   const uploadStream = file.stream();
-  const path = new Promise<string>((resolve, reject) => {
-    tmp.file((err, path) => {
-      if (err) reject(err);
-      const stream = Writable.toWeb(fs.createWriteStream(path));
-      uploadStream.pipeTo(stream).then(() => resolve(path), reject)
-    });
-  });
-  const result = await db.createFile(draftId, fileName, userId, path).catch((_) => "Error" as const);
-  if (typeof result !== "number") {
+  const tmpFileName = getEnv().UPLOAD_DIR + "/tmp/" + randomUUID();
+  const uploadPromise = (async () => {
+    const stream = Writable.toWeb(fs.createWriteStream(tmpFileName));
+    await uploadStream.pipeTo(stream);
+    return tmpFileName;
+  })();
+  const result = await db.createFile(draftId, fileName, file.type, userId, uploadPromise).catch((_) => "Error" as const);
+  if (result !== "Ok") {
     await uploadStream.cancel();
   }
   return result;

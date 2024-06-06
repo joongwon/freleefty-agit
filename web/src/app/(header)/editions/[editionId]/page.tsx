@@ -40,7 +40,7 @@ export default async function Edition(p: { params: { editionId: string } }) {
       </ArticleList.Container>
       <section className={cx("content")}>
         <h1>{edition.title}</h1>
-        <Viewer content={edition.content} />
+        <Viewer content={edition.content} files={edition.files} fileSuffix={`/files/${edition.id}`} />
       </section>
     </main>
   );

@@ -95,6 +95,7 @@ export interface File {
 export interface FileInfo {
   authorId: string
   name: string
+  mimeType: string
   draftId: number
 }
 export enum MaybeNotFound {
@@ -113,9 +114,10 @@ export enum NotFoundForbidden {
   NotFound = 'NotFound',
   Forbidden = 'Forbidden'
 }
-export enum NotFoundBadRequest {
+export enum MaybeNotFoundConflict {
+  Ok = 'Ok',
   NotFound = 'NotFound',
-  Bad = 'Bad'
+  Conflict = 'Conflict'
 }
 export class QueryEngine {
   static new(databaseUrl: string, uploadDir: string): QueryEngine
@@ -141,7 +143,7 @@ export class QueryEngine {
   unlikeArticle(articleId: number, userId: string): Promise<number>
   listLikers(articleId: number): Promise<Array<LikeLog>>
   getEdition(editionId: number): Promise<Edition | null>
-  createFile(draftId: number, name: string, userId: string, oldPath: Promise<string>): Promise<number | NotFoundBadRequest>
+  createFile(draftId: number, name: string, mime: string, userId: string, oldPath: Promise<string>): Promise<MaybeNotFoundConflict>
   deleteFile(fileId: number, userId: string): Promise<MaybeNotFound>
   getFileInfo(fileId: number, userId: string): Promise<FileInfo | null>
 }

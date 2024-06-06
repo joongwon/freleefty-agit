@@ -361,3 +361,21 @@ where
     .await
     .map(|r| r.map(|r| r.id))
 }
+
+/// Get the latest edition for an article if it exists
+/// # Arguments
+/// * `con` - The database connection
+/// * `id` - The article ID
+/// # Returns
+/// Edition's id
+/// # Errors
+/// Returns a `sqlx::Error` if the query fails
+pub async fn get_article_edition_id<'e, E>(con: E, id: i32) -> Result<i32, sqlx::Error>
+where
+  E: sqlx::Executor<'e, Database = sqlx::Postgres>,
+{
+  sqlx::query!(r#"SELECT id as "id!" FROM last_editions WHERE article_id = $1"#, id,)
+    .fetch_one(con)
+    .await
+    .map(|r| r.id)
+}

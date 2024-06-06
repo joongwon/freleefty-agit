@@ -24,9 +24,7 @@ mod views;
 use std::path::{Path, PathBuf};
 
 use articles::{
-  delete_article, delete_article_if_no_editions, get_article, get_article_author_id,
-  get_article_draft_id, get_next_article, get_previous_article, list_articles,
-  list_popular_articles,
+  delete_article, delete_article_if_no_editions, get_article, get_article_author_id, get_article_draft_id, get_article_edition_id, get_next_article, get_previous_article, list_articles, list_popular_articles
 };
 use comments::{create_comment, delete_comment, get_comment_author, list_comments};
 use drafts::{
@@ -233,8 +231,11 @@ impl QueryEngine {
     let files = copy_article_files_to_draft(&mut *tx, article_id, draft_id)
       .await
       .map_err(err.imp())?;
+    let edition_id = get_article_edition_id(&mut *tx, article_id)
+      .await
+      .map_err(err.imp())?;
     for (old_id, new_id, name) in files {
-      let old_path = file_path(&self.edition_path(article_id), old_id, &name);
+      let old_path = file_path(&self.edition_path(edition_id), old_id, &name);
       let new_path = file_path(&self.draft_path(draft_id), new_id, &name);
       std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
       std::fs::hard_link(&old_path, &new_path).map_err(err.imp())?;
@@ -509,9 +510,10 @@ impl QueryEngine {
     &self,
     draft_id: i32,
     name: String,
+    mime: String,
     user_id: String,
     old_path: Promise<String>,
-  ) -> Result<napi::Either<i32, NotFoundBadRequest>, napi::Error> {
+  ) -> Result<MaybeNotFoundConflict, napi::Error> {
     debug!("QueryEngine.create_file");
     let err = err("QueryEngine.create_file");
     let mut tx = self.pool.begin().await.map_err(err.imp())?;
@@ -521,15 +523,15 @@ impl QueryEngine {
     if author_id != Some(user_id) {
       debug!("QueryEngine.create_file: not found");
       tx.commit().await.map_err(err.imp())?;
-      return Ok(napi::Either::B(NotFoundBadRequest::NotFound));
+      return Ok(MaybeNotFoundConflict::NotFound);
     }
-    let file = create_file(&mut *tx, draft_id, &name)
+    let file = create_file(&mut *tx, draft_id, &name, &mime)
       .await
       .map_err(err.imp())?;
     let id = match file {
       CreateFileResult::NameConflict => {
         tx.commit().await.map_err(err.imp())?;
-        return Ok(napi::Either::B(NotFoundBadRequest::Bad));
+        return Ok(MaybeNotFoundConflict::Conflict);
       }
       CreateFileResult::Ok(id) => id,
     };
@@ -537,7 +539,7 @@ impl QueryEngine {
     std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
     std::fs::rename(&old_path.await?, &new_path).map_err(err.imp())?;
     tx.commit().await.map_err(err.imp())?;
-    Ok(napi::Either::A(id))
+    Ok(MaybeNotFoundConflict::Ok)
   }
 
   #[napi]
@@ -619,7 +621,8 @@ pub enum NotFoundForbidden {
 }
 
 #[napi(string_enum)]
-pub enum NotFoundBadRequest {
+pub enum MaybeNotFoundConflict {
+  Ok,
   NotFound,
-  Bad,
+  Conflict,
 }
