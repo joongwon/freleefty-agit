@@ -34,10 +34,14 @@ use drafts::{
   get_draft_title_length, list_drafts, update_draft,
 };
 use editions::{create_edition_from_draft, get_edition, list_edition_ids, list_editions};
-use files::{copy_article_files_to_draft, move_draft_files_to_edition, create_file, delete_file, get_file_info, list_article_files, list_draft_files, list_edition_files, CreateFileResult};
+use files::{
+  copy_article_files_to_draft, create_file, delete_file, get_file_info, list_article_files,
+  list_draft_files, list_edition_files, move_draft_files_to_edition, CreateFileResult,
+};
 use likes::{like_article, list_likers, unlike_article};
 use log::{debug, error};
 use napi::bindgen_prelude::Promise;
+use schema::FileInfo;
 use users::{create_user, get_user_by_id, get_user_by_naver_id};
 use views::create_view_log;
 
@@ -215,12 +219,12 @@ impl QueryEngine {
       Some(_) => {
         debug!("QueryEngine.edit_article: forbidden");
         tx.commit().await.map_err(err.imp())?;
-        return Ok(napi::Either::B(NotFoundForbidden::Forbidden))
+        return Ok(napi::Either::B(NotFoundForbidden::Forbidden));
       }
       None => {
         debug!("QueryEngine.edit_article: not found");
         tx.commit().await.map_err(err.imp())?;
-        return Ok(napi::Either::B(NotFoundForbidden::NotFound))
+        return Ok(napi::Either::B(NotFoundForbidden::NotFound));
       }
     }
     let draft_id = create_draft_from_article(&mut *tx, article_id)
@@ -302,12 +306,12 @@ impl QueryEngine {
       None => {
         debug!("QueryEngine.delete_draft: not found");
         tx.commit().await.map_err(err.imp())?;
-        return Ok(MaybeNotFound::NotFound)
+        return Ok(MaybeNotFound::NotFound);
       }
     };
     delete_article_if_no_editions(&mut *tx, article_id)
-    .await
-    .map_err(err.imp())?;
+      .await
+      .map_err(err.imp())?;
 
     // delete files
     let path = self.draft_path(id);
@@ -338,20 +342,18 @@ impl QueryEngine {
       Some(_) => {
         debug!("QueryEngine.delete_article: forbidden");
         tx.commit().await.map_err(err.imp())?;
-        return Ok(MaybeNotFoundForbidden::Forbidden)
+        return Ok(MaybeNotFoundForbidden::Forbidden);
       }
       None => {
         debug!("QueryEngine.delete_article: not found");
         tx.commit().await.map_err(err.imp())?;
-        return Ok(MaybeNotFoundForbidden::NotFound)
+        return Ok(MaybeNotFoundForbidden::NotFound);
       }
     }
     delete_article(&mut *tx, id).await.map_err(err.imp())?;
 
     // delete files
-    let editions = list_edition_ids(&mut *tx, id)
-      .await
-      .map_err(err.imp())?;
+    let editions = list_edition_ids(&mut *tx, id).await.map_err(err.imp())?;
     for edition_id in editions {
       let path = self.edition_path(edition_id);
       if path.exists() {
@@ -527,8 +529,8 @@ impl QueryEngine {
     let id = match file {
       CreateFileResult::NameConflict => {
         tx.commit().await.map_err(err.imp())?;
-        return Ok(napi::Either::B(NotFoundBadRequest::Bad))
-      },
+        return Ok(napi::Either::B(NotFoundBadRequest::Bad));
+      }
       CreateFileResult::Ok(id) => id,
     };
     let new_path = file_path(&self.draft_path(draft_id), id, &name);
@@ -547,9 +549,7 @@ impl QueryEngine {
     debug!("QueryEngine.remove_file");
     let err = err("QueryEngine.remove_file");
     let mut tx = self.pool.begin().await.map_err(err.imp())?;
-    let info = get_file_info(&mut *tx, file_id)
-      .await
-      .map_err(err.imp())?;
+    let info = get_file_info(&mut *tx, file_id).await.map_err(err.imp())?;
     let info = match info {
       Some(info) if info.author_id == user_id => {
         debug!("QueryEngine.remove_file: ok");
@@ -566,6 +566,31 @@ impl QueryEngine {
     std::fs::remove_file(&file_path).map_err(err.imp())?;
     tx.commit().await.map_err(err.imp())?;
     Ok(MaybeNotFound::Ok)
+  }
+
+  #[napi]
+  pub async fn get_file_info(
+    &self,
+    file_id: i32,
+    user_id: String,
+  ) -> Result<Option<FileInfo>, napi::Error> {
+    debug!("QueryEngine.get_file_info");
+    let err = err("QueryEngine.get_file_info");
+    let mut tx = self.pool.begin().await.map_err(err.imp())?;
+    let info = get_file_info(&mut *tx, file_id).await.map_err(err.imp())?;
+    let info = match info {
+      Some(info) if info.author_id == user_id => {
+        debug!("QueryEngine.get_file_info: ok");
+        info
+      }
+      _ => {
+        debug!("QueryEngine.get_file_info: not found");
+        tx.commit().await.map_err(err.imp())?;
+        return Ok(None);
+      }
+    };
+    tx.commit().await.map_err(err.imp())?;
+    Ok(Some(info))
   }
 }
 

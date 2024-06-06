@@ -31,6 +31,7 @@ export type MaybeNotFound = "Ok" | "NotFound";
 export type MaybeNotFoundForbidden = "Ok" | "NotFound" | "Forbidden";
 export type NotFoundForbidden = "NotFound" | "Forbidden";
 export type BadRequest = "Ok" | "Bad";
+export type NotFoundBadRequest = "NotFound" | "Bad";
 
 /*
 // This is a type check to make sure that the types are the same as the one in db.ts

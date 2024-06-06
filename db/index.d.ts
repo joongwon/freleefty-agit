@@ -92,6 +92,11 @@ export interface File {
   id: number
   name: string
 }
+export interface FileInfo {
+  authorId: string
+  name: string
+  draftId: number
+}
 export enum MaybeNotFound {
   Ok = 'Ok',
   NotFound = 'NotFound'
@@ -138,4 +143,5 @@ export class QueryEngine {
   getEdition(editionId: number): Promise<Edition | null>
   createFile(draftId: number, name: string, userId: string, oldPath: Promise<string>): Promise<number | NotFoundBadRequest>
   deleteFile(fileId: number, userId: string): Promise<MaybeNotFound>
+  getFileInfo(fileId: number, userId: string): Promise<FileInfo | null>
 }

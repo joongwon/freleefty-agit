@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS files;
+
 CREATE TABLE files (
   id          INT           PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   edition_id  INT           REFERENCES articles (id),

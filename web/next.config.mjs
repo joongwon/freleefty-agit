@@ -4,6 +4,7 @@ const nextConfig = {
     serverComponentsExternalPackages: ["db"],
   },
   output: "standalone",
+  trailingSlash: true,
 };
 
 export default nextConfig;

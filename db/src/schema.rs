@@ -114,3 +114,10 @@ pub struct File {
   pub id: i32,
   pub name: String,
 }
+
+#[napi(object)]
+pub struct FileInfo {
+  pub author_id: String,
+  pub name: String,
+  pub draft_id: i32,
+}

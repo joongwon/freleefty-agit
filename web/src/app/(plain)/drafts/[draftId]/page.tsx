@@ -3,7 +3,7 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { getDraft, updateDraft, deleteDraft } from "@/actions";
+import { getDraft, updateDraft, deleteDraft, createFile } from "@/actions";
 import { parseSafeInt } from "@/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import TextareaAutosize from "react-textarea-autosize";
 import { useRef } from "react";
 import getCaretCoordinates from "textarea-caret";
-import type { MaybeNotFound } from "@/db";
+import type { MaybeNotFound, NotFoundBadRequest } from "@/db";
 
 const cx = classNames.bind(styles);
 
@@ -170,6 +170,21 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         }}
         ref={textareaRef}
       />
+      <section className={cx("file")}>
+        <h3>첨부 파일</h3>
+        {res.data?.files.length !== 0 ?
+          <ul>
+            {res.data?.files.map((file) => (
+              <li key={file.id}>
+                <Link href={`/drafts/${draftId}/${file.id}/${file.name}`} title={file.name}>
+                  {file.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          : <p>첨부 파일이 없습니다</p>}
+        <FileForm swrKey={swrKey} />
+      </section>
       <section className={cx("buttons")}>
         <button
           className={cx("save", { disabled: submitDisabled })}
@@ -239,5 +254,93 @@ export default function EditDraft(p: { params: { draftId: string } }) {
       </section>
       {errorMessage && <p className={cx("error")}>{errorMessage}</p>}
     </main>
+  );
+}
+
+function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
+  const [file, setFile] = useState<{ data: File; name: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const upload = useSWRMutation(
+    p.swrKey,
+    ([draftId], opt: { arg: { data: File, name: string } }) =>
+    {
+      if (gAuthState.value.type !== "login")
+        throw new Error("non-login state found in uploadFile");
+      const formData = new FormData();
+      formData.append("file", opt.arg.data);
+      return createFile(gAuthState.value.token, draftId, opt.arg.name, formData);
+    },
+    {
+      onSuccess: (data: NotFoundBadRequest | number | "Error") => {
+        if (typeof data === "number") {
+          setFile(null);
+        }
+        switch (data) {
+          case "NotFound":
+            alert("초안을 찾을 수 없습니다");
+            break;
+          case "Bad":
+            alert("파일명이 올바르지 않습니다");
+            break;
+          case "Error":
+            alert("파일 업로드 중 오류가 발생했습니다");
+            break;
+        }
+      },
+    },
+  );
+  return (
+    <form>
+      {!file ?
+        <>
+          <input
+            type="file"
+            hidden={true}
+            ref={fileRef}
+            onChange={(e) => {
+              if (e.target.files) {
+                setFile({ data: e.target.files[0],
+                        name: e.target.files[0].name });
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (fileRef.current) {
+                fileRef.current.click();
+              }
+            }}
+          >
+            올릴 파일 고르기
+          </button>
+        </> : <>
+          <p>원본 파일명: {file.data.name}</p>
+          <p>올릴 파일명: <input type="text" value={file.name} onChange={(e) => {
+            setFile({ data: file.data, name: e.target.value });
+          }} /></p>
+          <button
+            type="button"
+            onClick={() => {
+              setFile(null);
+            }}>
+            취소
+          </button>
+          <button
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              if (file.name === "") {
+                alert("파일명을 입력하세요");
+                return;
+              }
+              if (upload.isMutating) return;
+              void upload.trigger({ data: file.data, name: file.name});
+            }}
+          >
+            업로드
+          </button>
+        </>}
+    </form>
   );
 }

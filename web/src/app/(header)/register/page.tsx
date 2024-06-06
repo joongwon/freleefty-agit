@@ -7,7 +7,7 @@ import Link from "next/link";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
 import { PageProps, onlyString } from "@/utils";
-import { gAuthState, putRefreshToken } from "@/auth";
+import { gAuthState } from "@/auth";
 
 const cx = classNames.bind(styles);
 
@@ -84,7 +84,6 @@ export default function Register(p: PageProps) {
                       token: res.accessToken,
                       profile: res.profile,
                     });
-                    putRefreshToken(res.refreshToken);
                     router.replace(from);
                     break;
                   case "fatal":

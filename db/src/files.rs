@@ -1,4 +1,4 @@
-use crate::schema::File;
+use crate::schema::{File, FileInfo};
 
 /// List files for a given article
 /// # Arguments
@@ -107,7 +107,11 @@ pub enum CreateFileResult {
 /// Created file
 /// # Errors
 /// If the query fails, an error is returned
-pub async fn create_file<'e, E>(con: E, draft_id: i32, name: &str) -> Result<CreateFileResult, sqlx::Error>
+pub async fn create_file<'e, E>(
+  con: E,
+  draft_id: i32,
+  name: &str,
+) -> Result<CreateFileResult, sqlx::Error>
 where
   E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
@@ -129,12 +133,6 @@ where
     },
     Err(err) => Err(err),
   }
-}
-
-pub struct FileInfo {
-  pub author_id: String,
-  pub name: String,
-  pub draft_id: i32,
 }
 
 /// Get file info
@@ -159,11 +157,13 @@ where
   )
   .fetch_optional(con)
   .await
-  .map(|row| row.map(|row| FileInfo {
-    author_id: row.author_id,
-    name: row.name,
-    draft_id: row.draft_id.unwrap(),
-  }))
+  .map(|row| {
+    row.map(|row| FileInfo {
+      author_id: row.author_id,
+      name: row.name,
+      draft_id: row.draft_id.unwrap(),
+    })
+  })
 }
 
 /// Delete a file
@@ -218,14 +218,14 @@ where
     draft_id,
     article_id
   )
-    .fetch_all(con)
-    .await
-    .map(|rows| {
-      rows
-        .into_iter()
-        .map(|row| (row.old_id, row.new_id, row.name))
-        .collect()
-    })
+  .fetch_all(con)
+  .await
+  .map(|rows| {
+    rows
+      .into_iter()
+      .map(|row| (row.old_id, row.new_id, row.name))
+      .collect()
+  })
 }
 
 /// Copy draft files to an edition

@@ -3,14 +3,11 @@
 import { logout, devLogin } from "@/actions";
 import { useRouter } from "next/navigation";
 import { useHookstate } from "@hookstate/core";
-import { gAuthState, popRefreshToken } from "@/auth";
+import { gAuthState } from "@/auth";
 import Link from "next/link";
 
 function handleLogout() {
-  const refreshToken = popRefreshToken();
-  if (refreshToken) {
-    void logout(refreshToken);
-  }
+  void logout();
   gAuthState.set({ type: "anon" });
 }
 

@@ -9,6 +9,7 @@ import { randomUUID } from "crypto";
 import fs from "fs";
 import tmp from "tmp";
 import { Writable } from "stream";
+import { setRefreshToken, getRefreshToken } from "@/serverAuth";
 
 const stringSchema = z.string();
 const numberSchema = z.number();
@@ -88,7 +89,8 @@ async function login(userId: string) {
   await redis.set("refreshToken:" + refreshToken, userId, {
     EX: 7 * 24 * 60 * 60,
   });
-  return { accessToken, refreshToken, profile };
+  setRefreshToken(refreshToken);
+  return { accessToken, profile };
 }
 
 async function decodeToken(token: string) {
@@ -154,8 +156,11 @@ export async function createUser(
   }
 }
 
-export async function refresh(refreshTokenRaw: string) {
-  const refreshToken = stringSchema.parse(refreshTokenRaw);
+export async function refresh() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    return null;
+  }
 
   const redis = await getRedis();
   const userId = await redis.getDel("refreshToken:" + refreshToken);
@@ -166,8 +171,11 @@ export async function refresh(refreshTokenRaw: string) {
   return await login(userId);
 }
 
-export async function logout(refreshTokenRaw: string) {
-  const refreshToken = stringSchema.parse(refreshTokenRaw);
+export async function logout() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    return;
+  }
 
   const redis = await getRedis();
   await redis.del("refreshToken:" + refreshToken);
@@ -354,7 +362,7 @@ export async function getArticleDraftId(
   return await db.getArticleDraftId(userId, articleId);
 }
 
-export async function createFile(tokenRaw: string, draftId: number, formData: FormData) {
+export async function createFile(tokenRaw: string, draftId: number, fileName: string, formData: FormData) {
   const token = stringSchema.parse(tokenRaw);
 
   const db = getDB();
@@ -363,15 +371,19 @@ export async function createFile(tokenRaw: string, draftId: number, formData: Fo
   if (!(file instanceof File)) {
     throw new Error("Invalid file");
   }
-  const name = file.name;
+  const uploadStream = file.stream();
   const path = new Promise<string>((resolve, reject) => {
     tmp.file((err, path) => {
       if (err) reject(err);
       const stream = Writable.toWeb(fs.createWriteStream(path));
-      file.stream().pipeTo(stream).then(() => resolve(path), reject);
+      uploadStream.pipeTo(stream).then(() => resolve(path), reject)
     });
   });
-  return await db.createFile(draftId, name, userId, path);
+  const result = await db.createFile(draftId, fileName, userId, path).catch((_) => "Error" as const);
+  if (typeof result !== "number") {
+    await uploadStream.cancel();
+  }
+  return result;
 }
 
 export async function deleteFile(tokenRaw: string, fileId: number) {

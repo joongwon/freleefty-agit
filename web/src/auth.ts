@@ -12,18 +12,6 @@ type AuthState =
 
 export const gAuthState = hookstate<AuthState>({ type: "loading" });
 
-// pop refresh token from local storage
-export function popRefreshToken() {
-  const refreshToken = localStorage.getItem("refreshToken");
-  localStorage.removeItem("refreshToken");
-  return refreshToken;
-}
-
-// put refresh token to local storage
-export function putRefreshToken(refreshToken: string) {
-  localStorage.setItem("refreshToken", refreshToken);
-}
-
 // executed once by InitToken effect to initialize token
 let initTokenCalled = false;
 async function initToken() {
@@ -35,27 +23,18 @@ async function initToken() {
   // landed on login callback page
   if (location.pathname === "/login/naver/callback") {
     // remove possibily remainig previous token
-    popRefreshToken();
-    gAuthState.set({ type: "anon" });
-    return;
-  }
-
-  // find refresh token in local storage
-  const refreshToken = popRefreshToken();
-  if (!refreshToken) {
     gAuthState.set({ type: "anon" });
     return;
   }
 
   // refresh
-  const res = await refresh(refreshToken).catch(() => null);
+  const res = await refresh().catch(() => null);
   if (!res) {
     gAuthState.set({ type: "anon" });
     return;
   }
 
   // save token
-  putRefreshToken(res.refreshToken);
   gAuthState.set({
     type: "login",
     token: res.accessToken,
@@ -66,17 +45,11 @@ async function initToken() {
 function scheduleRefresh() {
   const task = async () => {
     if (gAuthState.get().type !== "login") return;
-    const refreshToken = popRefreshToken();
-    if (!refreshToken) {
-      gAuthState.set({ type: "anon" });
-      return;
-    }
-    const res = await refresh(refreshToken).catch(() => null);
+    const res = await refresh().catch(() => null);
     if (!res) {
       gAuthState.set({ type: "anon" });
       return;
     }
-    putRefreshToken(res.refreshToken);
     gAuthState.set({
       type: "login",
       token: res.accessToken,
