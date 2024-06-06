@@ -31,6 +31,45 @@ main.draft {
     font-size: 1rem;
   }
 
+  section.file {
+    dt {
+      font-weight: bold;
+    }
+    dd {
+      display: flex;
+    }
+    ul, li {
+      @include reset;
+    }
+    form.upload {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+    }
+    button.select {
+      @include button;
+    }
+    button.upload {
+      @include button-blue;
+    }
+    button.cancel {
+      @include button-red;
+      margin-left: 0.5rem;
+    }
+    button.delete {
+      @include reset;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      color: #DD0000;
+      span {
+        font-size: 1rem;
+        transform: translateY(0.25rem);
+      }
+    }
+    input[type="text"] {
+      flex: 1;
+    }
+  }
+
   section.buttons {
     @include a-no-underline;
 

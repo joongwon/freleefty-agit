@@ -17,3 +17,4 @@ export const MENU = makeIconJsx("e5d2");
 export const CLOSE = makeIconJsx("e5cd");
 export const GOTO_TOP = makeIconJsx("e5d8");
 export const MORE = makeIconJsx("e5d3");
+export const DELETE = makeIconJsx("e872");

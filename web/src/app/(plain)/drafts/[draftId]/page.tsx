@@ -14,6 +14,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { useRef } from "react";
 import getCaretCoordinates from "textarea-caret";
 import type { MaybeNotFound, MaybeNotFoundConflict } from "@/db";
+import { DELETE } from "@/components/icons";
 
 const cx = classNames.bind(styles);
 
@@ -171,7 +172,6 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         ref={textareaRef}
       />
       <section className={cx("file")}>
-        <h3>첨부 파일</h3>
         {res.data?.files.length !== 0 ?
           <ul>
             {res.data?.files.map((file) => (
@@ -294,9 +294,8 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
     },
   );
   return (
-    <form>
-      {!file ?
-        <>
+      !file ?
+        <form>
           <input
             type="file"
             hidden={true}
@@ -310,28 +309,29 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
           />
           <button
             type="button"
+            className={cx("select")}
             onClick={() => {
               if (fileRef.current) {
                 fileRef.current.click();
               }
             }}
           >
-            올릴 파일 고르기
+            파일 추가
           </button>
-        </> : <>
-          <p>원본 파일명: {file.data.name}</p>
-          <p>올릴 파일명: <input type="text" value={file.name} onChange={(e) => {
-            setFile({ data: file.data, name: e.target.value });
-          }} /></p>
-          <button
-            type="button"
-            onClick={() => {
-              setFile(null);
-            }}>
-            취소
-          </button>
+        </form> : <form className={cx("upload")}>
+          <dl>
+            <dt>원래 이름</dt>
+            <dd>{file.data.name}</dd>
+            <dt>올릴 이름</dt>
+            <dd>
+              <input type="text" value={file.name} onChange={(e) => {
+                setFile({ data: file.data, name: e.target.value });
+              }} />
+            </dd>
+          </dl>
           <button
             type="submit"
+            className={cx("upload")}
             onClick={(e) => {
               e.preventDefault();
               if (file.name === "") {
@@ -344,8 +344,15 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
           >
             업로드
           </button>
-        </>}
-    </form>
+          <button
+            type="button"
+            className={cx("cancel")}
+            onClick={() => {
+              setFile(null);
+            }}>
+            취소
+          </button>
+        </form>
   );
 }
 
@@ -371,6 +378,8 @@ function DeleteFileButton(p: { swrKey: readonly [number, "draft"] | null; fileId
   );
   return (
     <button
+      className={cx("delete")}
+      title="삭제"
       onClick={() => {
         if (gAuthState.value.type !== "login")
           throw new Error("non-login state found in deleteFile onClick");
@@ -379,7 +388,7 @@ function DeleteFileButton(p: { swrKey: readonly [number, "draft"] | null; fileId
         void del.trigger();
       }}
     >
-      삭제
+      {DELETE}
     </button>
   );
 }
