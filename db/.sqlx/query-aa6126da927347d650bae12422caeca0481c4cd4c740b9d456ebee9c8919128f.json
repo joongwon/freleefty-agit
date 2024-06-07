@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO files (draft_id, name)\n        VALUES ($1, $2)\n        RETURNING id",
+  "query": "INSERT INTO files (draft_id, name, mime_type)\n        VALUES ($1, $2, $3)\n        RETURNING id",
   "describe": {
     "columns": [
       {
@@ -12,6 +12,7 @@
     "parameters": {
       "Left": [
         "Int4",
+        "Varchar",
         "Varchar"
       ]
     },
@@ -19,5 +20,5 @@
       false
     ]
   },
-  "hash": "51f7a9aebea889d5eacff092efdebfa99777a9113debcff145e72789b3b70af7"
+  "hash": "aa6126da927347d650bae12422caeca0481c4cd4c740b9d456ebee9c8919128f"
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { getDB, getRedis, UserConflict } from "@/db";
+import { getDB, getRedis, UserConflict, MaybeNotFoundConflict } from "@/db";
 import * as jwt from "jsonwebtoken";
 import { getEnv } from "@/env";
 import { z } from "zod";
@@ -386,7 +386,8 @@ export async function createFile(tokenRaw: string, draftIdRaw: number, fileNameR
     await uploadStream.pipeTo(stream);
     return tmpFileName;
   })();
-  const result = await db.createFile(draftId, fileName, file.type, userId, uploadPromise).catch((_) => "Error" as const);
+  const result: MaybeNotFoundConflict | "Error" =
+    await db.createFile(draftId, fileName, file.type, userId, uploadPromise).catch((_) => "Error" as const);
   if (result !== "Ok") {
     await uploadStream.cancel();
   }

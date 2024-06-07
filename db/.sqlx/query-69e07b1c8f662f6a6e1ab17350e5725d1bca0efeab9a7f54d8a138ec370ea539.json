@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH new_files as (\n        INSERT INTO files (draft_id, name, mime_type)\n          SELECT $1, name, mime_type\n          FROM files\n          WHERE edition_id = (SELECT id FROM last_editions WHERE article_id = $2)\n        RETURNING id, name)\n      SELECT files.id as old_id, new_files.id as new_id, files.name\n      FROM files JOIN new_files ON files.name = new_files.name\n      WHERE edition_id = (SELECT id FROM last_editions WHERE article_id = $2)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "old_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "new_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "69e07b1c8f662f6a6e1ab17350e5725d1bca0efeab9a7f54d8a138ec370ea539"
+}

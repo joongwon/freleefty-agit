@@ -28,7 +28,7 @@ export function OptionProvider(p: {
   );
   const value = useMemo(
     () => ({ type, setType, files: p.files, content: p.content, fileSuffix: p.fileSuffix }),
-    [type, setType, p.content],
+    [type, p.content, p.files, p.fileSuffix]
   );
   return (
     <ViewerOptionContext.Provider value={value}>
@@ -82,7 +82,6 @@ export function Content() {
   const urlTransform = (url: string) => {
     if (url.startsWith("./")) {
       const fileName = decodeURI(url.slice(2));
-      console.log(files, fileName);
       const fileId = files.find((f) => f.name === fileName)?.id;
       if (fileId !== undefined) {
         return `${fileSuffix}/${fileId}/${fileName}`;
