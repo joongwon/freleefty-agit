@@ -380,7 +380,7 @@ export async function createFile(tokenRaw: string, draftIdRaw: number, fileNameR
   const db = getDB();
   const userId = (await decodeToken(token)).id;
   const uploadStream = file.stream();
-  const tmpFileName = getEnv().UPLOAD_DIR + "/tmp/" + randomUUID();
+  const tmpFileName = getEnv().UPLOAD_DIR + "/" + randomUUID();
   const uploadPromise = (async () => {
     const stream = Writable.toWeb(fs.createWriteStream(tmpFileName));
     await uploadStream.pipeTo(stream);
