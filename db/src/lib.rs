@@ -408,9 +408,11 @@ impl QueryEngine {
       .await
       .map_err(err.imp())?;
     let old_path = self.draft_path(id);
-    let new_path = self.edition_path(edition_id);
-    std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
-    std::fs::rename(old_path, new_path).map_err(err.imp())?;
+    if old_path.exists() {
+      let new_path = self.edition_path(edition_id);
+      std::fs::create_dir_all(new_path.parent().unwrap()).map_err(err.imp())?;
+      std::fs::rename(old_path, new_path).map_err(err.imp())?;
+    }
 
     tx.commit().await.map_err(err.imp())?;
     Ok(napi::Either::A(article_id))
