@@ -8,6 +8,10 @@ article.viewer {
     max-width: 100%;
     height: auto;
   }
+
+  code:global(.language-poem) {
+    font-family: $global-font;
+  }
 }
 
 section.options {

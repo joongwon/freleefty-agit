@@ -4,7 +4,7 @@ body,
 input,
 button,
 textarea {
-  font-family: "GmarketSansMedium", sans-serif;
+  font-family: $global-font;
 }
 
 @font-face {
