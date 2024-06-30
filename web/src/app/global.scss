@@ -7,6 +7,7 @@ textarea {
   font-family: $global-font;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100..900&display=swap');
 @font-face {
   font-family: "GmarketSansMedium";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff")
@@ -25,4 +26,8 @@ textarea {
 
 a {
   color: inherit;
+}
+
+code {
+  font-family: "Noto Sans Mono", monospace;
 }

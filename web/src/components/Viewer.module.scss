@@ -9,10 +9,6 @@ article.viewer {
     height: auto;
   }
 
-  code {
-    font-family: monospace;
-  }
-
   code:global(.language-poem) {
     font-family: $global-font;
   }
