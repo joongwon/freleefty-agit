@@ -83,9 +83,13 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     ) {
       const timeout = setTimeout(() => {
         if (gAuthState.value.type !== "login") return;
+        const nTitle = title.normalize();
+        const nContent = content.normalize();
+        setTitle(nTitle);
+        setContent(nContent);
         void update.trigger({
-          title: title,
-          content: content,
+          title: nTitle,
+          content: nContent,
           token: gAuthState.value.token,
         });
       }, 3000);
@@ -200,9 +204,13 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in onSubmit");
             del.reset();
+            const nTitle = title.normalize();
+            const nContent = content.normalize();
+            setTitle(nTitle);
+            setContent(nContent);
             void update.trigger({
-              title: title,
-              content: content,
+              title: nTitle,
+              content: nContent,
               token: gAuthState.value.token,
             });
           }}
