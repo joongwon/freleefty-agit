@@ -130,7 +130,7 @@ export async function createUser(
 ) {
   const code = stringSchema.parse(codeRaw);
   const id = userIdSchema.parse(idRaw);
-  const name = userNameSchema.parse(nameRaw);
+  const name = userNameSchema.parse(nameRaw).normalize();
 
   const db = getDB();
   const redis = await getRedis();
@@ -206,8 +206,8 @@ export async function updateDraft(
 ) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);
-  const title = draftTitleSchema.parse(titleRaw);
-  const content = stringSchema.parse(contentRaw);
+  const title = draftTitleSchema.parse(titleRaw).normalize();
+  const content = stringSchema.parse(contentRaw).normalize();
 
   const db = getDB();
   const userId = (await decodeToken(token)).id;
@@ -249,7 +249,7 @@ export async function publishDraft(
 ) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);
-  const notes = stringSchema.parse(notesRaw);
+  const notes = stringSchema.parse(notesRaw).normalize();
 
   const db = getDB();
   const userId = (await decodeToken(token)).id;
@@ -266,7 +266,7 @@ export async function createComment(
 ) {
   const token = stringSchema.parse(tokenRaw);
   const articleId = numberSchema.parse(articleIdRaw);
-  const content = commentContentSchema.parse(contentRaw);
+  const content = commentContentSchema.parse(contentRaw).normalize();
 
   const db = getDB();
   const userId = (await decodeToken(token)).id;
@@ -365,7 +365,7 @@ const fileNameSchema = z.string().max(255).regex(/^[^/\\.][^/\\]*$/);
 export async function createFile(tokenRaw: string, draftIdRaw: number, fileNameRaw: string, formData: FormData) {
   const token = stringSchema.parse(tokenRaw);
   const draftId = numberSchema.parse(draftIdRaw);
-  const fileName = fileNameSchema.parse(fileNameRaw);
+  const fileName = fileNameSchema.parse(fileNameRaw).normalize();
   if (!(formData instanceof FormData)) {
     throw new Error("Invalid form data");
   }

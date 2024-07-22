@@ -84,7 +84,7 @@ export function Content() {
       const fileName = decodeURI(url.slice(2));
       const fileId = files.find((f) => f.name === fileName)?.id;
       if (fileId !== undefined) {
-        return `${fileSuffix}/${fileId}/${fileName}`;
+        return `${fileSuffix}/${fileId}/${fileName.normalize()}`;
       } else {
         return "";
       }
