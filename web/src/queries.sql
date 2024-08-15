@@ -257,6 +257,9 @@ SELECT id, name
 FROM files
 WHERE draft_id = :id!;
 
+/* @name CountDraftFiles */
+SELECT COUNT(*) AS "count!" FROM files WHERE draft_id = :id!;
+
 /* @name GetEdition */
 SELECT id, article_id AS "articleId", title, content, notes, published_at AS "publishedAt"
 FROM editions

@@ -335,6 +335,8 @@ export async function publishDraft(
       return { type: "NoTitle" } as const;
     }
 
+    const files = await unique(Queries.countDraftFiles, { id });
+
     const { articleId, editionId } = await unique(
       Queries.createEditionFromDraft,
       { draftId: id, notes },
@@ -343,7 +345,9 @@ export async function publishDraft(
     await execute(Queries.moveDraftFilesToEdition, { draftId: id, editionId });
     await execute(Queries.deleteDraft, { id, userId });
 
-    await fs.promises.rename(draftFilesPath(id), editionFilesPath(editionId));
+    if (files.count !== 0) {
+      await fs.promises.rename(draftFilesPath(id), editionFilesPath(editionId));
+    }
 
     return { type: "Ok", articleId } as const;
   });

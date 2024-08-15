@@ -1242,6 +1242,33 @@ const listDraftFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id"
 export const listDraftFiles = new PreparedQuery<IListDraftFilesParams,IListDraftFilesResult>(listDraftFilesIR);
 
 
+/** 'CountDraftFiles' parameters type */
+export interface ICountDraftFilesParams {
+  id: number;
+}
+
+/** 'CountDraftFiles' return type */
+export interface ICountDraftFilesResult {
+  count: number;
+}
+
+/** 'CountDraftFiles' query type */
+export interface ICountDraftFilesQuery {
+  params: ICountDraftFilesParams;
+  result: ICountDraftFilesResult;
+}
+
+const countDraftFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":59}]}],"statement":"SELECT COUNT(*) AS \"count!\" FROM files WHERE draft_id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT COUNT(*) AS "count!" FROM files WHERE draft_id = :id!
+ * ```
+ */
+export const countDraftFiles = new PreparedQuery<ICountDraftFilesParams,ICountDraftFilesResult>(countDraftFilesIR);
+
+
 /** 'GetEdition' parameters type */
 export interface IGetEditionParams {
   id: number;
