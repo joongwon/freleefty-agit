@@ -10,9 +10,15 @@ type Query<T, U> =
   | PgTyped.TaggedQuery<{ params: T; result: U }>
   | PgTyped.PreparedQuery<T, U>;
 
-const pool = new Pg.Pool({
-  connectionString: getEnv().DATABASE_URL,
-});
+let pool: Pg.Pool | undefined;
+
+function connectPool() {
+  if (pool === undefined)
+    pool = new Pg.Pool({
+      connectionString: getEnv().DATABASE_URL,
+    });
+  return pool.connect();
+}
 
 export const tx = async <T>(
   f: (client: {
@@ -22,7 +28,7 @@ export const tx = async <T>(
     unique: <T, U>(q: Query<T, U>, params: T) => Promise<U>;
   }) => Promise<T>,
 ) => {
-  const client = await pool.connect();
+  const client = await connectPool();
   try {
     await client.query("BEGIN");
     const list = async <T, U>(q: Query<T, U>, params: T) =>
@@ -50,7 +56,7 @@ export const tx = async <T>(
 };
 
 export const list = async <T, U>(q: Query<T, U>, params: T) => {
-  const client = await pool.connect();
+  const client = await connectPool();
   try {
     return await q.run(params, client);
   } finally {
