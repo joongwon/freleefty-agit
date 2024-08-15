@@ -4,7 +4,7 @@ Next.js로 구성함.
 
 ## 도커 없이 실행하는 방법
 
-Node.js, yarn, PostgreSQL 서버 및 클라이언트가 필요하다. 루트의 example.env 파일을 참고하여 이 디렉토리에 .env 파일을 작성한다.
+Node.js, yarn, PostgreSQL 서버 및 클라이언트, redis가 필요하다. 루트의 example.env 파일을 참고하여 이 디렉토리에 .env 파일을 작성한다.
 
 ```sh
 # 패키지 설치
