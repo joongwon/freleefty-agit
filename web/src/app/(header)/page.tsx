@@ -1,4 +1,4 @@
-import * as Queries from "@/queries.sql";
+import * as Queries from "@/queries_sql";
 import * as newdb from "@/newdb";
 import * as ArticleList from "@/components/ArticleList";
 import styles from "./page.module.scss";

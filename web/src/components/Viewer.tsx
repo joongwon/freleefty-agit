@@ -5,7 +5,7 @@ import Markdown, { defaultUrlTransform } from "react-markdown";
 import styles from "./Viewer.module.scss";
 import classNames from "classnames/bind";
 import { useState, Fragment } from "react";
-import { File } from "db";
+import { FileInfo } from "@/types";
 
 const cx = classNames.bind(styles);
 
@@ -13,22 +13,28 @@ const ViewerOptionContext = createContext<{
   type: "markdown" | "text";
   setType: (type: "markdown" | "text") => void;
   content: string;
-  files: File[];
+  files: FileInfo[];
   fileSuffix: string;
 } | null>(null);
 
 export function OptionProvider(p: {
   children: React.ReactNode;
   content: string;
-  files: File[];
+  files: FileInfo[];
   fileSuffix: string;
 }) {
   const [type, setType] = useState<"markdown" | "text">(() =>
     estimateType(p.content),
   );
   const value = useMemo(
-    () => ({ type, setType, files: p.files, content: p.content, fileSuffix: p.fileSuffix }),
-    [type, p.content, p.files, p.fileSuffix]
+    () => ({
+      type,
+      setType,
+      files: p.files,
+      content: p.content,
+      fileSuffix: p.fileSuffix,
+    }),
+    [type, p.content, p.files, p.fileSuffix],
   );
   return (
     <ViewerOptionContext.Provider value={value}>
@@ -78,7 +84,6 @@ export function Content() {
   const files = viewerOption?.files ?? [];
   const fileSuffix = viewerOption?.fileSuffix ?? "";
 
-
   const urlTransform = (url: string) => {
     if (url.startsWith("./")) {
       const fileName = decodeURI(url.slice(2));
@@ -91,7 +96,6 @@ export function Content() {
     }
     return defaultUrlTransform(url);
   };
-
 
   const content = viewerOption?.content ?? "";
   switch (viewerOption?.type ?? "text") {
@@ -107,10 +111,18 @@ export function Content() {
   }
 }
 
-export default function Viewer(p: { content: string; files: File[]; fileSuffix: string }) {
+export default function Viewer(p: {
+  content: string;
+  files: FileInfo[];
+  fileSuffix: string;
+}) {
   return (
     <article className={cx("viewer")}>
-      <OptionProvider content={p.content} files={p.files} fileSuffix={p.fileSuffix}>
+      <OptionProvider
+        content={p.content}
+        files={p.files}
+        fileSuffix={p.fileSuffix}
+      >
         <Options />
         <Content />
         {p.files.length > 0 && (

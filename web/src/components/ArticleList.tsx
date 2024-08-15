@@ -1,11 +1,10 @@
-import type { DraftSummary, EditionSummary } from "db";
 import Link from "next/link";
 import { ReactNode } from "react";
 import classnames from "classnames/bind";
 import styles from "./ArticleList.module.scss";
 import Time from "@/components/Time";
 import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
-import { ArticleSummary } from "@/types";
+import { ArticleSummary, DraftSummary, EditionSummary } from "@/types";
 
 const cx = classnames.bind(styles);
 

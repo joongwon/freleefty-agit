@@ -14,7 +14,7 @@ import Viewer from "@/components/Viewer";
 import { cache } from "react";
 import { getEnv } from "@/env";
 import * as newdb from "@/newdb";
-import * as Queries from "@/queries.sql";
+import * as Queries from "@/queries_sql";
 
 const cx = classnames.bind(styles);
 

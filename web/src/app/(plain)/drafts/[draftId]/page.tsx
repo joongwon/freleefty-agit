@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 import TextareaAutosize from "react-textarea-autosize";
 import { useRef } from "react";
 import getCaretCoordinates from "textarea-caret";
-import type { MaybeNotFound, MaybeNotFoundConflict } from "@/db";
 import { DELETE } from "@/components/icons";
 
 const cx = classNames.bind(styles);
@@ -67,7 +66,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     {
       // prevent not found error before navigating
       revalidate: false,
-      onSuccess: (data: MaybeNotFound) => {
+      onSuccess: (data) => {
         if (data === "Ok") {
           router.replace("/drafts");
         }
@@ -99,8 +98,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     }
   }, [title, content, res.data, update]);
 
-  const updateData: MaybeNotFound | undefined = update.data;
-  const delData: MaybeNotFound | undefined = del.data;
+  const updateData = update.data;
+  const delData = del.data;
   const errorMessage = (() => {
     if (authState.type.value !== "login") return "일지를 쓰려면 로그인하세요";
     if (draftId === null || res.data === null || updateData === "NotFound")
@@ -280,16 +279,13 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
       return createFile(gAuthState.value.token, draftId, opt.arg.name, formData);
     },
     {
-      onSuccess: (data: MaybeNotFoundConflict | "Error" | "TooLarge") => {
+      onSuccess: (data) => {
         switch (data) {
           case "NotFound":
             alert("초안을 찾을 수 없습니다");
             break;
           case "Conflict":
             alert("이미 같은 이름의 파일이 있습니다");
-            break;
-          case "Error":
-            alert("파일을 올리는 중 오류가 발생했습니다");
             break;
           case "TooLarge":
             alert("파일이 너무 큽니다");
@@ -373,10 +369,10 @@ function DeleteFileButton(p: { swrKey: readonly [number, "draft"] | null; fileId
       return deleteFile(gAuthState.value.token, p.fileId);
     },
     {
-      onSuccess: (data: MaybeNotFound) => {
+      onSuccess: (data) => {
         switch (data) {
-          case "NotFound":
-            alert("파일을 찾을 수 없습니다");
+          case "Forbidden":
+            alert("파일을 지울 수 없습니다");
             break;
           case "Ok":
             break;

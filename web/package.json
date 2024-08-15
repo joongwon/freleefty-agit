@@ -19,7 +19,6 @@
     "@types/tmp": "^0.2.6",
     "@types/uuid": "^9.0.8",
     "classnames": "^2.5.1",
-    "db": "file:../db",
     "dotenv-cli": "^7.4.2",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",

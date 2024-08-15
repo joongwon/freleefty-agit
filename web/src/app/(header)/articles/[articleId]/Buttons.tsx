@@ -4,7 +4,6 @@ import Link from "next/link";
 import classnames from "classnames/bind";
 import styles from "./page.module.scss";
 import type { Article } from "@/types";
-import type { MaybeNotFoundForbidden, NotFoundForbidden } from "@/db";
 import {
   deleteArticle,
   createComment,
@@ -38,8 +37,8 @@ export default function Buttons(p: { article: Article }) {
       {likes.data && likes.data.length > 0 && (
         <p className={cx("likes")}>
           {likes.data.map((e, i, arr) => (
-            <span key={e.user.id} title={moment(e.createdAt).fromNow()}>
-              {e.user.name}
+            <span key={e.userId} title={moment(e.createdAt).fromNow()}>
+              {e.userName}
               {i < arr.length - 1 && ", "}
             </span>
           ))}
@@ -119,7 +118,7 @@ function LikeButton(p: { article: Article }) {
   const auth = useHookstate(gAuthState);
   const likes = useLikes(p.article.id);
   const userId = auth.value.type === "login" ? auth.value.profile.id : null;
-  const userInLike = likes.data?.some((e) => e.user.id === userId) ?? false;
+  const userInLike = likes.data?.some((e) => e.userId === userId) ?? false;
   const canClick = auth.value.type === "login" && likes.data !== undefined;
   const toggleLike = useSWRMutation(
     [p.article.id, "like"],
@@ -132,7 +131,7 @@ function LikeButton(p: { article: Article }) {
         res: opt.arg.like
           ? await likeArticle(auth.value.token, articleId)
           : await unlikeArticle(auth.value.token, articleId),
-      };
+      } as const;
     },
     {
       onError: (e) => {
@@ -140,7 +139,7 @@ function LikeButton(p: { article: Article }) {
         alert("공감 처리 중 오류가 발생했습니다.");
       },
       onSuccess: (data) => {
-        if (data.res === 0) {
+        if (data.res === "InvalidAction") {
           if (data.req === true) {
             alert("이미 공감한 일지입니다.");
           } else {
@@ -198,7 +197,7 @@ function AuthorMenu(p: { article: Article }) {
       return;
     }
     try {
-      const res: MaybeNotFoundForbidden = await deleteArticle(
+      const res = await deleteArticle(
         auth.value.token,
         p.article.id,
       );
@@ -222,7 +221,7 @@ function AuthorMenu(p: { article: Article }) {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleUpdateArticle");
     }
-    const res: NotFoundForbidden | number = await editArticle(
+    const res = await editArticle(
       auth.value.token,
       p.article.id,
     );
@@ -275,7 +274,7 @@ function AuthorMenu(p: { article: Article }) {
       >
         {!isAuthor ||
         draftId.isLoading ||
-        draftId.error ? null : draftId.data === null ? (
+        draftId.error ? null : !draftId.data ? (
           <>
             <li>
               <button

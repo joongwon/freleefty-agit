@@ -1,4 +1,3 @@
-import { getDB } from "@/db";
 import { parseSafeInt } from "@/utils";
 import { notFound } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
@@ -7,8 +6,24 @@ import Link from "next/link";
 import styles from "./page.module.scss";
 import classNames from "classnames/bind";
 import { getEnv } from "@/env";
+import { cache } from "react";
+import * as Queries from "@/queries_sql";
+import * as newdb from "@/newdb";
 
 const cx = classNames.bind(styles);
+
+const getEdition = cache(async (editionId: number) => {
+  return newdb.tx(async ({ first , list}) => {
+    const edition = await first(Queries.getEdition, { id: editionId });
+    if (edition === null) {
+      return null;
+    }
+
+    const editions = await list(Queries.listEditions, { articleId: edition.articleId });
+    const files = await list(Queries.listEditionFiles, { id: editionId });
+    return { ...edition, editions, files };
+  });
+});
 
 export default async function Edition(p: { params: { editionId: string } }) {
   const editionId = parseSafeInt(p.params.editionId);
@@ -16,8 +31,7 @@ export default async function Edition(p: { params: { editionId: string } }) {
     return notFound();
   }
 
-  const db = getDB();
-  const edition = await db.getEdition(editionId);
+  const edition = await getEdition(editionId);
 
   if (!edition) {
     return notFound();

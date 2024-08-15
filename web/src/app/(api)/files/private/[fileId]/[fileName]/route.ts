@@ -1,10 +1,12 @@
 import { getRefreshTokenCookie } from "@/serverAuth";
-import { getRedis, getDB } from "@/db";
+import { getRedis, } from "@/db";
 import { parseSafeInt } from "@/utils";
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import { getEnv } from "@/env";
 import { Readable } from "stream";
+import * as newdb from "@/newdb";
+import * as Queries from "@/queries_sql";
 
 export async function GET(
   _: Request,
@@ -24,8 +26,7 @@ export async function GET(
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const db = getDB();
-  const fileInfo = await db.getFileInfo(fileId, userId);
+  const fileInfo = await newdb.option(Queries.getFileInfo, { id: fileId });
   if (!fileInfo) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
