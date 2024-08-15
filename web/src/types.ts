@@ -1,10 +1,12 @@
-import * as QueryTypes from "./queries.sql";
+import * as Queries from "./queries.sql";
 
-export type ArticleSummary = QueryTypes.IListArticlesResult;
-export type Comment = QueryTypes.IGetArticleCommentsResult;
-export type Article = QueryTypes.IGetArticleResult & {
+export type ArticleSummary = Queries.IListArticlesResult;
+export type Comment = Queries.IGetArticleCommentsResult;
+export type Article = Queries.IGetArticleResult & {
   next: ArticleSummary | null;
   prev: ArticleSummary | null;
-  files: QueryTypes.IGetArticleFilesResult[];
+  files: Queries.IGetArticleFilesResult[];
   comments: Comment[];
 };
+export type Role = Queries.role;
+export type User = Queries.IGetUserByIdResult;

@@ -1,4 +1,4 @@
-import { getRefreshToken } from "@/serverAuth";
+import { getRefreshTokenCookie } from "@/serverAuth";
 import { getRedis, getDB } from "@/db";
 import { parseSafeInt } from "@/utils";
 import { NextResponse } from "next/server";
@@ -15,7 +15,7 @@ export async function GET(
   if (!fileId || !fileName) {
     return NextResponse.json({ error: "Invalid fileId or fileName" }, { status: 400 });
   }
-  const refreshToken = getRefreshToken();
+  const refreshToken = getRefreshTokenCookie();
   if (!refreshToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

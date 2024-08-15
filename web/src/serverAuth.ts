@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-export function getRefreshToken() {
+export function getRefreshTokenCookie() {
   const refreshTokenCookie = cookies().get("refreshToken");
   if (!refreshTokenCookie) {
     return null;
@@ -8,7 +8,7 @@ export function getRefreshToken() {
   return refreshTokenCookie.value;
 }
 
-export function setRefreshToken(refreshToken: string) {
+export function setRefreshTokenCookie(refreshToken: string) {
   cookies().set("refreshToken", refreshToken, {
     path: "/",
     httpOnly: true,

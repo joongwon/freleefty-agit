@@ -8,10 +8,12 @@ import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import fs from "fs";
 import { Writable } from "stream";
-import { setRefreshToken, getRefreshToken } from "@/serverAuth";
+import { setRefreshTokenCookie, getRefreshTokenCookie } from "@/serverAuth";
 import * as newdb from "@/newdb";
 import { sql } from "@pgtyped/runtime";
 import * as QueryTypes from "./actions.types";
+import * as Queries from "@/queries.sql";
+import { User } from "@/types";
 
 const stringSchema = z.string();
 const numberSchema = z.number();
@@ -60,8 +62,7 @@ export async function tryLogin(codeRaw: string) {
   const naverName = profileData.response.nickname ?? "";
 
   // 네이버 아이디로 사용자가 등록되어 있는지 확인
-  const getUserByNaverId = sql<QueryTypes.IGetUserByNaverIdQuery>`SELECT id, role, name FROM users WHERE naver_id = $naverId`;
-  const user = await newdb.first(getUserByNaverId, { naverId });
+  const user = await newdb.first(Queries.getUserByNaverId, { naverId });
 
   if (!user) {
     // 등록되어 있지 않다면, 가입 페이지로 이동
@@ -73,8 +74,6 @@ export async function tryLogin(codeRaw: string) {
     return { type: "login" as const, ...res };
   }
 }
-
-export type User ={ id: string; role: QueryTypes.role, name: string };
 
 async function login(profile: User) {
   const JWT_SECRET = getEnv().JWT_SECRET;
@@ -88,7 +87,7 @@ async function login(profile: User) {
   await redis.set("refreshToken:" + refreshToken, profile.id, {
     EX: 7 * 24 * 60 * 60,
   });
-  setRefreshToken(refreshToken);
+  setRefreshTokenCookie(refreshToken);
   return { accessToken, profile };
 }
 
@@ -139,9 +138,8 @@ export async function createUser(
     throw new Error("Register code is expired");
   }
 
-  const createUser = sql<QueryTypes.ICreateUserQuery>`INSERT INTO users (naver_id, id, name) VALUES ($naverId!, $id!, $name!)`;
   try {
-    await newdb.execute(createUser, { naverId, id, name });
+    await newdb.execute(Queries.createUser, { naverId, id, name });
     return { type: "success", ...(await login({ id, role: "user", name })) } as const;
   } catch (e) {
     const constraint = (e as { constraint?: string })?.constraint;
@@ -162,10 +160,8 @@ export async function createUser(
   }
 }
 
-const getUserById = sql<QueryTypes.IGetUserByIdQuery>`SELECT id, role, name FROM users WHERE id = $userId`;
-
 export async function refresh() {
-  const refreshToken = getRefreshToken();
+  const refreshToken = getRefreshTokenCookie();
   if (!refreshToken) {
     return null;
   }
@@ -176,7 +172,7 @@ export async function refresh() {
     return null;
   }
 
-  const profile = await newdb.first(getUserById, { userId });
+  const profile = await newdb.first(Queries.getUserById, { userId });
 
   if (!profile) {
     return null;
@@ -185,7 +181,7 @@ export async function refresh() {
 }
 
 export async function logout() {
-  const refreshToken = getRefreshToken();
+  const refreshToken = getRefreshTokenCookie();
   if (!refreshToken) {
     return;
   }
@@ -256,20 +252,30 @@ export async function updateDraft(
   return (await newdb.first(updateDraft, { id, authorId: userId, title, content}))?.ok ? "Ok" : "NotFound";
 }
 
+const draftFilesPath = (id: number) => `${getEnv().UPLOAD_DIR}/d/${id}`;
+
 export async function deleteDraft(tokenRaw: string, idRaw: number) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);
-
-  const db = getDB();
   const userId = (await decodeToken(token)).id;
-  return await db.deleteDraft(id, userId);
+
+  return await newdb.tx(async ({ first, execute }) => {
+    const deleteResult = await first(Queries.deleteDraft, { id, userId });
+    if (!deleteResult) {
+      return "NotFound" as const;
+    }
+    await execute(Queries.deleteArticleIfNoEditions, { id: deleteResult.articleId });
+    await fs.promises.rmdir(draftFilesPath(id), { recursive: true });
+
+    return "Ok" as const;
+  });
 }
 
 export async function createDraft(tokenRaw: string) {
   const token = stringSchema.parse(tokenRaw);
+  const userId = (await decodeToken(token)).id;
 
   const db = getDB();
-  const userId = (await decodeToken(token)).id;
   return await db.createDraft(userId);
 }
 
@@ -379,7 +385,7 @@ export async function devLogin() {
   if (process.env.NODE_ENV !== "development") {
     throw new Error("This function is only available in development mode");
   }
-  const profile = await newdb.first(getUserById, { userId: "test" });
+  const profile = await newdb.first(Queries.getUserById, { userId: "test" });
   if (!profile) {
     throw new Error("User not found");
   }
