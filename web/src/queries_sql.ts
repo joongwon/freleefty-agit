@@ -1145,7 +1145,7 @@ export interface IListDraftsResult {
   articleId: number;
   createdAt: string;
   id: number;
-  published: boolean | null;
+  published: boolean;
   title: string;
   updatedAt: string;
 }
@@ -1156,14 +1156,14 @@ export interface IListDraftsQuery {
   result: IListDraftsResult;
 }
 
-const listDraftsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":271,"b":280}]}],"statement":"SELECT drafts.id, title, created_at AS \"createdAt\", updated_at AS \"updatedAt\",\n  article_id AS \"articleId\",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE author_id = :authorId!\nORDER BY updated_at DESC"};
+const listDraftsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":274,"b":283}]}],"statement":"SELECT drafts.id, title, created_at AS \"createdAt\", updated_at AS \"updatedAt\",\n  article_id AS \"articleId\",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS \"published!\"\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE author_id = :authorId!\nORDER BY updated_at DESC"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT drafts.id, title, created_at AS "createdAt", updated_at AS "updatedAt",
  *   article_id AS "articleId",
- *   EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published
+ *   EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS "published!"
  * FROM drafts
  * JOIN articles ON drafts.article_id = articles.id
  * WHERE author_id = :authorId!

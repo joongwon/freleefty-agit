@@ -60,7 +60,7 @@ export function DraftItem(p: { draft: DraftSummary }) {
       <div className={cx("author")}>
         <Time>{p.draft.updatedAt}</Time>
       </div>
-      {p.draft.articleId && (
+      {p.draft.published && (
         <Link href={`/articles/${p.draft.articleId}`} className={cx("pub")}>
           [발행판 보기]
         </Link>

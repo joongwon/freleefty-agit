@@ -238,7 +238,7 @@ RETURNING TRUE as "ok!";
 /* @name ListDrafts */
 SELECT drafts.id, title, created_at AS "createdAt", updated_at AS "updatedAt",
   article_id AS "articleId",
-  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published
+  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS "published!"
 FROM drafts
 JOIN articles ON drafts.article_id = articles.id
 WHERE author_id = :authorId!
