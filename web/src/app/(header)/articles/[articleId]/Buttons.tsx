@@ -3,7 +3,7 @@ import { COMMENT, FAVORITE, MORE } from "@/components/icons";
 import Link from "next/link";
 import classnames from "classnames/bind";
 import styles from "./page.module.scss";
-import type { Article } from "db";
+import type { Article } from "@/types";
 import type { MaybeNotFoundForbidden, NotFoundForbidden } from "@/db";
 import {
   deleteArticle,
@@ -241,7 +241,7 @@ function AuthorMenu(p: { article: Article }) {
 
   const isAuthor =
     auth.value.type === "login" &&
-    auth.value.profile.id === p.article.author.id;
+    auth.value.profile.id === p.article.authorId;
 
   const [isOpen, setIsOpen] = useState(false);
 

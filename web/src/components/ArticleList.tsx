@@ -1,10 +1,11 @@
-import type { ArticleSummary, DraftSummary, EditionSummary } from "db";
+import type { DraftSummary, EditionSummary } from "db";
 import Link from "next/link";
 import { ReactNode } from "react";
 import classnames from "classnames/bind";
 import styles from "./ArticleList.module.scss";
 import Time from "@/components/Time";
 import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
+import { ArticleSummary } from "@/types";
 
 const cx = classnames.bind(styles);
 
@@ -41,7 +42,7 @@ export function Item(p: { article: ArticleSummary; before?: ReactNode }) {
         )}
       </Link>
       <div className={cx("author")}>
-        {p.article.author.name}
+        {p.article.authorName}
         {", "}
         <Time>{p.article.publishedAt}</Time>
       </div>

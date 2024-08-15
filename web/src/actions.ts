@@ -1,6 +1,6 @@
 "use server";
 
-import { getDB, getRedis, UserConflict, MaybeNotFoundConflict } from "@/db";
+import { getDB, getRedis, MaybeNotFoundConflict } from "@/db";
 import * as jwt from "jsonwebtoken";
 import { getEnv } from "@/env";
 import { z } from "zod";
@@ -9,6 +9,9 @@ import { randomUUID } from "crypto";
 import fs from "fs";
 import { Writable } from "stream";
 import { setRefreshToken, getRefreshToken } from "@/serverAuth";
+import * as newdb from "@/newdb";
+import { sql } from "@pgtyped/runtime";
+import * as QueryTypes from "./actions.types";
 
 const stringSchema = z.string();
 const numberSchema = z.number();
@@ -57,8 +60,8 @@ export async function tryLogin(codeRaw: string) {
   const naverName = profileData.response.nickname ?? "";
 
   // 네이버 아이디로 사용자가 등록되어 있는지 확인
-  const db = getDB();
-  const user = await db.getUserByNaverId(naverId);
+  const getUserByNaverId = sql<QueryTypes.IGetUserByNaverIdQuery>`SELECT id, role, name FROM users WHERE naver_id = $naverId`;
+  const user = await newdb.first(getUserByNaverId, { naverId });
 
   if (!user) {
     // 등록되어 있지 않다면, 가입 페이지로 이동
@@ -66,26 +69,23 @@ export async function tryLogin(codeRaw: string) {
     return { type: "register" as const, registerCode, naverName };
   } else {
     // 등록되어 있다면, 로그인 처리
-    const res = await login(user.id);
+    const res = await login(user);
     return { type: "login" as const, ...res };
   }
 }
 
-async function login(userId: string) {
-  const db = getDB();
-  const profile = await db.getUserById(userId);
-  if (!profile) {
-    throw new Error("User not found");
-  }
+export type User ={ id: string; role: QueryTypes.role, name: string };
+
+async function login(profile: User) {
   const JWT_SECRET = getEnv().JWT_SECRET;
   const accessToken = await new Promise<string>((resolve, reject) =>
-    jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "1h" }, (err, token) =>
+    jwt.sign({ id: profile.id }, JWT_SECRET, { expiresIn: "1h" }, (err, token) =>
       token ? resolve(token) : reject(err),
     ),
   );
   const refreshToken = randomUUID();
   const redis = await getRedis();
-  await redis.set("refreshToken:" + refreshToken, userId, {
+  await redis.set("refreshToken:" + refreshToken, profile.id, {
     EX: 7 * 24 * 60 * 60,
   });
   setRefreshToken(refreshToken);
@@ -132,7 +132,6 @@ export async function createUser(
   const id = userIdSchema.parse(idRaw);
   const name = userNameSchema.parse(nameRaw).normalize();
 
-  const db = getDB();
   const redis = await getRedis();
 
   const naverId = await redis.getDel("register:" + code);
@@ -140,20 +139,30 @@ export async function createUser(
     throw new Error("Register code is expired");
   }
 
-  const conflict: UserConflict | null = await db.createUser(naverId, id, name);
-  if (conflict === "NaverId") {
-    // 이미 사용중인 네이버 아이디, 로그인 재시도
-    return { type: "fatal" as const, conflict: conflict };
-  } else if (conflict !== null) {
-    // 다른 오류로 가입 실패, code 재발급 후 다시 시도
-    const code = await makeRegisterCode(naverId);
-    return { type: "error" as const, conflict: conflict, code };
-  } else {
-    // 가입 성공
-    const res = await login(id);
-    return { type: "success" as const, ...res };
+  const createUser = sql<QueryTypes.ICreateUserQuery>`INSERT INTO users (naver_id, id, name) VALUES ($naverId!, $id!, $name!)`;
+  try {
+    await newdb.execute(createUser, { naverId, id, name });
+    return { type: "success", ...(await login({ id, role: "user", name })) } as const;
+  } catch (e) {
+    const constraint = (e as { constraint?: string })?.constraint;
+      const conflict = constraint === "users_naver_id_key" ? "NaverId" :
+        constraint === "users_name_key" ? "Name" :
+        constraint === "users_id_key" ? "Id" : null;
+      switch (conflict) {
+        case "NaverId":
+          return { type: "fatal", conflict } as const;
+        case "Name":
+        case "Id": {
+          const code = await makeRegisterCode(naverId);
+          return { type: "error", conflict, code } as const;
+        }
+        default:
+          throw e;
+      }
   }
 }
+
+const getUserById = sql<QueryTypes.IGetUserByIdQuery>`SELECT id, role, name FROM users WHERE id = $userId`;
 
 export async function refresh() {
   const refreshToken = getRefreshToken();
@@ -167,7 +176,12 @@ export async function refresh() {
     return null;
   }
 
-  return await login(userId);
+  const profile = await newdb.first(getUserById, { userId });
+
+  if (!profile) {
+    return null;
+  }
+  return await login(profile);
 }
 
 export async function logout() {
@@ -182,19 +196,44 @@ export async function logout() {
 
 export async function listDrafts(tokenRaw: string) {
   const token = stringSchema.parse(tokenRaw);
-
-  const db = getDB();
   const userId = (await decodeToken(token)).id;
-  return await db.listDrafts(userId);
+
+  const listDrafts = sql<QueryTypes.IListDraftsQuery>`
+    SELECT drafts.id, title, created_at AS "createdAt", updated_at AS "updatedAt",
+      article_id, EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published
+    FROM drafts
+    JOIN articles ON drafts.article_id = articles.id
+    WHERE author_id = $authorId!
+    ORDER BY updated_at DESC`;
+  return await newdb.list(listDrafts, { authorId: userId });
 }
 
 export async function getDraft(tokenRaw: string, idRaw: number) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);
-
-  const db = getDB();
   const userId = (await decodeToken(token)).id;
-  return await db.getDraft(id, userId);
+
+  return await newdb.tx(async ({ first, list }) => {
+    const getDraft = sql<QueryTypes.IGetDraftQuery>`
+      SELECT drafts.id, title, content,
+        created_at AS "createdAt", updated_at AS "updatedAt", article_id AS "articleId",
+        EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published
+      FROM drafts
+      JOIN articles ON drafts.article_id = articles.id
+      WHERE drafts.id = $id! AND author_id = $authorId!`;
+    const draft = await first(getDraft, { id, authorId: userId });
+    if (!draft) {
+      return null;
+    }
+
+    const listDraftFiles = sql<QueryTypes.IListDraftFilesQuery>`
+      SELECT id, name
+          FROM files
+          WHERE draft_id = $id!`;
+    const files = await list(listDraftFiles, { id });
+
+    return { ...draft, files }
+  });
 }
 
 const draftTitleSchema = z.string().max(255);
@@ -208,10 +247,13 @@ export async function updateDraft(
   const id = numberSchema.parse(idRaw);
   const title = draftTitleSchema.parse(titleRaw).normalize();
   const content = stringSchema.parse(contentRaw).normalize();
-
-  const db = getDB();
   const userId = (await decodeToken(token)).id;
-  return await db.updateDraft(id, userId, title, content);
+
+  const updateDraft = sql<QueryTypes.IUpdateDraftQuery>`
+    UPDATE drafts SET title = $title!, content = $content!, updated_at = now()
+    WHERE id = $id! AND (SELECT author_id FROM articles WHERE articles.id = article_id) = $authorId!
+    RETURNING TRUE as "ok!"`;
+  return (await newdb.first(updateDraft, { id, authorId: userId, title, content}))?.ok ? "Ok" : "NotFound";
 }
 
 export async function deleteDraft(tokenRaw: string, idRaw: number) {
@@ -337,7 +379,11 @@ export async function devLogin() {
   if (process.env.NODE_ENV !== "development") {
     throw new Error("This function is only available in development mode");
   }
-  return await login("test");
+  const profile = await newdb.first(getUserById, { userId: "test" });
+  if (!profile) {
+    throw new Error("User not found");
+  }
+  return await login(profile);
 }
 
 export async function editArticle(tokenRaw: string, articleIdRaw: number) {

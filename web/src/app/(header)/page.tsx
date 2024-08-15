@@ -1,4 +1,5 @@
-import { getDB } from "@/db";
+import * as Queries from "@/queries.sql";
+import * as newdb from "@/newdb";
 import * as ArticleList from "@/components/ArticleList";
 import styles from "./page.module.scss";
 import classnames from "classnames/bind";
@@ -8,8 +9,7 @@ export const dynamic = "force-dynamic";
 const cx = classnames.bind(styles);
 
 export default async function Intro() {
-  const db = getDB();
-  const articles = await db.listPopularArticles();
+  const articles = await newdb.list(Queries.listPopularArticles, undefined);
   return (
     <main className={cx("intro")}>
       {contents}

@@ -2,8 +2,7 @@
 
 import { hookstate } from "@hookstate/core";
 import { useEffect } from "react";
-import { refresh } from "@/actions";
-import { User } from "db";
+import { refresh, User} from "@/actions";
 
 type AuthState =
   | { type: "loading" }

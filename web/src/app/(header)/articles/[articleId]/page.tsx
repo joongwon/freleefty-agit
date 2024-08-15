@@ -1,4 +1,4 @@
-import { getDB, getRedis } from "@/db";
+import { getRedis } from "@/db";
 import styles from "./page.module.scss";
 import classnames from "classnames/bind";
 import { notFound } from "next/navigation";
@@ -13,12 +13,23 @@ import SubmitView from "./SubmitView";
 import Viewer from "@/components/Viewer";
 import { cache } from "react";
 import { getEnv } from "@/env";
+import * as newdb from "@/newdb";
+import * as Queries from "@/queries.sql";
 
 const cx = classnames.bind(styles);
 
 const getArticle = cache(async (articleId: number) => {
-  const db = getDB();
-  return await db.getArticle(articleId);
+  return newdb.tx(async ({ first , list}) => {
+    const article = await first(Queries.getArticle, { id: articleId });
+    if (article === null) {
+      return null;
+    }
+    const next = await first(Queries.getNextArticle, { id: articleId });
+    const prev = await first(Queries.getPrevArticle, { id: articleId });
+    const files = await list(Queries.getArticleFiles, { id: articleId });
+    const comments = await list(Queries.getArticleComments, { id: articleId });
+    return { ...article, next, prev, files, comments };
+  });
 });
 
 export async function generateMetadata(p: { params: { articleId: string } }) {
@@ -64,10 +75,10 @@ export default async function ViewArticle(p: {
       <header>
         <h1>{article.title}</h1>
         <p>
-          {article.author.name}
+          {article.authorName}
           {", "}
-          <Time>{article.publishedAt}</Time>
-          {article.publishedAt !== article.lastPublishedAt ? (
+          <Time>{article.firstPublishedAt}</Time>
+          {article.firstPublishedAt !== article.lastPublishedAt ? (
             <>
               {" (개정: "}
               <Time>{article.lastPublishedAt}</Time>
@@ -93,7 +104,7 @@ export default async function ViewArticle(p: {
             <p>{comment.content}</p>
             <DeleteCommentButton articleId={article.id} comment={comment} />
             <footer>
-              {comment.author.name}
+              {comment.authorName}
               {", "}
               <Time>{comment.createdAt}</Time>
             </footer>
@@ -116,7 +127,7 @@ export default async function ViewArticle(p: {
           </ArticleList.Empty>
         )}
       </ArticleList.Container>
-      <SubmitView viewToken={viewToken} authorId={article.author.id} />
+      <SubmitView viewToken={viewToken} authorId={article.authorId} />
     </main>
   );
 }

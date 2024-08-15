@@ -19,5 +19,6 @@
       }
     ],
     "react-hooks/exhaustive-deps": "error"
-  }
+  },
+  "ignorePatterns": ["**/*.sql.ts"]
 }
