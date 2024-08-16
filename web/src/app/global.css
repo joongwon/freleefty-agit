@@ -1,11 +1,6 @@
-@use "@/styles/util" as *;
-
-body,
-input,
-button,
-textarea {
-  font-family: $global-font;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100..900&display=swap');
 @font-face {
@@ -24,10 +19,17 @@ textarea {
     "opsz" 24;
 }
 
-a {
-  color: inherit;
-}
-
-code {
-  font-family: "Noto Sans Mono", monospace;
+.button {
+  @apply
+    inline-flex
+    items-center
+    justify-center
+    text-sm
+    px-[0.6rem] py-[0.3rem]
+    text-gray-500
+    border border-gray-300
+    bg-white
+    rounded-md
+    transition
+    hover:bg-gray-100;
 }

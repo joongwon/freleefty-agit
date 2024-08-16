@@ -6,10 +6,6 @@ import { createDraft, listDrafts } from "@/actions";
 import { useRouter } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
 import useSWRMutation from "swr/mutation";
-import styles from "./page.module.scss";
-import classNames from "classnames/bind";
-
-const cx = classNames.bind(styles);
 
 export default function ListDrafts() {
   const authState = useHookstate(gAuthState);
@@ -46,11 +42,11 @@ export default function ListDrafts() {
     return <main>저장된 초안 목록을 불러오는 중...</main>;
   }
   return (
-    <main className={cx("draft-list")}>
-      <header>
-        <h1>초안 목록</h1>
+    <main>
+      <header className="flex justify-between items-center">
+        <h1 className="text-4xl font-bold">초안 목록</h1>
         <button
-          className={cx("new")}
+          className="button"
           onClick={() => {
             void create.trigger();
           }}
@@ -64,7 +60,7 @@ export default function ListDrafts() {
             <ArticleList.DraftItem key={draft.id} draft={draft} />
           ))
         ) : (
-          <p>저장된 초안이 없습니다.</p>
+          <ArticleList.Empty>저장된 초안이 없습니다.</ArticleList.Empty>
         )}
       </ArticleList.Container>
     </main>

@@ -26,6 +26,20 @@ function handleLogin(router: ReturnType<typeof useRouter>) {
   }
 }
 
+function Menu(p: { children: React.ReactNode }) {
+  return (
+    <menu className="flex flex-wrap min-w-0 text-gray-600">{p.children}</menu>
+  );
+}
+
+function Item(p: { children: React.ReactNode }) {
+  return (
+    <li className="before:content-['·'] first:before:content-none before:mx-2 min-w-0 flex">
+      {p.children}
+    </li>
+  );
+}
+
 export default function AuthMenu() {
   const router = useRouter();
   const authState = useHookstate(gAuthState);
@@ -35,8 +49,8 @@ export default function AuthMenu() {
       return <menu>사용자 확인중...</menu>;
     case "anon":
       return (
-        <menu>
-          <li>
+        <Menu>
+          <Item>
             <a
               href="/login"
               onClick={(e) => {
@@ -46,9 +60,9 @@ export default function AuthMenu() {
             >
               로그인
             </a>
-          </li>
+          </Item>
           {process.env.NODE_ENV === "development" && (
-            <li>
+            <Item>
               <button
                 onClick={() => {
                   void devLogin().then((r) =>
@@ -62,24 +76,24 @@ export default function AuthMenu() {
               >
                 개발모드 로그인
               </button>
-            </li>
+            </Item>
           )}
-        </menu>
+        </Menu>
       );
     case "login":
       return (
-        <menu>
-          <li>
+        <Menu>
+          <Item>
             <span className="name">{authState.value.profile.name}</span>
             <span>님 환영합니다!</span>
-          </li>
-          <li>
+          </Item>
+          <Item>
             <Link href="/drafts">일지 쓰기</Link>
-          </li>
-          <li>
+          </Item>
+          <Item>
             <button onClick={() => handleLogout()}>로그아웃</button>
-          </li>
-        </menu>
+          </Item>
+        </Menu>
       );
   }
 }

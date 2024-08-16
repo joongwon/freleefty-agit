@@ -9,13 +9,14 @@ export default function HeaderLayout(p: { children: ReactNode }) {
     <>
       <Header>
         <Link href="/">
-          <h1>왼손잡이해방연대 아지트</h1>
+          <h1 className="text-2xl font-bold">왼손잡이해방연대 아지트</h1>
         </Link>
         <AuthMenu />
       </Header>
-      <NavMenu />
-      <div id="top" style={{ position: "absolute" }} />
-      {p.children}
+      <div className="flex flex-row last:*:flex-1 last:*:m-4 last:*:min-w-0 gap-4 items-start">
+        <NavMenu />
+        {p.children}
+      </div>
     </>
   );
 }

@@ -3,16 +3,6 @@
 import { ReactNode, useEffect, useRef, useState, useMemo } from "react";
 
 export default function Header(p: { children: ReactNode }) {
-  // calculated from media query
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
-    const listener = (e: { matches: boolean }) => setIsMobile(e.matches);
-    mediaQuery.addEventListener("change", listener);
-    listener(mediaQuery);
-    return () => mediaQuery.removeEventListener("change", listener);
-  }, []);
-
   // translateY value to render
   const [{ transY }, setStyle] = useState({
     transY: 0,
@@ -53,21 +43,24 @@ export default function Header(p: { children: ReactNode }) {
         ticking = false;
       });
     };
-    if (isMobile) {
-      window.addEventListener("scroll", scrollHandler);
-      return () => window.removeEventListener("scroll", scrollHandler);
-    }
-  }, [isMobile]);
+    window.addEventListener("scroll", scrollHandler);
+    return () => window.removeEventListener("scroll", scrollHandler);
+  }, []);
 
   // prevent transition setting multiple times
   const style = useMemo(
     () => ({
-      transform: `translateY(${isMobile ? transY : 0}px)`,
+      transform: `translateY(${transY}px)`,
     }),
-    [isMobile, transY],
+    [transY],
   );
   return (
-    <header ref={ref} style={style}>
+    <header
+      className="flex flex-wrap justify-between items-center
+        bg-gray-200 p-4 transition-transform top-0 sticky shadow-lg duration-500"
+      ref={ref}
+      style={style}
+    >
       {p.children}
     </header>
   );
