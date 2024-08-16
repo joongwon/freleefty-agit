@@ -81,7 +81,10 @@ async function login(profile: User) {
       { id: profile.id },
       JWT_SECRET,
       { expiresIn: "1h" },
-      (err, token) => (token ? resolve(token) : reject(err)),
+      (err, token) =>
+        token !== undefined
+          ? resolve(token)
+          : reject(err ?? new Error("Unreachable")),
     ),
   );
   const refreshToken = randomUUID();
@@ -97,7 +100,9 @@ async function decodeToken(token: string) {
   const JWT_SECRET = getEnv().JWT_SECRET;
   return await new Promise<{ id: string }>((resolve, reject) =>
     jwt.verify(token, JWT_SECRET, (err, decoded) =>
-      decoded ? resolve(decoded as { id: string }) : reject(err),
+      decoded
+        ? resolve(decoded as { id: string })
+        : reject(err ?? new Error("Unreachable")),
     ),
   );
 }
