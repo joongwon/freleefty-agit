@@ -5,7 +5,7 @@ import "moment/locale/ko";
 
 /* configure timezone */
 Moment.globalMoment = moment;
-moment.tz.setDefault("Asia/Seoul");
+moment.tz.setDefault("UTC");
 
 /**
  * A component that displays a time in a human-readable format.
