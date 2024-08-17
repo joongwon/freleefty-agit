@@ -104,7 +104,7 @@ export function Content() {
         <Markdown
           urlTransform={urlTransform}
           components={{
-            img: ({ node, className = "", ref: _, ...props }) => {
+            img: ({ node: _node, className = "", ref: _, ...props }) => {
               return (
                 <img
                   className={`${className} max-w-full max-h-[75vh]`}
@@ -112,10 +112,10 @@ export function Content() {
                 />
               );
             },
-            pre: ({ node, className = "", ref: _, ...props }) => {
+            pre: ({ node: _node, className = "", ref: _, ...props }) => {
               return <pre className={`not-prose ${className}`} {...props} />;
             },
-            code: ({ node, className = "", ref: _, ...props }) => {
+            code: ({ node: _node, className = "", ref: _, ...props }) => {
               const isPoem = className === "language-poem";
               return (
                 <code
