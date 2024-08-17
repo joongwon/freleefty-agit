@@ -254,7 +254,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         >
           삭제
         </button>
-        {res.data?.articleId && (
+        {res.data?.published && (
           <Link
             className="button"
             href={`/articles/${res.data.articleId}`}
