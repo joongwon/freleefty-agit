@@ -5,7 +5,7 @@ import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
 import { ArticleSummary, DraftSummary, EditionSummary } from "@/types";
 
 export function Container(p: { children: ReactNode }) {
-  return <ul>{p.children}</ul>;
+  return <ul className="not-prose">{p.children}</ul>;
 }
 
 function ItemBase(p: { before?: ReactNode; children: ReactNode }) {
