@@ -5,14 +5,10 @@ import { useHookstate } from "@hookstate/core";
 import { getDraft, publishDraft } from "@/actions";
 import { parseSafeInt } from "@/utils";
 import Viewer from "@/components/Viewer";
-import styles from "./page.module.scss";
-import classNames from "classnames/bind";
 import Link from "next/link";
 import { useState } from "react";
 import useSWRMutation from "swr/mutation";
 import { useRouter } from "next/navigation";
-
-const cx = classNames.bind(styles);
 
 export default function DraftPreview(p: { params: { draftId: string } }) {
   const draftId = parseSafeInt(p.params.draftId);
@@ -64,6 +60,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
       },
     },
   );
+
   const publishDisabled = notes.length === 0 || !res.data || publish.isMutating;
 
   if (authState.value.type === "loading") {
@@ -78,18 +75,25 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
     return <main>초안을 찾을 수 없습니다</main>;
   } else {
     return (
-      <main className={cx("preview")}>
-        <h1>
-          {res.data.title} <span className={cx("small")}>(미리보기)</span>
+      <main>
+        <h1 className="text-3xl font-bold">
+          {res.data.title}{" "}
+          <span className="text-sm text-gray-500">(미리보기)</span>
         </h1>
-        <Viewer content={res.data.content} files={res.data.files} fileSuffix="/files/private"/>
+        <Viewer
+          content={res.data.content}
+          files={res.data.files}
+          fileSuffix="/files/private"
+        />
         <form
+          className="border-t border-gray-200 mt-4 pt-4"
           onSubmit={(e) => {
             e.preventDefault();
             void publish.trigger(notes);
           }}
         >
           <input
+            className="input"
             type="text"
             placeholder="변경사항을 짧게 적어주세요"
             required
@@ -97,17 +101,19 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
-          <section className={cx("buttons")}>
-            <Link href={`/drafts/${draftId}`} className={cx("edit")}>
+          <section className="mt-2 flex justify-end gap-2">
+            <Link href={`/drafts/${draftId}`} className="button button-blue">
               계속 수정
             </Link>
             <button
-              className={cx("publish", { disabled: publishDisabled })}
+              className={`button ${publishDisabled ? "button-disabled" : "button-green"}`}
               type="submit"
             >
               발행
             </button>
-            <Link href="/drafts">초안 목록</Link>
+            <Link href="/drafts" className="button">
+              초안 목록
+            </Link>
           </section>
         </form>
       </main>

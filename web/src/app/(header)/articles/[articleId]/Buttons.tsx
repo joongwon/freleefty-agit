@@ -1,8 +1,6 @@
 "use client";
 import { COMMENT, FAVORITE, MORE } from "@/components/icons";
 import Link from "next/link";
-import classnames from "classnames/bind";
-import styles from "./page.module.scss";
 import type { Article } from "@/types";
 import {
   deleteArticle,
@@ -21,8 +19,6 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import moment from "moment";
 
-const cx = classnames.bind(styles);
-
 export default function Buttons(p: { article: Article }) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const auth = useHookstate(gAuthState);
@@ -34,24 +30,26 @@ export default function Buttons(p: { article: Article }) {
 
   return (
     <>
-      {likes.data && likes.data.length > 0 && (
-        <p className={cx("likes")}>
-          {likes.data.map((e, i, arr) => (
-            <span key={e.userId} title={moment(e.createdAt).fromNow()}>
-              {e.userName}
-              {i < arr.length - 1 && ", "}
-            </span>
-          ))}
-          님이 이 일지에 공감합니다
-        </p>
-      )}
-      <section className={cx("buttons")}>
+      <p className="text-sm text-gray-500 h-5">
+        {likes.data && likes.data.length > 0 && (
+          <>
+            {likes.data.map((e, i, arr) => (
+              <span key={e.userId} title={moment(e.createdAt).fromNow()}>
+                {e.userName}
+                {i < arr.length - 1 && ", "}
+              </span>
+            ))}
+            님이 이 일지에 공감합니다
+          </>
+        )}
+      </p>
+      <section className="flex gap-2 mt-1 mb-4 items-center">
         <button
           onClick={() => {
             if (commentDisabled) alert("로그인 후 댓글을 달 수 있습니다");
             else setIsCommentOpen(!isCommentOpen);
           }}
-          className={cx("button", { disabled: commentDisabled })}
+          className="button flex gap-1 items-center"
           title={
             commentDisabled ? "로그인 후 댓글을 달 수 있습니다" : "댓글 달기"
           }
@@ -59,9 +57,9 @@ export default function Buttons(p: { article: Article }) {
           {COMMENT} {p.article.comments.length}
         </button>
         <LikeButton article={p.article} />
-        <hr />
+        <hr className="border-none flex-1" />
         <AuthorMenu article={p.article} />
-        <Link href="/articles" title="모든 일지 목록" className={cx("button")}>
+        <Link href="/articles" title="모든 일지 목록" className="button">
           목록
         </Link>
       </section>
@@ -92,20 +90,23 @@ function CommentForm(p: { articleId: number; afterSubmit: () => void }) {
   };
   return (
     <form
-      className={cx("comment-form")}
+      className="flex gap-2 my-4 md:flex-row flex-col"
       onSubmit={(e) => {
         e.preventDefault();
         void handleComment();
       }}
     >
       <input
+        className="input flex-1"
         required
         minLength={1}
         maxLength={1023}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
-      <button type="submit">등록</button>
+      <button className="button md:w-16" type="submit">
+        등록
+      </button>
     </form>
   );
 }
@@ -153,10 +154,7 @@ function LikeButton(p: { article: Article }) {
   return (
     <>
       <button
-        className={cx("like", "button", {
-          liked: userInLike,
-          disabled: !canClick,
-        })}
+        className={`button flex gap-1 items-center text-red-500 ${userInLike ? "" : "symbol-no-fill"}`}
         title={
           !canClick
             ? "로그인 후 공감할 수 있습니다."
@@ -197,10 +195,7 @@ function AuthorMenu(p: { article: Article }) {
       return;
     }
     try {
-      const res = await deleteArticle(
-        auth.value.token,
-        p.article.id,
-      );
+      const res = await deleteArticle(auth.value.token, p.article.id);
       switch (res) {
         case "Ok":
           router.push("/articles");
@@ -221,10 +216,7 @@ function AuthorMenu(p: { article: Article }) {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleUpdateArticle");
     }
-    const res = await editArticle(
-      auth.value.token,
-      p.article.id,
-    );
+    const res = await editArticle(auth.value.token, p.article.id);
     switch (res) {
       case "NotFound":
         alert("일지를 찾을 수 없습니다");
@@ -239,8 +231,7 @@ function AuthorMenu(p: { article: Article }) {
   };
 
   const isAuthor =
-    auth.value.type === "login" &&
-    auth.value.profile.id === p.article.authorId;
+    auth.value.type === "login" && auth.value.profile.id === p.article.authorId;
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -261,15 +252,17 @@ function AuthorMenu(p: { article: Article }) {
   }, [isOpen]);
 
   return (
-    <div className={cx("author-menu-wrapper")}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cx("open-author-menu")}
-      >
+    <div className="relative">
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center">
         {MORE}
       </button>
       <menu
-        className={cx("author-menu", { closed: !isOpen })}
+        className={`absolute right-full top-1/2 -translate-y-1/2
+          flex justify-center items-center gap-2 p-2 bg-gray-100 rounded-md mr-2
+          text-nowrap text-sm
+          after:absolute after:top-1/2 after:left-full after:-translate-y-1/2
+          after:border-4 after:border-transparent after:border-l-gray-100
+        ${isOpen ? "" : "hidden"}`}
         onClick={(e) => e.stopPropagation()}
       >
         {!isAuthor ||
@@ -279,7 +272,7 @@ function AuthorMenu(p: { article: Article }) {
             <li>
               <button
                 title="개정판 초안 만들기"
-                className={cx("button")}
+                className="button"
                 onClick={() => {
                   void handleUpdateArticle();
                 }}
@@ -290,7 +283,7 @@ function AuthorMenu(p: { article: Article }) {
             <li>
               <button
                 title="삭제"
-                className={cx("button", "delete")}
+                className="button button-red"
                 onClick={() => {
                   void handleDeleteArticle();
                 }}
@@ -304,7 +297,7 @@ function AuthorMenu(p: { article: Article }) {
             <Link
               href={`/drafts/${draftId.data}`}
               title="수정중인 개정판으로 이동"
-              className={cx("button")}
+              className="button"
             >
               개정판 초안 편집
             </Link>
@@ -315,12 +308,12 @@ function AuthorMenu(p: { article: Article }) {
             <Link
               href={`/editions/${p.article.editionId}`}
               title="이 일지로서 발행한 판의 목록"
-              className={cx("button")}
+              className="button"
             >
               다른 판 ({p.article.editionsCount})
             </Link>
           ) : (
-            <span className={cx("button", "disabled")}>(초판입니다)</span>
+            <span className="button button-disabled">(초판입니다)</span>
           )}
         </li>
       </menu>

@@ -4,3 +4,9 @@ declare namespace JSX {
     suppressHydrationWarning?: boolean;
   }
 }
+
+declare module "highlightjs-rescript" {
+  import { Options } from "rehype-highlight";
+  declare const highlightRescript: NonNullable<Options["languages"]>[string];
+  export default highlightRescript;
+}

@@ -2,16 +2,18 @@
 
 import { createContext, useContext, useMemo } from "react";
 import Markdown, { defaultUrlTransform } from "react-markdown";
-import styles from "./Viewer.module.scss";
-import classNames from "classnames/bind";
-import { useState, Fragment } from "react";
+import rehypeHighlight from "rehype-highlight";
+import highlightRescript from "highlightjs-rescript";
+import "highlight.js/styles/github.css";
+import { useState } from "react";
 import { FileInfo } from "@/types";
 
-const cx = classNames.bind(styles);
+const options = ["Markdown", "Text"] as const;
+type Option = (typeof options)[number];
 
 const ViewerOptionContext = createContext<{
-  type: "markdown" | "text";
-  setType: (type: "markdown" | "text") => void;
+  type: Option;
+  setType: (type: Option) => void;
   content: string;
   files: FileInfo[];
   fileSuffix: string;
@@ -23,9 +25,7 @@ export function OptionProvider(p: {
   files: FileInfo[];
   fileSuffix: string;
 }) {
-  const [type, setType] = useState<"markdown" | "text">(() =>
-    estimateType(p.content),
-  );
+  const [type, setType] = useState<Option>(() => estimateType(p.content));
   const value = useMemo(
     () => ({
       type,
@@ -50,29 +50,29 @@ export function Options() {
     return null;
   }
   return (
-    <section className={cx("options")}>
-      <button
-        className={cx({
-          selected: viewerOption?.type === "markdown",
-        })}
-        onClick={() => viewerOption?.setType("markdown")}
-      >
-        Markdown
-      </button>
-      <button
-        className={cx({ selected: viewerOption?.type === "text" })}
-        onClick={() => viewerOption?.setType("text")}
-      >
-        Text
-      </button>
+    <section className="absolute right-0 -top-8">
+      {options.map((option) => (
+        <button
+          key={option}
+          className={`button
+            rounded-none
+            first:rounded-l-md last:rounded-r-md
+            border-r-0
+            last:border-r
+          ${viewerOption.type === option ? "bg-gray-200 hover:bg-gray-200" : ""}`}
+          onClick={() => viewerOption.setType(option)}
+        >
+          {option}
+        </button>
+      ))}
     </section>
   );
 }
 
 function estimateType(content: string) {
-  // quote("> "), list("* "), heading("# "), code("```"), image("!["), link("](")
-  const pat = /^([>*-] |#|```|!\[)|\]\(/m;
-  return pat.test(content) ? "markdown" : "text";
+  // quote("> "), list("* ", "- "), heading("# "), code("`"), link("](")
+  const pat = /^([>*-] |#|`)|\]\(/m;
+  return pat.test(content) ? "Markdown" : "Text";
 }
 
 export function Content() {
@@ -98,16 +98,45 @@ export function Content() {
   };
 
   const content = viewerOption?.content ?? "";
-  switch (viewerOption?.type ?? "text") {
-    case "markdown":
-      return <Markdown urlTransform={urlTransform}>{content}</Markdown>;
-    case "text":
-      return content.split("\n").map((line, i) => (
-        <Fragment key={i}>
-          {i > 0 && <br />}
-          {line}
-        </Fragment>
-      ));
+  switch (viewerOption?.type ?? "Text") {
+    case "Markdown":
+      return (
+        <Markdown
+          urlTransform={urlTransform}
+          components={{
+            img: ({ node, className = "", ref: _, ...props }) => {
+              return (
+                <img
+                  className={`${className} max-w-full max-h-[75vh]`}
+                  {...props}
+                />
+              );
+            },
+            pre: ({ node, className = "", ref: _, ...props }) => {
+              return <pre className={`not-prose ${className}`} {...props} />;
+            },
+            code: ({ node, className = "", ref: _, ...props }) => {
+              const isPoem = className === "language-poem";
+              return (
+                <code
+                  className={`not-prose ${
+                    isPoem ? "font-sans" : "font-mono"
+                  } ${className}`}
+                  {...props}
+                />
+              );
+            },
+          }}
+          rehypePlugins={[
+            [rehypeHighlight, { languages: { rescript: highlightRescript } }],
+          ]}
+          className="prose"
+        >
+          {content}
+        </Markdown>
+      );
+    case "Text":
+      return <pre className="font-sans">{content}</pre>;
   }
 }
 
@@ -117,7 +146,7 @@ export default function Viewer(p: {
   fileSuffix: string;
 }) {
   return (
-    <article className={cx("viewer")}>
+    <article className="relative mt-8">
       <OptionProvider
         content={p.content}
         files={p.files}
@@ -126,12 +155,15 @@ export default function Viewer(p: {
         <Options />
         <Content />
         {p.files.length > 0 && (
-          <details className={cx("files")}>
+          <details>
             <summary>첨부파일</summary>
-            <ul>
+            <ul className="list-disc mb-2 ml-4">
               {p.files.map((file) => (
                 <li key={file.id}>
-                  <a href={`${p.fileSuffix}/${file.id}/${file.name}`}>
+                  <a
+                    className="hover:underline"
+                    href={`${p.fileSuffix}/${file.id}/${file.name}`}
+                  >
                     {file.name}
                   </a>
                 </li>

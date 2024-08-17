@@ -13,7 +13,7 @@ export default function HeaderLayout(p: { children: ReactNode }) {
         </Link>
         <AuthMenu />
       </Header>
-      <div className="flex flex-row last:*:flex-1 last:*:m-4 last:*:min-w-0 gap-4 items-start">
+      <div className="flex flex-row last:*:flex-1 last:*:m-4 last:*:min-w-0 last:*:max-w-screen-md last:*:w-screen gap-4 items-start">
         <NavMenu />
         {p.children}
       </div>

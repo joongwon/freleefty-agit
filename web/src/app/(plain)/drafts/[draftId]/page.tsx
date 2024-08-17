@@ -3,19 +3,21 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { getDraft, updateDraft, deleteDraft, createFile, deleteFile } from "@/actions";
+import {
+  getDraft,
+  updateDraft,
+  deleteDraft,
+  createFile,
+  deleteFile,
+} from "@/actions";
 import { parseSafeInt } from "@/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import classNames from "classnames/bind";
-import styles from "./page.module.scss";
 import { useRouter } from "next/navigation";
 import TextareaAutosize from "react-textarea-autosize";
 import { useRef } from "react";
 import getCaretCoordinates from "textarea-caret";
 import { DELETE } from "@/components/icons";
-
-const cx = classNames.bind(styles);
 
 export default function EditDraft(p: { params: { draftId: string } }) {
   const draftId = parseSafeInt(p.params.draftId);
@@ -136,9 +138,9 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   return (
-    <main className={cx("draft")}>
+    <main className="flex flex-col gap-4 m-4 max-w-prose w-screen">
       <input
-        className={cx("title")}
+        className="input focus:outline-none focus:bg-gray-100 text-2xl font-bold"
         type="text"
         value={title}
         onChange={(e) => {
@@ -148,7 +150,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         placeholder="(제목 없음)"
       />
       <TextareaAutosize
-        className={cx("content")}
+        className="input focus:outline-none focus:bg-gray-100 resize-none"
         value={content}
         onChange={(e) => {
           setContent(e.target.value);
@@ -174,24 +176,30 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         }}
         ref={textareaRef}
       />
-      <section className={cx("file")}>
-        {res.data?.files.length !== 0 ?
-          <ul>
+      <section>
+        {res.data?.files.length !== 0 ? (
+          <ul className="list-disc mb-2 ml-4">
             {res.data?.files.map((file) => (
               <li key={file.id}>
-                <a href={`/files/private/${file.id}/${file.name}`} title={file.name}>
+                <a
+                  className="hover:underline"
+                  href={`/files/private/${file.id}/${file.name}`}
+                  title={file.name}
+                >
                   {file.name}
                 </a>
                 <DeleteFileButton swrKey={swrKey} fileId={file.id} />
               </li>
             ))}
           </ul>
-          : <p>첨부 파일이 없습니다</p>}
+        ) : (
+          <p>첨부 파일이 없습니다</p>
+        )}
         <FileForm swrKey={swrKey} />
       </section>
-      <section className={cx("buttons")}>
+      <section className="flex gap-2 justify-end">
         <button
-          className={cx("save", { disabled: submitDisabled })}
+          className={`button ${submitDisabled ? "button-disabled" : "button-green"}`}
           title={
             submitDisabled ? "저장할 변경사항이 없습니다" : "초안 임시 저장"
           }
@@ -221,16 +229,14 @@ export default function EditDraft(p: { params: { draftId: string } }) {
               : "저장"}
         </button>
         <Link
-          className={cx("preview", {
-            disabled: update.isMutating || del.isMutating || changed,
-          })}
+          className={`button ${update.isMutating || del.isMutating || changed ? "button-disabled" : "button-blue"}`}
           title={changed ? "우선 저장하세요" : "검토 후 발행"}
           href={changed ? "" : `/drafts/${draftId}/preview`}
         >
           검토 후 발행
         </Link>
         <button
-          className={cx("delete", { disabled: delDisabled })}
+          className={`button ${delDisabled ? "button-disabled" : "button-red"}`}
           type="button"
           title="초안 삭제"
           onClick={() => {
@@ -250,17 +256,18 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         </button>
         {res.data?.articleId && (
           <Link
+            className="button"
             href={`/articles/${res.data.articleId}`}
             title="이 초안이 덮어씌울 일지의 최신 발행판"
           >
             발행판
           </Link>
         )}
-        <Link href="/drafts" title="초안 목록으로 돌아가기">
+        <Link className="button" href="/drafts" title="초안 목록으로 돌아가기">
           목록
         </Link>
       </section>
-      {errorMessage && <p className={cx("error")}>{errorMessage}</p>}
+      {errorMessage && <p className="text-red-600">{errorMessage}</p>}
     </main>
   );
 }
@@ -270,13 +277,17 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const upload = useSWRMutation(
     p.swrKey,
-    ([draftId], opt: { arg: { data: File, name: string } }) =>
-    {
+    ([draftId], opt: { arg: { data: File; name: string } }) => {
       if (gAuthState.value.type !== "login")
         throw new Error("non-login state found in uploadFile");
       const formData = new FormData();
       formData.append("file", opt.arg.data);
-      return createFile(gAuthState.value.token, draftId, opt.arg.name, formData);
+      return createFile(
+        gAuthState.value.token,
+        draftId,
+        opt.arg.name,
+        formData,
+      );
     },
     {
       onSuccess: (data) => {
@@ -297,70 +308,79 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
       },
     },
   );
-  return (
-      !file ?
-        <form>
+  return !file ? (
+    <form>
+      <input
+        type="file"
+        hidden={true}
+        ref={fileRef}
+        onChange={(e) => {
+          if (e.target.files) {
+            setFile({ data: e.target.files[0], name: e.target.files[0].name });
+          }
+        }}
+      />
+      <button
+        type="button"
+        className="button"
+        onClick={() => {
+          if (fileRef.current) {
+            fileRef.current.click();
+          }
+        }}
+      >
+        파일 추가
+      </button>
+    </form>
+  ) : (
+    <form className="border border-gray-300 p-2">
+      <dl>
+        <dt>원래 이름</dt>
+        <dd>{file.data.name}</dd>
+        <dt>올릴 이름</dt>
+        <dd>
           <input
-            type="file"
-            hidden={true}
-            ref={fileRef}
+            className="input"
+            type="text"
+            value={file.name}
             onChange={(e) => {
-              if (e.target.files) {
-                setFile({ data: e.target.files[0],
-                        name: e.target.files[0].name });
-              }
+              setFile({ data: file.data, name: e.target.value });
             }}
           />
-          <button
-            type="button"
-            className={cx("select")}
-            onClick={() => {
-              if (fileRef.current) {
-                fileRef.current.click();
-              }
-            }}
-          >
-            파일 추가
-          </button>
-        </form> : <form className={cx("upload")}>
-          <dl>
-            <dt>원래 이름</dt>
-            <dd>{file.data.name}</dd>
-            <dt>올릴 이름</dt>
-            <dd>
-              <input type="text" value={file.name} onChange={(e) => {
-                setFile({ data: file.data, name: e.target.value });
-              }} />
-            </dd>
-          </dl>
-          <button
-            type="submit"
-            className={cx("upload")}
-            onClick={(e) => {
-              e.preventDefault();
-              if (file.name === "") {
-                alert("파일명을 입력하세요");
-                return;
-              }
-              if (upload.isMutating) return;
-              void upload.trigger({ data: file.data, name: file.name});
-            }}
-          >
-            업로드
-          </button>
-          <button
-            type="button"
-            className={cx("cancel")}
-            onClick={() => {
-              setFile(null);
-            }}>
-            취소
-          </button>
-        </form>
+        </dd>
+      </dl>
+      <button
+        type="submit"
+        className="button button-blue"
+        onClick={(e) => {
+          e.preventDefault();
+          if (file.name === "") {
+            alert("파일명을 입력하세요");
+            return;
+          }
+          if (upload.isMutating) return;
+          void upload.trigger({ data: file.data, name: file.name });
+        }}
+      >
+        업로드
+      </button>
+      <button
+        type="button"
+        className="button button-red m-2"
+        onClick={() => {
+          setFile(null);
+        }}
+      >
+        취소
+      </button>
+    </form>
   );
 }
 
-function DeleteFileButton(p: { swrKey: readonly [number, "draft"] | null; fileId: number }) {
+function DeleteFileButton(p: {
+  swrKey: readonly [number, "draft"] | null;
+  fileId: number;
+}) {
   const del = useSWRMutation(
     p.swrKey,
     () => {
@@ -377,12 +397,12 @@ function DeleteFileButton(p: { swrKey: readonly [number, "draft"] | null; fileId
           case "Ok":
             break;
         }
-      }
+      },
     },
   );
   return (
     <button
-      className={cx("delete")}
+      className="ml-2 text-red-600 hover:text-red-800 align-text-top text-lg"
       title="삭제"
       onClick={() => {
         if (gAuthState.value.type !== "login")

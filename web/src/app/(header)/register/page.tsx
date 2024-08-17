@@ -4,12 +4,8 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { createUser } from "@/actions";
 import Link from "next/link";
-import styles from "./page.module.scss";
-import classNames from "classnames/bind";
 import { PageProps, onlyString } from "@/utils";
 import { gAuthState } from "@/auth";
-
-const cx = classNames.bind(styles);
 
 export default function Register(p: PageProps) {
   const state = onlyString(p.searchParams.from);
@@ -41,7 +37,7 @@ export default function Register(p: PageProps) {
   const domId = useId();
 
   return status !== "ok" ? (
-    <main className={cx("register")}>
+    <main>
       <h1>사용자 등록</h1>
       {status === "naverIdConflict" ? (
         <p>이미 사용중인 아이디입니다. 다시 로그인하세요.</p>
@@ -68,9 +64,10 @@ export default function Register(p: PageProps) {
       </nav>
     </main>
   ) : (
-    <main className={cx("register")}>
-      <h1>사용자 등록</h1>
+    <main>
+      <h1 className="text-2xl font-bold my-2">사용자 등록</h1>
       <form
+        className="flex flex-col gap-2 border border-gray-300 p-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (code) {
@@ -104,6 +101,7 @@ export default function Register(p: PageProps) {
       >
         <label htmlFor={`id-${domId}`}>아이디 (숫자 또는 영문 1~20자)</label>
         <input
+          className="input"
           id={`id-${domId}`}
           type="text"
           value={id}
@@ -117,6 +115,7 @@ export default function Register(p: PageProps) {
           이름 (연속된 공백이 없는 1~20자)
         </label>
         <input
+          className="input"
           id={`name-${domId}`}
           type="text"
           value={name}
@@ -126,11 +125,15 @@ export default function Register(p: PageProps) {
           pattern="[^\s]+( [^\s]+)*"
           required
         />
-        <button disabled={code === null} type="submit">
+        <button
+          disabled={code === null}
+          type="submit"
+          className="button text-black w-fit self-center"
+        >
           등록
         </button>
       </form>
-      <p className={cx("conflict")}>{conflictMessage}</p>
+      <p className="text-red-600">{conflictMessage}</p>
     </main>
   );
 }

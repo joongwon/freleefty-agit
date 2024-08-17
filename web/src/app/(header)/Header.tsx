@@ -56,7 +56,7 @@ export default function Header(p: { children: ReactNode }) {
   );
   return (
     <header
-      className="flex flex-wrap justify-between items-center
+      className="flex flex-wrap justify-between items-center z-10
         bg-gray-200 p-4 transition-transform top-0 sticky shadow-lg duration-500"
       ref={ref}
       style={style}

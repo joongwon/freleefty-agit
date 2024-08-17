@@ -274,7 +274,7 @@ export async function deleteDraft(tokenRaw: string, idRaw: number) {
   if (res.type !== "Ok") {
     return res.type;
   }
-  await fs.promises.rmdir(draftFilesPath(id), { recursive: true });
+  await fs.promises.rm(draftFilesPath(id), { recursive: true, force: true });
   return "Ok";
 }
 
@@ -316,7 +316,9 @@ export async function deleteArticle(tokenRaw: string, idRaw: number) {
   }
 
   await Promise.all(
-    res.files.map((path) => fs.promises.rmdir(path, { recursive: true })),
+    res.files.map((path) =>
+      fs.promises.rm(path, { recursive: true, force: true }),
+    ),
   );
   revalidatePath("/articles");
   return "Ok";
@@ -607,7 +609,7 @@ export async function deleteFile(tokenRaw: string, fileId: number) {
       draftFilesPath(fileInfo.draftId),
       fileId.toString(),
     );
-    await fs.promises.rmdir(filePath, { recursive: true });
+    await fs.promises.rm(filePath, { recursive: true, force: true });
     return { type: "Ok" } as const;
   });
   return res.type;

@@ -1,6 +1,4 @@
 import { getRedis } from "@/db";
-import styles from "./page.module.scss";
-import classnames from "classnames/bind";
 import { notFound } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
 import Time from "@/components/Time";
@@ -16,10 +14,8 @@ import { getEnv } from "@/env";
 import * as newdb from "@/newdb";
 import * as Queries from "@/queries_sql";
 
-const cx = classnames.bind(styles);
-
 const getArticle = cache(async (articleId: number) => {
-  return newdb.tx(async ({ first , list}) => {
+  return newdb.tx(async ({ first, list }) => {
     const article = await first(Queries.getArticle, { id: articleId });
     if (article === null) {
       return null;
@@ -71,10 +67,10 @@ export default async function ViewArticle(p: {
   const staticUrl = getEnv().STATIC_URL;
 
   return (
-    <main className={cx("article")}>
+    <main>
       <header>
-        <h1>{article.title}</h1>
-        <p>
+        <h1 className="text-3xl font-bold">{article.title}</h1>
+        <p className="text-sm">
           {article.authorName}
           {", "}
           <Time>{article.firstPublishedAt}</Time>
@@ -86,41 +82,51 @@ export default async function ViewArticle(p: {
             </>
           ) : null}
         </p>
-        <p className={cx("stat")}>
+        <Stat>
           {VISIBILITY} {article.viewsCount}
-        </p>
-        <p className={cx("stat")}>
+        </Stat>
+        <Stat>
           {FAVORITE} {article.likesCount}
-        </p>
+        </Stat>
       </header>
-      <Viewer content={article.content} files={article.files} fileSuffix={`${staticUrl}/${article.editionId}`} />
+      <Viewer
+        content={article.content}
+        files={article.files}
+        fileSuffix={`${staticUrl}/${article.editionId}`}
+      />
+      <hr className="border-none my-4" />
       <Buttons article={article} />
-      <section className={cx("comments")}>
+      <section className="mt-4 mb-8">
         {article.comments.length === 0 && (
-          <p className={cx("empty")}>댓글이 없습니다</p>
+          <p className="text-center text-gray-500">댓글이 없습니다</p>
         )}
         {article.comments.map((comment) => (
-          <article key={comment.id}>
-            <p>{comment.content}</p>
+          <article
+            key={comment.id}
+            className="border-b border-gray-300 first:border-t py-1 group relative flex"
+          >
+            <div className="flex-1">
+              <p>{comment.content}</p>
+              <footer className="text-sm text-gray-500">
+                {comment.authorName}
+                {", "}
+                <Time>{comment.createdAt}</Time>
+              </footer>
+            </div>
             <DeleteCommentButton articleId={article.id} comment={comment} />
-            <footer>
-              {comment.authorName}
-              {", "}
-              <Time>{comment.createdAt}</Time>
-            </footer>
           </article>
         ))}
       </section>
       <ArticleList.Container>
         {article.next ? (
-          <ArticleList.Item article={article.next} before={ARROW_UP} />
+          <ArticleList.Item item={article.next} before={ARROW_UP} />
         ) : (
           <ArticleList.Empty before={ARROW_UP}>
             (마지막 글입니다)
           </ArticleList.Empty>
         )}
         {article.prev ? (
-          <ArticleList.Item article={article.prev} before={ARROW_DOWN} />
+          <ArticleList.Item item={article.prev} before={ARROW_DOWN} />
         ) : (
           <ArticleList.Empty before={ARROW_DOWN}>
             (첫번째 글입니다)
@@ -129,5 +135,11 @@ export default async function ViewArticle(p: {
       </ArticleList.Container>
       <SubmitView viewToken={viewToken} authorId={article.authorId} />
     </main>
+  );
+}
+
+function Stat(p: { children: React.ReactNode }) {
+  return (
+    <p className="inline-flex items-center gap-1 mr-4 text-sm">{p.children}</p>
   );
 }

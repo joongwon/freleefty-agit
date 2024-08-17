@@ -32,7 +32,7 @@ export default async function Intro() {
       <ArticleList.Container>
         {articles.length > 0 ? (
           articles.map((article) => (
-            <ArticleList.Item key={article.id} article={article} />
+            <ArticleList.Item key={article.id} item={article} />
           ))
         ) : (
           <ArticleList.Empty>인기 있는 일지가 없습니다.</ArticleList.Empty>

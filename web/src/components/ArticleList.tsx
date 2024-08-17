@@ -1,72 +1,91 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import classnames from "classnames/bind";
-import styles from "./ArticleList.module.scss";
 import Time from "@/components/Time";
 import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
 import { ArticleSummary, DraftSummary, EditionSummary } from "@/types";
 
-const cx = classnames.bind(styles);
-
 export function Container(p: { children: ReactNode }) {
-  return <ul className={cx("article-list")}>{p.children}</ul>;
+  return <ul>{p.children}</ul>;
+}
+
+function ItemBase(p: { before?: ReactNode; children: ReactNode }) {
+  return (
+    <li className="border-0 first:border-t border-b flex gap-2 items-center">
+      {p.before && (
+        <div className="text-gray-500 flex align-center w-4">{p.before}</div>
+      )}
+      <div className="p-1 flex-1 flex items-center flex-wrap justify-start gap-2">
+        {p.children}
+      </div>
+    </li>
+  );
+}
+
+function Stat(p: { icon: ReactNode; value: number }) {
+  return (
+    p.value > 0 && (
+      <span className="text-gray-500 inline-flex items-center align-bottom ml-2">
+        {p.icon}
+        {p.value}
+      </span>
+    )
+  );
 }
 
 /**
  * before: 제목 앞에 표시할 내용. 이전/다음 글을 표시할 때 사용
  */
-export function Item(p: { article: ArticleSummary; before?: ReactNode }) {
+export function Item(
+  p: (
+    | { item: ArticleSummary; draft?: false; edition?: false }
+    | { item: DraftSummary; draft: true; edition?: false }
+    | { item: EditionSummary; draft?: false; edition: true }
+  ) & { title?: React.ReactNode; before?: ReactNode },
+) {
   return (
-    <li>
-      <Link href={`/articles/${p.article.id}`} className={cx("link")}>
-        {p.before && <div className={cx("before")}>{p.before}</div>}
-        <div className={cx("title")}>{p.article.title}</div>
-        {p.article.commentsCount > 0 && (
-          <div className={cx("n-comments")}>
-            {COMMENT}
-            {p.article.commentsCount}
-          </div>
+    <ItemBase before={p.before}>
+      <p>
+        <Link
+          href={
+            p.draft
+              ? `/drafts/${p.item.id}`
+              : p.edition
+                ? `/editions/${p.item.id}`
+                : `/articles/${p.item.id}`
+          }
+        >
+          {p.title ?? p.item.title}
+        </Link>
+        {!p.draft && !p.edition && (
+          <>
+            <Stat icon={COMMENT} value={p.item.commentsCount} />
+            <Stat icon={VISIBILITY} value={p.item.viewsCount} />
+            <Stat icon={FAVORITE} value={p.item.likesCount} />
+          </>
         )}
-        {p.article.viewsCount > 0 && (
-          <div className={cx("n-views")}>
-            {VISIBILITY}
-            {p.article.viewsCount}
-          </div>
+      </p>
+      <p className="text-sm text-gray-600 flex-1 text-right whitespace-nowrap">
+        {!p.draft && !p.edition && `${p.item.authorName}, `}
+        {!p.draft ? (
+          <Time>{p.item.publishedAt}</Time>
+        ) : (
+          <Time>{p.item.updatedAt}</Time>
         )}
-        {p.article.likesCount > 0 && (
-          <div className={cx("n-likes")}>
-            {FAVORITE}
-            {p.article.likesCount}
-          </div>
-        )}
-      </Link>
-      <div className={cx("author")}>
-        {p.article.authorName}
-        {", "}
-        <Time>{p.article.publishedAt}</Time>
-      </div>
-    </li>
+      </p>
+      {p.draft && p.item.published && (
+        <Link
+          href={`/articles/${p.item.articleId}`}
+          className="text-sm text-gray-500 underline"
+        >
+          [발행판 보기]
+        </Link>
+      )}
+    </ItemBase>
   );
 }
 
 export function DraftItem(p: { draft: DraftSummary }) {
-  return (
-    <li>
-      <Link href={`/drafts/${p.draft.id}`} className={cx("link")}>
-        <div className={cx("title", { untitled: p.draft.title.length === 0 })}>
-          {p.draft.title.length > 0 ? p.draft.title : "(제목없음)"}
-        </div>
-      </Link>
-      <div className={cx("author")}>
-        <Time>{p.draft.updatedAt}</Time>
-      </div>
-      {p.draft.published && (
-        <Link href={`/articles/${p.draft.articleId}`} className={cx("pub")}>
-          [발행판 보기]
-        </Link>
-      )}
-    </li>
-  );
+  return <Item item={p.draft} draft />;
 }
 
 export function EditionItem(p: {
@@ -75,31 +94,27 @@ export function EditionItem(p: {
   latest: boolean;
 }) {
   return (
-    <li>
-      <Link href={`/editions/${p.edition.id}`} className={cx("link")}>
-        <div className={cx("before")}>{p.selected && ARROW_RIGHT}</div>
-        <div className={cx("title")}>
+    <Item
+      item={p.edition}
+      edition
+      before={p.selected ? ARROW_RIGHT : " " /* non-empty but invisible */}
+      title={
+        <>
           {p.edition.title}
-          {p.latest ? <span className={cx("latest")}>[최신]</span> : null}
+          {p.latest && <span className="text-gray-400 text-sm">[최신]</span>}
           {p.edition.notes.length > 0 && (
-            <span className={cx("notes")}>({p.edition.notes})</span>
+            <span className="text-gray-500 text-sm">({p.edition.notes})</span>
           )}
-        </div>
-      </Link>
-      <div className={cx("author")}>
-        <Time>{p.edition.publishedAt}</Time>
-      </div>
-    </li>
+        </>
+      }
+    />
   );
 }
 
 export function Empty(p: { children: string; before?: ReactNode }) {
   return (
-    <li>
-      <div className={cx("link", "empty")}>
-        {p.before && <div className={cx("before")}>{p.before}</div>}
-        <div className={cx("title")}>{p.children}</div>
-      </div>
-    </li>
+    <ItemBase before={p.before}>
+      <span className="text-gray-500">{p.children}</span>
+    </ItemBase>
   );
 }

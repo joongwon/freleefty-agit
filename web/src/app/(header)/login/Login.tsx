@@ -1,11 +1,7 @@
 "use client";
 import { PageProps, onlyString } from "@/utils";
-import styles from "./page.module.scss";
-import classNames from "classnames/bind";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-
-const cx = classNames.bind(styles);
 
 function useAuthUrl(clientId: string, from?: string) {
   const state = encodeURIComponent(from ?? "/");
@@ -20,12 +16,12 @@ export default function Login(p: PageProps & { clientId: string }) {
   const authUrl = useAuthUrl(p.clientId, onlyString(p.searchParams.from));
   switch (authState.value.type) {
     case "loading":
-      return <main className={cx("login")}>로딩중...</main>;
+      return <main>로딩중...</main>;
     case "login":
-      return <main className={cx("login")}>이미 로그인되어 있습니다</main>;
+      return <main>이미 로그인되어 있습니다</main>;
     case "anon":
       return (
-        <main className={cx("login")}>
+        <main>
           <h1>로그인</h1>
           <p>네이버 아이디로 로그인하여 일지를 쓰고 반응을 남겨보세요</p>
           <a href={authUrl}>

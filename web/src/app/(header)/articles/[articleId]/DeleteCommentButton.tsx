@@ -3,10 +3,6 @@ import type { Comment } from "@/types";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
 import { deleteComment } from "@/actions";
-import classnames from "classnames/bind";
-import styles from "./page.module.scss";
-
-const cx = classnames.bind(styles);
 
 export default function DeleteCommentButton(p: {
   articleId: number;
@@ -14,8 +10,7 @@ export default function DeleteCommentButton(p: {
 }) {
   const auth = useHookstate(gAuthState);
   const canDelete =
-    auth.value.type === "login" &&
-    auth.value.profile.id === p.comment.authorId;
+    auth.value.type === "login" && auth.value.profile.id === p.comment.authorId;
   const handleDelete = async () => {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleDelete");
@@ -45,7 +40,10 @@ export default function DeleteCommentButton(p: {
     }
   };
   return canDelete ? (
-    <button onClick={() => void handleDelete()} className={cx("delete")}>
+    <button
+      onClick={() => void handleDelete()}
+      className="button button-red md:absolute md:right-0 md:top-0 h-fit m-2 md:hidden group-hover:block"
+    >
       삭제
     </button>
   ) : null;
