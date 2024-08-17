@@ -136,7 +136,7 @@ export function Content() {
         </Markdown>
       );
     case "Text":
-      return <pre className="font-sans">{content}</pre>;
+      return <pre className="font-sans text-wrap text-justify">{content}</pre>;
   }
 }
 

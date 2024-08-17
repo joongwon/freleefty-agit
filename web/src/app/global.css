@@ -77,3 +77,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* override tailwind */
+.prose {
+  @apply max-w-none text-justify;
+}
