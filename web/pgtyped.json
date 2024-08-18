@@ -1,11 +1,6 @@
 {
   "transforms": [
     {
-      "mode": "ts",
-      "include": "**/*.{ts,tsx}",
-      "emitTemplate": "{{dir}}/{{name}}.types.ts"
-    },
-    {
       "mode": "sql",
       "include": "**/*.sql",
       "emitTemplate": "{{dir}}/{{name}}_sql.ts"

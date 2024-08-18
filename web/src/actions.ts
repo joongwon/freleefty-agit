@@ -614,3 +614,35 @@ export async function deleteFile(tokenRaw: string, fileId: number) {
   });
   return res.type;
 }
+
+const nameUpdateDuration = 24 * 60 * 60 * 1000 * 7;
+
+export async function updateUserName(tokenRaw: string, nameRaw: string) {
+  const token = stringSchema.parse(tokenRaw);
+  const name = userNameSchema.parse(nameRaw).normalize();
+  const userId = (await decodeToken(token)).id;
+
+  const now = Date.now();
+  const res = await newdb.tx(async ({ unique, execute }) => {
+    const { nameUpdatedAt: nameUpdatedAtRaw } = await unique(
+      Queries.getUserNameUpdatedAt,
+      {
+        id: userId,
+      },
+    );
+    const nameUpdatedAt = Date.parse(nameUpdatedAtRaw);
+    if (now - nameUpdatedAt < nameUpdateDuration) {
+      return {
+        type: "TooSoon",
+        remaining: nameUpdateDuration - (now - nameUpdatedAt),
+      } as const;
+    }
+    await execute(Queries.updateUserName, { id: userId, name });
+    return {
+      type: "Ok",
+      profile: await unique(Queries.getUserById, { userId }),
+    } as const;
+  });
+
+  return res;
+}

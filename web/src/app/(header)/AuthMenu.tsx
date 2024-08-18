@@ -84,11 +84,16 @@ export default function AuthMenu() {
       return (
         <Menu>
           <Item>
-            <span className="name">{authState.value.profile.name}</span>
-            <span>님 환영합니다!</span>
+            <span className="whitespace-nowrap inline-block min-w-0 text-ellipsis overflow-hidden">
+              {authState.value.profile.name}
+            </span>
+            <span className="whitespace-nowrap">님 환영합니다!</span>
           </Item>
           <Item>
             <Link href="/drafts">일지 쓰기</Link>
+          </Item>
+          <Item>
+            <Link href="/settings">설정</Link>
           </Item>
           <Item>
             <button onClick={() => handleLogout()}>로그아웃</button>

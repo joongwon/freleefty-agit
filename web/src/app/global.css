@@ -69,7 +69,7 @@
 
 /* input */
 .input {
-  @apply w-full border border-gray-300 rounded p-2 outline-none;
+  @apply w-full border border-gray-300 rounded p-2;
 }
 
 /* tailwind should have most specificity */

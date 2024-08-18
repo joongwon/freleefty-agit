@@ -61,6 +61,15 @@ function scheduleRefresh() {
   setInterval(() => void task(), 50 * 60 * 1000);
 }
 
+export function setProfile(profile: User) {
+  const auth = gAuthState.get();
+  if (auth.type !== "login") return;
+  gAuthState.set({
+    ...auth,
+    profile,
+  });
+}
+
 // invoke token initialization when nextjs app renders
 export function InitToken() {
   useEffect(() => {

@@ -1366,3 +1366,56 @@ const listEditionFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"i
 export const listEditionFiles = new PreparedQuery<IListEditionFilesParams,IListEditionFilesResult>(listEditionFilesIR);
 
 
+/** 'UpdateUserName' parameters type */
+export interface IUpdateUserNameParams {
+  id: string;
+  name: string;
+}
+
+/** 'UpdateUserName' return type */
+export type IUpdateUserNameResult = void;
+
+/** 'UpdateUserName' query type */
+export interface IUpdateUserNameQuery {
+  params: IUpdateUserNameParams;
+  result: IUpdateUserNameResult;
+}
+
+const updateUserNameIR: any = {"usedParamSet":{"name":true,"id":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":24,"b":29}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":70}]}],"statement":"UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!
+ * ```
+ */
+export const updateUserName = new PreparedQuery<IUpdateUserNameParams,IUpdateUserNameResult>(updateUserNameIR);
+
+
+/** 'GetUserNameUpdatedAt' parameters type */
+export interface IGetUserNameUpdatedAtParams {
+  id: string;
+}
+
+/** 'GetUserNameUpdatedAt' return type */
+export interface IGetUserNameUpdatedAtResult {
+  nameUpdatedAt: string;
+}
+
+/** 'GetUserNameUpdatedAt' query type */
+export interface IGetUserNameUpdatedAtQuery {
+  params: IGetUserNameUpdatedAtParams;
+  result: IGetUserNameUpdatedAtResult;
+}
+
+const getUserNameUpdatedAtIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":67}]}],"statement":"SELECT name_updated_at AS \"nameUpdatedAt\" FROM users WHERE id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT name_updated_at AS "nameUpdatedAt" FROM users WHERE id = :id!
+ * ```
+ */
+export const getUserNameUpdatedAt = new PreparedQuery<IGetUserNameUpdatedAtParams,IGetUserNameUpdatedAtResult>(getUserNameUpdatedAtIR);
+
+

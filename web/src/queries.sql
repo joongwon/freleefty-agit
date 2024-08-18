@@ -275,3 +275,9 @@ ORDER BY published_at DESC;
 SELECT id, name
 FROM files
 WHERE edition_id = :id!;
+
+/* @name UpdateUserName */
+UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!;
+
+/* @name GetUserNameUpdatedAt */
+SELECT name_updated_at AS "nameUpdatedAt" FROM users WHERE id = :id!;
