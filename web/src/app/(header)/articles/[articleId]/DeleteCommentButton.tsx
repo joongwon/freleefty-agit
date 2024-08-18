@@ -1,12 +1,12 @@
 "use client";
-import type { Comment } from "@/types";
+import type { ArticleComment } from "@/types";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
 import { deleteComment } from "@/actions";
 
 export default function DeleteCommentButton(p: {
   articleId: number;
-  comment: Comment;
+  comment: ArticleComment;
 }) {
   const auth = useHookstate(gAuthState);
   const canDelete =

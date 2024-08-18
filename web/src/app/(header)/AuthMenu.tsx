@@ -84,9 +84,12 @@ export default function AuthMenu() {
       return (
         <Menu>
           <Item>
-            <span className="whitespace-nowrap inline-block min-w-0 text-ellipsis overflow-hidden">
+            <Link
+              href={`/users/${authState.value.profile.id}`}
+              className="whitespace-nowrap inline-block min-w-0 text-ellipsis overflow-hidden underline"
+            >
               {authState.value.profile.name}
-            </span>
+            </Link>
             <span className="whitespace-nowrap">님 환영합니다!</span>
           </Item>
           <Item>

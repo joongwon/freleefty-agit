@@ -48,6 +48,54 @@ const listArticlesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n
 export const listArticles = new PreparedQuery<IListArticlesParams,IListArticlesResult>(listArticlesIR);
 
 
+/** 'ListArticlesByAuthor' parameters type */
+export interface IListArticlesByAuthorParams {
+  authorId: string;
+}
+
+/** 'ListArticlesByAuthor' return type */
+export interface IListArticlesByAuthorResult {
+  authorId: string;
+  authorName: string;
+  commentsCount: number;
+  id: number;
+  likesCount: number;
+  publishedAt: string;
+  title: string;
+  viewsCount: number;
+}
+
+/** 'ListArticlesByAuthor' query type */
+export interface IListArticlesByAuthorQuery {
+  params: IListArticlesByAuthorParams;
+  result: IListArticlesByAuthorResult;
+}
+
+const listArticlesByAuthorIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":387,"b":396}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE a.author_id = :authorId!\nORDER BY first_published_at DESC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *   a.id,
+ *   title AS "title!",
+ *   author_id AS "authorId!",
+ *   name AS "authorName!",
+ *   first_published_at AS "publishedAt!",
+ *   comments_count AS "commentsCount!",
+ *   views_count AS "viewsCount!",
+ *   likes_count AS "likesCount!"
+ * FROM last_editions e
+ *   JOIN articles a ON e.article_id = a.id
+ *   JOIN users u ON a.author_id = u.id
+ *   JOIN article_stats s ON a.id = s.id
+ * WHERE a.author_id = :authorId!
+ * ORDER BY first_published_at DESC
+ * ```
+ */
+export const listArticlesByAuthor = new PreparedQuery<IListArticlesByAuthorParams,IListArticlesByAuthorResult>(listArticlesByAuthorIR);
+
+
 /** 'ListPopularArticles' parameters type */
 export type IListPopularArticlesParams = void;
 
@@ -312,6 +360,52 @@ const getArticleCommentsIR: any = {"usedParamSet":{"id":true},"params":[{"name":
  * ```
  */
 export const getArticleComments = new PreparedQuery<IGetArticleCommentsParams,IGetArticleCommentsResult>(getArticleCommentsIR);
+
+
+/** 'ListUserComments' parameters type */
+export interface IListUserCommentsParams {
+  authorId: string;
+}
+
+/** 'ListUserComments' return type */
+export interface IListUserCommentsResult {
+  articleAuthorId: string;
+  articleAuthorName: string;
+  articleId: number;
+  articleTitle: string | null;
+  content: string;
+  createdAt: string;
+  id: number;
+}
+
+/** 'ListUserComments' query type */
+export interface IListUserCommentsQuery {
+  params: IListUserCommentsParams;
+  result: IListUserCommentsResult;
+}
+
+const listUserCommentsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":435,"b":444}]}],"statement":"SELECT\n  comments.id,\n  comments.content,\n  created_at AS \"createdAt\",\n  articles.id AS \"articleId\",\n  title AS \"articleTitle\",\n  articles.author_id AS \"articleAuthorId\",\n  art_author.name AS \"articleAuthorName\"\n  FROM comments\n  JOIN articles ON comments.article_id = articles.id\n  JOIN last_editions ON articles.id = last_editions.article_id\n  JOIN users art_author ON articles.author_id = art_author.id\n  WHERE comments.author_id = :authorId!\n  ORDER BY created_at DESC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *   comments.id,
+ *   comments.content,
+ *   created_at AS "createdAt",
+ *   articles.id AS "articleId",
+ *   title AS "articleTitle",
+ *   articles.author_id AS "articleAuthorId",
+ *   art_author.name AS "articleAuthorName"
+ *   FROM comments
+ *   JOIN articles ON comments.article_id = articles.id
+ *   JOIN last_editions ON articles.id = last_editions.article_id
+ *   JOIN users art_author ON articles.author_id = art_author.id
+ *   WHERE comments.author_id = :authorId!
+ *   ORDER BY created_at DESC
+ * ```
+ */
+export const listUserComments = new PreparedQuery<IListUserCommentsParams,IListUserCommentsResult>(listUserCommentsIR);
 
 
 /** 'GetUserByNaverId' parameters type */

@@ -35,7 +35,7 @@ export default function Buttons(p: { article: Article }) {
           <>
             {likes.data.map((e, i, arr) => (
               <span key={e.userId} title={moment(e.createdAt).fromNow()}>
-                {e.userName}
+                <Link href={`/users/${e.userId}`}>{e.userName}</Link>
                 {i < arr.length - 1 && ", "}
               </span>
             ))}

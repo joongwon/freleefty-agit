@@ -13,6 +13,8 @@ import { cache } from "react";
 import { getEnv } from "@/env";
 import * as newdb from "@/newdb";
 import * as Queries from "@/queries_sql";
+import * as CommentList from "@/components/CommentList";
+import Link from "next/link";
 
 const getArticle = cache(async (articleId: number) => {
   return newdb.tx(async ({ first, list }) => {
@@ -71,7 +73,7 @@ export default async function ViewArticle(p: {
       <header>
         <h1 className="text-3xl font-bold">{article.title}</h1>
         <p className="text-sm">
-          {article.authorName}
+          <Link href={`/users/${article.authorId}`}>{article.authorName}</Link>
           {", "}
           <Time>{article.firstPublishedAt}</Time>
           {article.firstPublishedAt !== article.lastPublishedAt ? (
@@ -96,27 +98,21 @@ export default async function ViewArticle(p: {
       />
       <hr className="border-none my-4" />
       <Buttons article={article} />
-      <section className="mt-4 mb-8">
-        {article.comments.length === 0 && (
-          <p className="text-center text-gray-500">댓글이 없습니다</p>
+      <CommentList.Container>
+        {article.comments.length === 0 ? (
+          <CommentList.Empty>댓글이 없습니다</CommentList.Empty>
+        ) : (
+          article.comments.map((comment) => (
+            <CommentList.Item
+              key={comment.id}
+              comment={comment}
+              after={
+                <DeleteCommentButton articleId={article.id} comment={comment} />
+              }
+            />
+          ))
         )}
-        {article.comments.map((comment) => (
-          <article
-            key={comment.id}
-            className="border-b border-gray-300 first:border-t py-1 group relative flex"
-          >
-            <div className="flex-1">
-              <p>{comment.content}</p>
-              <footer className="text-sm text-gray-500">
-                {comment.authorName}
-                {", "}
-                <Time>{comment.createdAt}</Time>
-              </footer>
-            </div>
-            <DeleteCommentButton articleId={article.id} comment={comment} />
-          </article>
-        ))}
-      </section>
+      </CommentList.Container>
       <ArticleList.Container>
         {article.next ? (
           <ArticleList.Item item={article.next} before={ARROW_UP} />

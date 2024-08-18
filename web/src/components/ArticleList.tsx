@@ -40,7 +40,7 @@ export function Item(
     | { item: ArticleSummary; draft?: false; edition?: false }
     | { item: DraftSummary; draft: true; edition?: false }
     | { item: EditionSummary; draft?: false; edition: true }
-  ) & { title?: React.ReactNode; before?: ReactNode },
+  ) & { hideAuthor?: boolean; title?: React.ReactNode; before?: ReactNode },
 ) {
   return (
     <ItemBase before={p.before}>
@@ -65,7 +65,14 @@ export function Item(
         )}
       </p>
       <p className="text-sm text-gray-600 flex-1 text-right whitespace-nowrap">
-        {!p.draft && !p.edition && `${p.item.authorName}, `}
+        {!p.draft && !p.edition && !p.hideAuthor && (
+          <>
+            <Link href={`/users/${p.item.authorId}`} className="text-gray-500">
+              {p.item.authorName}
+            </Link>
+            ,{" "}
+          </>
+        )}
         {!p.draft ? (
           <Time>{p.item.publishedAt}</Time>
         ) : (

@@ -1,12 +1,13 @@
 import * as Queries from "./queries_sql";
 
 export type ArticleSummary = Queries.IListArticlesResult;
-export type Comment = Queries.IGetArticleCommentsResult;
+export type UserComment = Queries.IListUserCommentsResult;
+export type ArticleComment = Queries.IGetArticleCommentsResult;
 export type Article = Queries.IGetArticleResult & {
   next: ArticleSummary | null;
   prev: ArticleSummary | null;
   files: Queries.IGetArticleFilesResult[];
-  comments: Comment[];
+  comments: ArticleComment[];
 };
 export type Role = Queries.role;
 export type User = Queries.IGetUserByIdResult;

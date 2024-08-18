@@ -14,6 +14,23 @@ FROM last_editions e
   JOIN article_stats s ON a.id = s.id
 ORDER BY first_published_at DESC;
 
+/* @name ListArticlesByAuthor */
+SELECT
+  a.id,
+  title AS "title!",
+  author_id AS "authorId!",
+  name AS "authorName!",
+  first_published_at AS "publishedAt!",
+  comments_count AS "commentsCount!",
+  views_count AS "viewsCount!",
+  likes_count AS "likesCount!"
+FROM last_editions e
+  JOIN articles a ON e.article_id = a.id
+  JOIN users u ON a.author_id = u.id
+  JOIN article_stats s ON a.id = s.id
+WHERE a.author_id = :authorId!
+ORDER BY first_published_at DESC;
+
 /* @name ListPopularArticles */
 SELECT * FROM (
     SELECT 
@@ -100,6 +117,22 @@ SELECT
   name AS "authorName"
   FROM comments JOIN users ON comments.author_id = users.id
   WHERE article_id = :id!
+  ORDER BY created_at DESC;
+
+/* @name ListUserComments */
+SELECT
+  comments.id,
+  comments.content,
+  created_at AS "createdAt",
+  articles.id AS "articleId",
+  title AS "articleTitle",
+  articles.author_id AS "articleAuthorId",
+  art_author.name AS "articleAuthorName"
+  FROM comments
+  JOIN articles ON comments.article_id = articles.id
+  JOIN last_editions ON articles.id = last_editions.article_id
+  JOIN users art_author ON articles.author_id = art_author.id
+  WHERE comments.author_id = :authorId!
   ORDER BY created_at DESC;
 
 /* @name GetUserByNaverId */
