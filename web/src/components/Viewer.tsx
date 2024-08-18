@@ -4,6 +4,7 @@ import { createContext, useContext, useMemo } from "react";
 import Markdown, { defaultUrlTransform } from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import highlightRescript from "highlightjs-rescript";
+import * as Lowlight from "lowlight";
 import "highlight.js/styles/github.css";
 import { useState } from "react";
 import { FileInfo } from "@/types";
@@ -128,7 +129,12 @@ export function Content() {
             },
           }}
           rehypePlugins={[
-            [rehypeHighlight, { languages: { rescript: highlightRescript } }],
+            [
+              rehypeHighlight,
+              {
+                languages: { ...Lowlight.common, rescript: highlightRescript },
+              },
+            ],
           ]}
           className="prose"
         >
