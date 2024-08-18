@@ -57,7 +57,7 @@ export default async function UserPage(
   const info = [
     ["이름", user.name],
     [
-      "PK",
+      "아이디",
       // eslint-disable-next-line react/jsx-key
       <code>{user.id}</code>,
     ],
