@@ -14,7 +14,7 @@ function ItemBase(p: { before?: ReactNode; children: ReactNode }) {
       {p.before && (
         <div className="text-gray-500 flex align-center w-4">{p.before}</div>
       )}
-      <div className="p-1 flex-1 flex items-center flex-wrap justify-start gap-2">
+      <div className="p-1 flex-1 flex items-center flex-wrap justify-start gap-2 min-w-0">
         {p.children}
       </div>
     </li>
@@ -64,13 +64,16 @@ export function Item(
           </>
         )}
       </p>
-      <p className="text-sm text-gray-600 flex-1 text-right whitespace-nowrap">
+      <p className="text-sm text-gray-600 flex-1 justify-end whitespace-nowrap flex max-w-full">
         {!p.draft && !p.edition && !p.hideAuthor && (
           <>
-            <Link href={`/users/${p.item.authorId}`} className="text-gray-500">
+            <Link
+              href={`/users/${p.item.authorId}`}
+              className="text-gray-500 inline-block whitespace-nowrap min-w-0 overflow-hidden text-ellipsis"
+            >
               {p.item.authorName}
             </Link>
-            ,{" "}
+            <span className="mr-1">{", "}</span>
           </>
         )}
         {!p.draft ? (
