@@ -22,7 +22,7 @@ export default function Login(p: PageProps & { clientId: string }) {
     case "anon":
       return (
         <main>
-          <h1>로그인</h1>
+          <h1 className="text-2xl font-bold">로그인</h1>
           <p>네이버 아이디로 로그인하여 일지를 쓰고 반응을 남겨보세요</p>
           <a href={authUrl}>
             <img

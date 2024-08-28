@@ -95,7 +95,19 @@ export function Item(
 }
 
 export function DraftItem(p: { draft: DraftSummary }) {
-  return <Item item={p.draft} draft />;
+  return (
+    <Item
+      item={p.draft}
+      draft
+      title={
+        p.draft.title.length > 0 ? (
+          p.draft.title
+        ) : (
+          <span className="text-gray-500">(제목 없음)</span>
+        )
+      }
+    />
+  );
 }
 
 export function EditionItem(p: {
