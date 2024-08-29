@@ -4,7 +4,11 @@ import { PreparedQuery } from '@pgtyped/runtime';
 export type role = 'admin' | 'user';
 
 /** 'ListArticles' parameters type */
-export type IListArticlesParams = void;
+export interface IListArticlesParams {
+  before: string;
+  limit: number;
+  prevId?: number | null | void;
+}
 
 /** 'ListArticles' return type */
 export interface IListArticlesResult {
@@ -24,7 +28,7 @@ export interface IListArticlesQuery {
   result: IListArticlesResult;
 }
 
-const listArticlesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nORDER BY first_published_at DESC"};
+const listArticlesIR: any = {"usedParamSet":{"before":true,"prevId":true,"limit":true},"params":[{"name":"before","required":true,"transform":{"type":"scalar"},"locs":[{"a":403,"b":410}]},{"name":"prevId","required":false,"transform":{"type":"scalar"},"locs":[{"a":422,"b":428}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":482,"b":488}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))\nORDER BY (first_published_at, a.id) DESC\nLIMIT :limit!"};
 
 /**
  * Query generated from SQL:
@@ -42,7 +46,9 @@ const listArticlesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n
  *   JOIN articles a ON e.article_id = a.id
  *   JOIN users u ON a.author_id = u.id
  *   JOIN article_stats s ON a.id = s.id
- * ORDER BY first_published_at DESC
+ * WHERE (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))
+ * ORDER BY (first_published_at, a.id) DESC
+ * LIMIT :limit!
  * ```
  */
 export const listArticles = new PreparedQuery<IListArticlesParams,IListArticlesResult>(listArticlesIR);
@@ -51,6 +57,9 @@ export const listArticles = new PreparedQuery<IListArticlesParams,IListArticlesR
 /** 'ListArticlesByAuthor' parameters type */
 export interface IListArticlesByAuthorParams {
   authorId: string;
+  before: string;
+  limit: number;
+  prevId?: number | null | void;
 }
 
 /** 'ListArticlesByAuthor' return type */
@@ -71,7 +80,7 @@ export interface IListArticlesByAuthorQuery {
   result: IListArticlesByAuthorResult;
 }
 
-const listArticlesByAuthorIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":387,"b":396}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE a.author_id = :authorId!\nORDER BY first_published_at DESC"};
+const listArticlesByAuthorIR: any = {"usedParamSet":{"authorId":true,"before":true,"prevId":true,"limit":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":387,"b":396}]},{"name":"before","required":true,"transform":{"type":"scalar"},"locs":[{"a":434,"b":441}]},{"name":"prevId","required":false,"transform":{"type":"scalar"},"locs":[{"a":453,"b":459}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":513,"b":519}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE a.author_id = :authorId!\n  AND (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))\nORDER BY (first_published_at, a.id) DESC\nLIMIT :limit!"};
 
 /**
  * Query generated from SQL:
@@ -90,7 +99,9 @@ const listArticlesByAuthorIR: any = {"usedParamSet":{"authorId":true},"params":[
  *   JOIN users u ON a.author_id = u.id
  *   JOIN article_stats s ON a.id = s.id
  * WHERE a.author_id = :authorId!
- * ORDER BY first_published_at DESC
+ *   AND (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))
+ * ORDER BY (first_published_at, a.id) DESC
+ * LIMIT :limit!
  * ```
  */
 export const listArticlesByAuthor = new PreparedQuery<IListArticlesByAuthorParams,IListArticlesByAuthorResult>(listArticlesByAuthorIR);
@@ -220,7 +231,7 @@ export interface IGetNextArticleQuery {
   result: IGetNextArticleResult;
 }
 
-const getNextArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":453,"b":456}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE first_published_at > (SELECT first_published_at FROM last_editions WHERE article_id = :id!)\nORDER BY first_published_at ASC LIMIT 1"};
+const getNextArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":462,"b":465},{"a":469,"b":472}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) > ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)\nORDER BY (first_published_at, a.id) ASC LIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -238,8 +249,8 @@ const getNextArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id"
  * JOIN articles a ON e.article_id = a.id
  * JOIN users u ON a.author_id = u.id
  * JOIN article_stats s ON a.id = s.id
- * WHERE first_published_at > (SELECT first_published_at FROM last_editions WHERE article_id = :id!)
- * ORDER BY first_published_at ASC LIMIT 1
+ * WHERE (first_published_at, a.id) > ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)
+ * ORDER BY (first_published_at, a.id) ASC LIMIT 1
  * ```
  */
 export const getNextArticle = new PreparedQuery<IGetNextArticleParams,IGetNextArticleResult>(getNextArticleIR);
@@ -268,7 +279,7 @@ export interface IGetPrevArticleQuery {
   result: IGetPrevArticleResult;
 }
 
-const getPrevArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":453,"b":456}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE first_published_at < (SELECT first_published_at FROM last_editions WHERE article_id = :id!)\nORDER BY first_published_at DESC LIMIT 1"};
+const getPrevArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":462,"b":465},{"a":469,"b":472}]}],"statement":"SELECT\n  a.id,\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) < ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)\nORDER BY (first_published_at, a.id) DESC LIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -286,8 +297,8 @@ const getPrevArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id"
  * JOIN articles a ON e.article_id = a.id
  * JOIN users u ON a.author_id = u.id
  * JOIN article_stats s ON a.id = s.id
- * WHERE first_published_at < (SELECT first_published_at FROM last_editions WHERE article_id = :id!)
- * ORDER BY first_published_at DESC LIMIT 1
+ * WHERE (first_published_at, a.id) < ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)
+ * ORDER BY (first_published_at, a.id) DESC LIMIT 1
  * ```
  */
 export const getPrevArticle = new PreparedQuery<IGetPrevArticleParams,IGetPrevArticleResult>(getPrevArticleIR);
@@ -343,7 +354,7 @@ export interface IGetArticleCommentsQuery {
   result: IGetArticleCommentsResult;
 }
 
-const getArticleCommentsIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":193,"b":196}]}],"statement":"SELECT\n  comments.id,\n  content,\n  created_at AS \"createdAt\",\n  author_id AS \"authorId\",\n  name AS \"authorName\"\n  FROM comments JOIN users ON comments.author_id = users.id\n  WHERE article_id = :id!\n  ORDER BY created_at DESC"};
+const getArticleCommentsIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":193,"b":196}]}],"statement":"SELECT\n  comments.id,\n  content,\n  created_at AS \"createdAt\",\n  author_id AS \"authorId\",\n  name AS \"authorName\"\n  FROM comments JOIN users ON comments.author_id = users.id\n  WHERE article_id = :id!\n  ORDER BY (created_at, comments.id) DESC"};
 
 /**
  * Query generated from SQL:
@@ -356,7 +367,7 @@ const getArticleCommentsIR: any = {"usedParamSet":{"id":true},"params":[{"name":
  *   name AS "authorName"
  *   FROM comments JOIN users ON comments.author_id = users.id
  *   WHERE article_id = :id!
- *   ORDER BY created_at DESC
+ *   ORDER BY (created_at, comments.id) DESC
  * ```
  */
 export const getArticleComments = new PreparedQuery<IGetArticleCommentsParams,IGetArticleCommentsResult>(getArticleCommentsIR);
@@ -365,6 +376,9 @@ export const getArticleComments = new PreparedQuery<IGetArticleCommentsParams,IG
 /** 'ListUserComments' parameters type */
 export interface IListUserCommentsParams {
   authorId: string;
+  before: string;
+  limit: number;
+  prevId?: number | null | void;
 }
 
 /** 'ListUserComments' return type */
@@ -384,7 +398,7 @@ export interface IListUserCommentsQuery {
   result: IListUserCommentsResult;
 }
 
-const listUserCommentsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":435,"b":444}]}],"statement":"SELECT\n  comments.id,\n  comments.content,\n  created_at AS \"createdAt\",\n  articles.id AS \"articleId\",\n  title AS \"articleTitle\",\n  articles.author_id AS \"articleAuthorId\",\n  art_author.name AS \"articleAuthorName\"\n  FROM comments\n  JOIN articles ON comments.article_id = articles.id\n  JOIN last_editions ON articles.id = last_editions.article_id\n  JOIN users art_author ON articles.author_id = art_author.id\n  WHERE comments.author_id = :authorId!\n  ORDER BY created_at DESC"};
+const listUserCommentsIR: any = {"usedParamSet":{"authorId":true,"before":true,"prevId":true,"limit":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":435,"b":444}]},{"name":"before","required":true,"transform":{"type":"scalar"},"locs":[{"a":483,"b":490}]},{"name":"prevId","required":false,"transform":{"type":"scalar"},"locs":[{"a":502,"b":508}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":565,"b":571}]}],"statement":"SELECT\n  comments.id,\n  comments.content,\n  created_at AS \"createdAt\",\n  articles.id AS \"articleId\",\n  title AS \"articleTitle\",\n  articles.author_id AS \"articleAuthorId\",\n  art_author.name AS \"articleAuthorName\"\n  FROM comments\n  JOIN articles ON comments.article_id = articles.id\n  JOIN last_editions ON articles.id = last_editions.article_id\n  JOIN users art_author ON articles.author_id = art_author.id\n  WHERE comments.author_id = :authorId!\n    AND (created_at, comments.id) < (:before!, COALESCE(:prevId, 0))\n  ORDER BY (created_at, comments.id) DESC\n  LIMIT :limit!"};
 
 /**
  * Query generated from SQL:
@@ -402,7 +416,9 @@ const listUserCommentsIR: any = {"usedParamSet":{"authorId":true},"params":[{"na
  *   JOIN last_editions ON articles.id = last_editions.article_id
  *   JOIN users art_author ON articles.author_id = art_author.id
  *   WHERE comments.author_id = :authorId!
- *   ORDER BY created_at DESC
+ *     AND (created_at, comments.id) < (:before!, COALESCE(:prevId, 0))
+ *   ORDER BY (created_at, comments.id) DESC
+ *   LIMIT :limit!
  * ```
  */
 export const listUserComments = new PreparedQuery<IListUserCommentsParams,IListUserCommentsResult>(listUserCommentsIR);
@@ -963,7 +979,7 @@ export interface IListLikesQuery {
   result: IListLikesResult;
 }
 
-const listLikesIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":159}]}],"statement":"SELECT user_id AS \"userId\", name AS \"userName\", created_at AS \"createdAt\"\n  FROM likes\n  JOIN users ON likes.user_id = users.id\n  WHERE article_id = :articleId!\n  ORDER BY created_at ASC"};
+const listLikesIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":159}]}],"statement":"SELECT user_id AS \"userId\", name AS \"userName\", created_at AS \"createdAt\"\n  FROM likes\n  JOIN users ON likes.user_id = users.id\n  WHERE article_id = :articleId!\n  ORDER BY (created_at, user_id) ASC"};
 
 /**
  * Query generated from SQL:
@@ -972,7 +988,7 @@ const listLikesIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"a
  *   FROM likes
  *   JOIN users ON likes.user_id = users.id
  *   WHERE article_id = :articleId!
- *   ORDER BY created_at ASC
+ *   ORDER BY (created_at, user_id) ASC
  * ```
  */
 export const listLikes = new PreparedQuery<IListLikesParams,IListLikesResult>(listLikesIR);
@@ -1250,7 +1266,7 @@ export interface IListDraftsQuery {
   result: IListDraftsResult;
 }
 
-const listDraftsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":274,"b":283}]}],"statement":"SELECT drafts.id, title, created_at AS \"createdAt\", updated_at AS \"updatedAt\",\n  article_id AS \"articleId\",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS \"published!\"\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE author_id = :authorId!\nORDER BY updated_at DESC"};
+const listDraftsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":274,"b":283}]}],"statement":"SELECT drafts.id, title, created_at AS \"createdAt\", updated_at AS \"updatedAt\",\n  article_id AS \"articleId\",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS \"published!\"\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE author_id = :authorId!\nORDER BY (updated_at, drafts.id) DESC"};
 
 /**
  * Query generated from SQL:
@@ -1261,7 +1277,7 @@ const listDraftsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"a
  * FROM drafts
  * JOIN articles ON drafts.article_id = articles.id
  * WHERE author_id = :authorId!
- * ORDER BY updated_at DESC
+ * ORDER BY (updated_at, drafts.id) DESC
  * ```
  */
 export const listDrafts = new PreparedQuery<IListDraftsParams,IListDraftsResult>(listDraftsIR);
@@ -1416,7 +1432,7 @@ export interface IListEditionsQuery {
   result: IListEditionsResult;
 }
 
-const listEditionsIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":98}]}],"statement":"SELECT id, title, notes, published_at AS \"publishedAt\"\nFROM editions\nWHERE article_id = :articleId!\nORDER BY published_at DESC"};
+const listEditionsIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":98}]}],"statement":"SELECT id, title, notes, published_at AS \"publishedAt\"\nFROM editions\nWHERE article_id = :articleId!\nORDER BY (published_at, id) DESC"};
 
 /**
  * Query generated from SQL:
@@ -1424,7 +1440,7 @@ const listEditionsIR: any = {"usedParamSet":{"articleId":true},"params":[{"name"
  * SELECT id, title, notes, published_at AS "publishedAt"
  * FROM editions
  * WHERE article_id = :articleId!
- * ORDER BY published_at DESC
+ * ORDER BY (published_at, id) DESC
  * ```
  */
 export const listEditions = new PreparedQuery<IListEditionsParams,IListEditionsResult>(listEditionsIR);

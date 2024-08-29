@@ -4,11 +4,11 @@ import {
   listUserComments,
 } from "@/queries_sql";
 import { notFound } from "next/navigation";
-import * as ArticleList from "@/components/ArticleList";
-import * as CommentList from "@/components/CommentList";
 import * as newdb from "@/newdb";
 import { PageProps } from "@/utils";
 import Link from "next/link";
+import InfiniteArticles from "./InfiniteArticles";
+import InfiniteComments from "./InfiniteComments";
 
 export default async function UserPage(
   p: { params: { userId: string } } & PageProps,
@@ -24,25 +24,23 @@ export default async function UserPage(
   const section = sectionRaw === "comments" ? "comments" : "articles";
   const contents =
     section === "comments" ? (
-      <CommentList.Container>
-        {(
-          await newdb.list(listUserComments, {
-            authorId: user.id,
-          })
-        ).map((comment) => (
-          <CommentList.Item key={comment.id} comment={comment} />
-        ))}
-      </CommentList.Container>
+      <InfiniteComments
+        authorId={user.id}
+        initialItems={await newdb.list(listUserComments, {
+          authorId: user.id,
+          before: new Date().toISOString(),
+          limit: 40,
+        })}
+      />
     ) : (
-      <ArticleList.Container>
-        {(
-          await newdb.list(listArticlesByAuthor, {
-            authorId: user.id,
-          })
-        ).map((article) => (
-          <ArticleList.Item key={article.id} item={article} hideAuthor />
-        ))}
-      </ArticleList.Container>
+      <InfiniteArticles
+        authorId={user.id}
+        initialItems={await newdb.list(listArticlesByAuthor, {
+          authorId: user.id,
+          before: new Date().toISOString(),
+          limit: 40,
+        })}
+      />
     );
 
   const role = (() => {

@@ -60,7 +60,7 @@ export default function ListDrafts() {
             <ArticleList.DraftItem key={draft.id} draft={draft} />
           ))
         ) : (
-          <ArticleList.Empty>저장된 초안이 없습니다.</ArticleList.Empty>
+          <ArticleList.Message>저장된 초안이 없습니다.</ArticleList.Message>
         )}
       </ArticleList.Container>
     </main>

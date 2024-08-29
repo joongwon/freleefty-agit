@@ -646,3 +646,31 @@ export async function updateUserName(tokenRaw: string, nameRaw: string) {
 
   return res;
 }
+
+const nullableNumberSchema = numberSchema.nullable();
+
+export async function listArticles(beforeRaw: string, limitRaw: number, prevIdRaw: number | null) {
+  const before = stringSchema.parse(beforeRaw);
+  const limit = numberSchema.parse(limitRaw);
+  const prevId = nullableNumberSchema.parse(prevIdRaw);
+
+  return await newdb.list(Queries.listArticles, { before, limit, prevId });
+}
+
+export async function listArticlesByAuthor(authorIdRaw: string, beforeRaw: string, limitRaw: number, prevIdRaw: number | null) {
+  const authorId = stringSchema.parse(authorIdRaw);
+  const before = stringSchema.parse(beforeRaw);
+  const limit = numberSchema.parse(limitRaw);
+  const prevId = nullableNumberSchema.parse(prevIdRaw);
+
+  return await newdb.list(Queries.listArticlesByAuthor, { authorId, before, limit, prevId });
+}
+
+export async function listUserComments(authorIdRaw: string, beforeRaw: string, limitRaw: number, prevIdRaw: number | null) {
+  const authorId = stringSchema.parse(authorIdRaw);
+  const before = stringSchema.parse(beforeRaw);
+  const limit = numberSchema.parse(limitRaw);
+  const prevId = nullableNumberSchema.parse(prevIdRaw);
+
+  return await newdb.list(Queries.listUserComments, { authorId, before, limit, prevId });
+}

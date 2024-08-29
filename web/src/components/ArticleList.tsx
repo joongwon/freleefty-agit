@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import Time from "@/components/Time";
 import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
-import { ArticleSummary, DraftSummary, EditionSummary } from "@/types";
+import { DraftSummary, EditionSummary } from "@/types";
 
 export function Container(p: { children: ReactNode }) {
   return <ul className="not-prose">{p.children}</ul>;
@@ -32,40 +32,49 @@ function Stat(p: { icon: ReactNode; value: number }) {
   );
 }
 
+export type ItemType = {
+  id: number;
+  title: string;
+  commentsCount?: number;
+  viewsCount?: number;
+  likesCount?: number;
+  authorId?: string;
+  authorName?: string;
+  publishedAt?: string;
+  updatedAt?: string;
+  published?: boolean;
+  articleId?: number;
+  notes?: string;
+};
+
 /**
  * before: 제목 앞에 표시할 내용. 이전/다음 글을 표시할 때 사용
  */
-export function Item(
-  p: (
-    | { item: ArticleSummary; draft?: false; edition?: false }
-    | { item: DraftSummary; draft: true; edition?: false }
-    | { item: EditionSummary; draft?: false; edition: true }
-  ) & { hideAuthor?: boolean; title?: React.ReactNode; before?: ReactNode },
-) {
+export function Item(p: {
+  item: ItemType;
+  hideAuthor?: boolean;
+  title?: ReactNode;
+  before?: ReactNode;
+  hrefPrefix: "/drafts" | "/editions" | "/articles";
+}) {
   return (
     <ItemBase before={p.before}>
       <p>
-        <Link
-          href={
-            p.draft
-              ? `/drafts/${p.item.id}`
-              : p.edition
-                ? `/editions/${p.item.id}`
-                : `/articles/${p.item.id}`
-          }
-        >
+        <Link href={`${p.hrefPrefix}/${p.item.id}`}>
           {p.title ?? p.item.title}
         </Link>
-        {!p.draft && !p.edition && (
-          <>
-            <Stat icon={COMMENT} value={p.item.commentsCount} />
-            <Stat icon={VISIBILITY} value={p.item.viewsCount} />
-            <Stat icon={FAVORITE} value={p.item.likesCount} />
-          </>
+        {p.item.commentsCount !== undefined && (
+          <Stat icon={COMMENT} value={p.item.commentsCount} />
+        )}
+        {p.item.viewsCount !== undefined && (
+          <Stat icon={VISIBILITY} value={p.item.viewsCount} />
+        )}
+        {p.item.likesCount !== undefined && (
+          <Stat icon={FAVORITE} value={p.item.likesCount} />
         )}
       </p>
       <p className="text-sm text-gray-600 flex-1 justify-end whitespace-nowrap flex max-w-full">
-        {!p.draft && !p.edition && !p.hideAuthor && (
+        {p.item.authorId && !p.hideAuthor && (
           <>
             <Link
               href={`/users/${p.item.authorId}`}
@@ -76,13 +85,10 @@ export function Item(
             <span className="mr-1">{", "}</span>
           </>
         )}
-        {!p.draft ? (
-          <Time>{p.item.publishedAt}</Time>
-        ) : (
-          <Time>{p.item.updatedAt}</Time>
-        )}
+        {p.item.publishedAt && <Time>{p.item.publishedAt}</Time>}
+        {p.item.updatedAt && <Time>{p.item.updatedAt}</Time>}
       </p>
-      {p.draft && p.item.published && (
+      {p.item.published && (
         <Link
           href={`/articles/${p.item.articleId}`}
           className="text-sm text-gray-500 underline"
@@ -98,7 +104,7 @@ export function DraftItem(p: { draft: DraftSummary }) {
   return (
     <Item
       item={p.draft}
-      draft
+      hrefPrefix="/drafts"
       title={
         p.draft.title.length > 0 ? (
           p.draft.title
@@ -118,7 +124,7 @@ export function EditionItem(p: {
   return (
     <Item
       item={p.edition}
-      edition
+      hrefPrefix="/editions"
       before={p.selected ? ARROW_RIGHT : " " /* non-empty but invisible */}
       title={
         <>
@@ -133,7 +139,7 @@ export function EditionItem(p: {
   );
 }
 
-export function Empty(p: { children: string; before?: ReactNode }) {
+export function Message(p: { children: ReactNode; before?: ReactNode }) {
   return (
     <ItemBase before={p.before}>
       <span className="text-gray-500">{p.children}</span>

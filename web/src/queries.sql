@@ -12,7 +12,9 @@ FROM last_editions e
   JOIN articles a ON e.article_id = a.id
   JOIN users u ON a.author_id = u.id
   JOIN article_stats s ON a.id = s.id
-ORDER BY first_published_at DESC;
+WHERE (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))
+ORDER BY (first_published_at, a.id) DESC
+LIMIT :limit!;
 
 /* @name ListArticlesByAuthor */
 SELECT
@@ -29,7 +31,9 @@ FROM last_editions e
   JOIN users u ON a.author_id = u.id
   JOIN article_stats s ON a.id = s.id
 WHERE a.author_id = :authorId!
-ORDER BY first_published_at DESC;
+  AND (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))
+ORDER BY (first_published_at, a.id) DESC
+LIMIT :limit!;
 
 /* @name ListPopularArticles */
 SELECT * FROM (
@@ -83,8 +87,8 @@ FROM last_editions e
 JOIN articles a ON e.article_id = a.id
 JOIN users u ON a.author_id = u.id
 JOIN article_stats s ON a.id = s.id
-WHERE first_published_at > (SELECT first_published_at FROM last_editions WHERE article_id = :id!)
-ORDER BY first_published_at ASC LIMIT 1;
+WHERE (first_published_at, a.id) > ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)
+ORDER BY (first_published_at, a.id) ASC LIMIT 1;
 
 /* @name GetPrevArticle */
 SELECT
@@ -100,8 +104,8 @@ FROM last_editions e
 JOIN articles a ON e.article_id = a.id
 JOIN users u ON a.author_id = u.id
 JOIN article_stats s ON a.id = s.id
-WHERE first_published_at < (SELECT first_published_at FROM last_editions WHERE article_id = :id!)
-ORDER BY first_published_at DESC LIMIT 1;
+WHERE (first_published_at, a.id) < ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)
+ORDER BY (first_published_at, a.id) DESC LIMIT 1;
 
 /* @name GetArticleFiles */
 SELECT id, name
@@ -117,7 +121,7 @@ SELECT
   name AS "authorName"
   FROM comments JOIN users ON comments.author_id = users.id
   WHERE article_id = :id!
-  ORDER BY created_at DESC;
+  ORDER BY (created_at, comments.id) DESC;
 
 /* @name ListUserComments */
 SELECT
@@ -133,7 +137,9 @@ SELECT
   JOIN last_editions ON articles.id = last_editions.article_id
   JOIN users art_author ON articles.author_id = art_author.id
   WHERE comments.author_id = :authorId!
-  ORDER BY created_at DESC;
+    AND (created_at, comments.id) < (:before!, COALESCE(:prevId, 0))
+  ORDER BY (created_at, comments.id) DESC
+  LIMIT :limit!;
 
 /* @name GetUserByNaverId */
 SELECT id, role, name FROM users WHERE naver_id = :naverId!;
@@ -216,7 +222,7 @@ SELECT user_id AS "userId", name AS "userName", created_at AS "createdAt"
   FROM likes
   JOIN users ON likes.user_id = users.id
   WHERE article_id = :articleId!
-  ORDER BY created_at ASC;
+  ORDER BY (created_at, user_id) ASC;
 
 /* @name CreateDraftFromArticle */
 INSERT INTO drafts (article_id, title, content)
@@ -275,7 +281,7 @@ SELECT drafts.id, title, created_at AS "createdAt", updated_at AS "updatedAt",
 FROM drafts
 JOIN articles ON drafts.article_id = articles.id
 WHERE author_id = :authorId!
-ORDER BY updated_at DESC;
+ORDER BY (updated_at, drafts.id) DESC;
 
 /* @name GetDraft */
 SELECT drafts.id, title, content,
@@ -302,7 +308,7 @@ WHERE id = :id!;
 SELECT id, title, notes, published_at AS "publishedAt"
 FROM editions
 WHERE article_id = :articleId!
-ORDER BY published_at DESC;
+ORDER BY (published_at, id) DESC;
 
 /* @name ListEditionFiles */
 SELECT id, name

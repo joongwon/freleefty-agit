@@ -115,18 +115,18 @@ export default async function ViewArticle(p: {
       </CommentList.Container>
       <ArticleList.Container>
         {article.next ? (
-          <ArticleList.Item item={article.next} before={ARROW_UP} />
+          <ArticleList.Item item={article.next} before={ARROW_UP} hrefPrefix="/articles" />
         ) : (
-          <ArticleList.Empty before={ARROW_UP}>
+          <ArticleList.Message before={ARROW_UP}>
             (마지막 글입니다)
-          </ArticleList.Empty>
+          </ArticleList.Message>
         )}
         {article.prev ? (
-          <ArticleList.Item item={article.prev} before={ARROW_DOWN} />
+          <ArticleList.Item item={article.prev} before={ARROW_DOWN} hrefPrefix="/articles" />
         ) : (
-          <ArticleList.Empty before={ARROW_DOWN}>
+          <ArticleList.Message before={ARROW_DOWN}>
             (첫번째 글입니다)
-          </ArticleList.Empty>
+          </ArticleList.Message>
         )}
       </ArticleList.Container>
       <SubmitView viewToken={viewToken} authorId={article.authorId} />

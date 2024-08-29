@@ -32,10 +32,10 @@ export default async function Intro() {
       <ArticleList.Container>
         {articles.length > 0 ? (
           articles.map((article) => (
-            <ArticleList.Item key={article.id} item={article} />
+            <ArticleList.Item key={article.id} item={article} hrefPrefix="/articles" />
           ))
         ) : (
-          <ArticleList.Empty>인기 있는 일지가 없습니다.</ArticleList.Empty>
+          <ArticleList.Message>인기 있는 일지가 없습니다.</ArticleList.Message>
         )}
       </ArticleList.Container>
       <p className="text-sm text-gray-500 text-right">
