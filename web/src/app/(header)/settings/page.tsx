@@ -125,7 +125,7 @@ function WebhookForm(p: { token: string }) {
         if (data.type === "Ok") {
           setName("");
           setUrl("");
-          webhooks.mutate();
+          void webhooks.mutate();
           alert("추가되었습니다.");
         }
       },
