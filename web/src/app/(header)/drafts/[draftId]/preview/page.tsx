@@ -29,14 +29,15 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
 
   // SWR cache is not needed; always most fresh setting is fetched
   const [notifySetting, setNotifySetting] = useState<{ value: boolean } | null>(null);
+  const token = authState.value.type === "login" ? authState.value.token : null;
   useEffect(() => {
-    if (authState.value.type === "login") {
-      void getUserNewArticleNotify(authState.value.token).then((data) => {
+    if (token) {
+      void getUserNewArticleNotify(token).then((data) => {
         if (data.type === "Ok") setNotifySetting({ value: data.notify });
         else setNotifySetting({ value: true }); // ignore error
       });
     }
-  }, [authState.value.type]);
+  }, [token]);
   const [notes, setNotes] = useState("");
   const [notify, setNotify] = useState<{ value: boolean } | null>(null);
   const [rememberNotify, setRememberNotify] = useState(false);
