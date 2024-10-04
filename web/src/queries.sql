@@ -320,3 +320,22 @@ UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!;
 
 /* @name GetUserNameUpdatedAt */
 SELECT name_updated_at AS "nameUpdatedAt" FROM users WHERE id = :id!;
+
+/* @name ListWebhooks */
+SELECT id, name, url FROM webhooks;
+
+/* @name CreateWebhook */
+INSERT INTO webhooks (name, url) VALUES (:name!, :url!);
+
+/* @name DeleteWebhook */
+DELETE FROM webhooks WHERE id = :id! RETURNING url;
+
+/* @name GetArticleForWebhook */
+SELECT
+  title AS "title!",
+  author_id AS "authorId!",
+  name AS "authorName!"
+FROM last_editions e
+JOIN articles a ON e.article_id = a.id
+JOIN users u ON a.author_id = u.id
+WHERE a.id = :id!;

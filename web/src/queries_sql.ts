@@ -1529,3 +1529,119 @@ const getUserNameUpdatedAtIR: any = {"usedParamSet":{"id":true},"params":[{"name
 export const getUserNameUpdatedAt = new PreparedQuery<IGetUserNameUpdatedAtParams,IGetUserNameUpdatedAtResult>(getUserNameUpdatedAtIR);
 
 
+/** 'ListWebhooks' parameters type */
+export type IListWebhooksParams = void;
+
+/** 'ListWebhooks' return type */
+export interface IListWebhooksResult {
+  id: number;
+  name: string;
+  url: string;
+}
+
+/** 'ListWebhooks' query type */
+export interface IListWebhooksQuery {
+  params: IListWebhooksParams;
+  result: IListWebhooksResult;
+}
+
+const listWebhooksIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT id, name, url FROM webhooks"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT id, name, url FROM webhooks
+ * ```
+ */
+export const listWebhooks = new PreparedQuery<IListWebhooksParams,IListWebhooksResult>(listWebhooksIR);
+
+
+/** 'CreateWebhook' parameters type */
+export interface ICreateWebhookParams {
+  name: string;
+  url: string;
+}
+
+/** 'CreateWebhook' return type */
+export type ICreateWebhookResult = void;
+
+/** 'CreateWebhook' query type */
+export interface ICreateWebhookQuery {
+  params: ICreateWebhookParams;
+  result: ICreateWebhookResult;
+}
+
+const createWebhookIR: any = {"usedParamSet":{"name":true,"url":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":41,"b":46}]},{"name":"url","required":true,"transform":{"type":"scalar"},"locs":[{"a":49,"b":53}]}],"statement":"INSERT INTO webhooks (name, url) VALUES (:name!, :url!)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO webhooks (name, url) VALUES (:name!, :url!)
+ * ```
+ */
+export const createWebhook = new PreparedQuery<ICreateWebhookParams,ICreateWebhookResult>(createWebhookIR);
+
+
+/** 'DeleteWebhook' parameters type */
+export interface IDeleteWebhookParams {
+  id: number;
+}
+
+/** 'DeleteWebhook' return type */
+export interface IDeleteWebhookResult {
+  url: string;
+}
+
+/** 'DeleteWebhook' query type */
+export interface IDeleteWebhookQuery {
+  params: IDeleteWebhookParams;
+  result: IDeleteWebhookResult;
+}
+
+const deleteWebhookIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":32,"b":35}]}],"statement":"DELETE FROM webhooks WHERE id = :id! RETURNING url"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM webhooks WHERE id = :id! RETURNING url
+ * ```
+ */
+export const deleteWebhook = new PreparedQuery<IDeleteWebhookParams,IDeleteWebhookResult>(deleteWebhookIR);
+
+
+/** 'GetArticleForWebhook' parameters type */
+export interface IGetArticleForWebhookParams {
+  id: number;
+}
+
+/** 'GetArticleForWebhook' return type */
+export interface IGetArticleForWebhookResult {
+  authorId: string;
+  authorName: string;
+  title: string;
+}
+
+/** 'GetArticleForWebhook' query type */
+export interface IGetArticleForWebhookQuery {
+  params: IGetArticleForWebhookParams;
+  result: IGetArticleForWebhookResult;
+}
+
+const getArticleForWebhookIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":191}]}],"statement":"SELECT\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nWHERE a.id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *   title AS "title!",
+ *   author_id AS "authorId!",
+ *   name AS "authorName!"
+ * FROM last_editions e
+ * JOIN articles a ON e.article_id = a.id
+ * JOIN users u ON a.author_id = u.id
+ * WHERE a.id = :id!
+ * ```
+ */
+export const getArticleForWebhook = new PreparedQuery<IGetArticleForWebhookParams,IGetArticleForWebhookResult>(getArticleForWebhookIR);
+
+

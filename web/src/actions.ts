@@ -74,11 +74,14 @@ export async function tryLogin(codeRaw: string) {
   }
 }
 
+type JwtPayload = { id: string, role: Queries.role };
+
 async function login(profile: User) {
   const JWT_SECRET = getEnv().JWT_SECRET;
+  const payload: JwtPayload = { id: profile.id, role: profile.role };
   const accessToken = await new Promise<string>((resolve, reject) =>
     jwt.sign(
-      { id: profile.id },
+      payload,
       JWT_SECRET,
       { expiresIn: "1h" },
       (err, token) =>
@@ -96,12 +99,12 @@ async function login(profile: User) {
   return { accessToken, profile };
 }
 
-async function decodeToken(token: string) {
+async function decodeToken(token: string) : Promise<JwtPayload> {
   const JWT_SECRET = getEnv().JWT_SECRET;
-  return await new Promise<{ id: string }>((resolve, reject) =>
+  return await new Promise<JwtPayload>((resolve, reject) =>
     jwt.verify(token, JWT_SECRET, (err, decoded) =>
       decoded
-        ? resolve(decoded as { id: string })
+        ? resolve(decoded as JwtPayload)
         : reject(err ?? new Error("Unreachable")),
     ),
   );
@@ -324,6 +327,57 @@ export async function deleteArticle(tokenRaw: string, idRaw: number) {
   return "Ok";
 }
 
+async function webhookSendEmbed(
+  webhookUrl: string,
+  embed: {
+    title?: string;
+    description?: string;
+    author?: { name: string; url: string };
+    url?: string;
+  }
+) {
+  const payload = {
+    username: "아지트새글알리미",
+    avatar_url: "https://blog.freleefty.org/img/discord-avatar.png",
+    embeds: [
+      {
+        title: embed.title,
+        type: "rich",
+        description: embed.description,
+        author: embed.author,
+        url: embed.url,
+      },
+    ],
+  };
+  const payloadString = JSON.stringify(payload);
+  await fetch(webhookUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: payloadString,
+  });
+}
+
+async function webhookNotifyNewArticle(articleId: number) {
+  const article = await newdb.option(Queries.getArticleForWebhook, { id: articleId });
+  if (!article) {
+    console.error(`webhookNorifyNewArticle(): article with id=${articleId} not found`);
+    return;
+  }
+  const webhooks = await newdb.list(Queries.listWebhooks, undefined);
+  await Promise.all(
+    webhooks.map(({ url }) => webhookSendEmbed(url, {
+      title: article.title,
+      author: {
+        name: article.authorName,
+        url: `https://blog.freleefty.org/users/${article.authorId}/`,
+      },
+      url: `https://blog.freleefty.org/articles/${articleId}`,
+    }))
+  );
+}
+
 export async function publishDraft(
   tokenRaw: string,
   idRaw: number,
@@ -358,10 +412,14 @@ export async function publishDraft(
 
     return { type: "Ok", articleId } as const;
   });
-  revalidatePath("/articles");
+
   if (res.type !== "Ok") {
     return res.type;
   }
+
+  revalidatePath("/articles");
+  // ignore the result of executeWebhooks
+  void webhookNotifyNewArticle(res.articleId);
   return res.articleId;
 }
 
@@ -673,4 +731,52 @@ export async function listUserComments(authorIdRaw: string, beforeRaw: string, l
   const prevId = nullableNumberSchema.parse(prevIdRaw);
 
   return await newdb.list(Queries.listUserComments, { authorId, before, limit, prevId });
+}
+
+export async function createWebhook(tokenRaw: string, nameRaw: string, urlRaw: string) {
+  const token = stringSchema.parse(tokenRaw);
+  const name = stringSchema.parse(nameRaw).normalize();
+  const url = stringSchema.parse(urlRaw);
+
+  const role = (await decodeToken(token)).role;
+  if (role !== "admin") {
+    return { type: "Forbidden" };
+  }
+  await newdb.execute(Queries.createWebhook, { name, url });
+  void webhookSendEmbed(url, {
+    title: "안녕하세요!",
+    description: "오늘부터 아지트새글을 알려드려요!",
+    url: "https://blog.freleefty.org/",
+  });
+  return { type: "Ok" }
+}
+
+export async function deleteWebhook(tokenRaw: string, idRaw: number) {
+  const token = stringSchema.parse(tokenRaw);
+  const id = numberSchema.parse(idRaw);
+
+  const role = (await decodeToken(token)).role;
+  if (role !== "admin") {
+    return { type: "Forbidden" } as const;
+  }
+  const res = await newdb.option(Queries.deleteWebhook, { id });
+  if (!res) {
+    return { type: "NotFound" } as const;
+  }
+  void webhookSendEmbed(res.url, {
+    title: "안녕히계세요!",
+    description: "이젠 새글 알림을 드리지 않아요... 인연이 된다면 다시 만나요!",
+    url: "https://blog.freleefty.org/",
+  });
+  return { type: "Ok" } as const;
+}
+
+export async function listWebhooks(tokenRaw: string) {
+  const token = stringSchema.parse(tokenRaw);
+  const role = (await decodeToken(token)).role;
+  if (role !== "admin") {
+    return { type: "Forbidden" } as const;
+  }
+  const webhooks = await newdb.list(Queries.listWebhooks, undefined);
+  return { type: "Ok", webhooks } as const;
 }
