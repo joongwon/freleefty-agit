@@ -321,6 +321,12 @@ UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!;
 /* @name GetUserNameUpdatedAt */
 SELECT name_updated_at AS "nameUpdatedAt" FROM users WHERE id = :id!;
 
+/* @name GetUserNewArticleNotifySetting */
+SELECT new_article_notify AS "newArticleNotify" FROM users WHERE id = :id!;
+
+/* @name SetUserNewArticleNotifySetting */
+UPDATE users SET new_article_notify = :newArticleNotify! WHERE id = :id!;
+
 /* @name ListWebhooks */
 SELECT id, name, url FROM webhooks;
 

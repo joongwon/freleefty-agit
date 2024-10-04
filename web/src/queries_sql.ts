@@ -1529,6 +1529,59 @@ const getUserNameUpdatedAtIR: any = {"usedParamSet":{"id":true},"params":[{"name
 export const getUserNameUpdatedAt = new PreparedQuery<IGetUserNameUpdatedAtParams,IGetUserNameUpdatedAtResult>(getUserNameUpdatedAtIR);
 
 
+/** 'GetUserNewArticleNotifySetting' parameters type */
+export interface IGetUserNewArticleNotifySettingParams {
+  id: string;
+}
+
+/** 'GetUserNewArticleNotifySetting' return type */
+export interface IGetUserNewArticleNotifySettingResult {
+  newArticleNotify: boolean;
+}
+
+/** 'GetUserNewArticleNotifySetting' query type */
+export interface IGetUserNewArticleNotifySettingQuery {
+  params: IGetUserNewArticleNotifySettingParams;
+  result: IGetUserNewArticleNotifySettingResult;
+}
+
+const getUserNewArticleNotifySettingIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":70,"b":73}]}],"statement":"SELECT new_article_notify AS \"newArticleNotify\" FROM users WHERE id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT new_article_notify AS "newArticleNotify" FROM users WHERE id = :id!
+ * ```
+ */
+export const getUserNewArticleNotifySetting = new PreparedQuery<IGetUserNewArticleNotifySettingParams,IGetUserNewArticleNotifySettingResult>(getUserNewArticleNotifySettingIR);
+
+
+/** 'SetUserNewArticleNotifySetting' parameters type */
+export interface ISetUserNewArticleNotifySettingParams {
+  id: string;
+  newArticleNotify: boolean;
+}
+
+/** 'SetUserNewArticleNotifySetting' return type */
+export type ISetUserNewArticleNotifySettingResult = void;
+
+/** 'SetUserNewArticleNotifySetting' query type */
+export interface ISetUserNewArticleNotifySettingQuery {
+  params: ISetUserNewArticleNotifySettingParams;
+  result: ISetUserNewArticleNotifySettingResult;
+}
+
+const setUserNewArticleNotifySettingIR: any = {"usedParamSet":{"newArticleNotify":true,"id":true},"params":[{"name":"newArticleNotify","required":true,"transform":{"type":"scalar"},"locs":[{"a":38,"b":55}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":71}]}],"statement":"UPDATE users SET new_article_notify = :newArticleNotify! WHERE id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE users SET new_article_notify = :newArticleNotify! WHERE id = :id!
+ * ```
+ */
+export const setUserNewArticleNotifySetting = new PreparedQuery<ISetUserNewArticleNotifySettingParams,ISetUserNewArticleNotifySettingResult>(setUserNewArticleNotifySettingIR);
+
+
 /** 'ListWebhooks' parameters type */
 export type IListWebhooksParams = void;
 

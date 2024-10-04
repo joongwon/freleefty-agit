@@ -378,14 +378,20 @@ async function webhookNotifyNewArticle(articleId: number) {
   );
 }
 
+const booleanSchema = z.boolean();
+
 export async function publishDraft(
   tokenRaw: string,
   idRaw: number,
   notesRaw: string,
+  notifyRaw: boolean,
+  rememberNotifyRaw: boolean,
 ) {
   const token = stringSchema.parse(tokenRaw);
   const id = numberSchema.parse(idRaw);
   const notes = stringSchema.parse(notesRaw).normalize();
+  const notify = booleanSchema.parse(notifyRaw);
+  const rememberNotify = booleanSchema.parse(rememberNotifyRaw);
   const userId = (await decodeToken(token)).id;
 
   const res = await newdb.tx(async ({ first, unique, execute }) => {
@@ -410,6 +416,13 @@ export async function publishDraft(
       await fs.promises.rename(draftFilesPath(id), editionFilesPath(editionId));
     }
 
+    if (rememberNotify) {
+      await execute(Queries.setUserNewArticleNotifySetting, {
+        id: userId,
+        newArticleNotify: notify,
+      });
+    }
+
     return { type: "Ok", articleId } as const;
   });
 
@@ -418,8 +431,11 @@ export async function publishDraft(
   }
 
   revalidatePath("/articles");
-  // ignore the result of executeWebhooks
-  void webhookNotifyNewArticle(res.articleId);
+
+  if (notify) {
+    // ignore the result of executeWebhooks
+    void webhookNotifyNewArticle(res.articleId);
+  }
   return res.articleId;
 }
 
@@ -703,6 +719,26 @@ export async function updateUserName(tokenRaw: string, nameRaw: string) {
   });
 
   return res;
+}
+
+export async function getUserNewArticleNotify(tokenRaw: string) {
+  const token = stringSchema.parse(tokenRaw);
+  const userId = (await decodeToken(token)).id;
+
+  const res = await newdb.option(Queries.getUserNewArticleNotifySetting, { id: userId });
+  if (!res) {
+    return { type: "NotFound" } as const;
+  }
+  return { type: "Ok", notify: res.newArticleNotify } as const;
+}
+
+export async function setUserNewArticleNotify(tokenRaw: string, notifyRaw: boolean) {
+  const token = stringSchema.parse(tokenRaw);
+  const notify = booleanSchema.parse(notifyRaw);
+  const userId = (await decodeToken(token)).id;
+
+  await newdb.execute(Queries.setUserNewArticleNotifySetting, { id: userId, newArticleNotify: notify });
+  return { type: "Ok" } as const;
 }
 
 const nullableNumberSchema = numberSchema.nullable();

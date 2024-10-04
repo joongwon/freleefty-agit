@@ -1,6 +1,6 @@
 "use client";
 
-import { updateUserName, createWebhook, listWebhooks, deleteWebhook } from "@/actions";
+import { updateUserName, createWebhook, listWebhooks, deleteWebhook, getUserNewArticleNotify, setUserNewArticleNotify } from "@/actions";
 import { gAuthState, setProfile } from "@/auth";
 import { User } from "@/types";
 import { useHookstate } from "@hookstate/core";
@@ -34,6 +34,7 @@ export default function SettingsPage() {
             token={auth.value.token}
             profile={auth.value.profile}
           />
+          <NewArticleNotifyForm token={auth.value.token} />
           {auth.value.profile.role === "admin" && (
             <WebhookForm token={auth.value.token} />
           )}
@@ -49,7 +50,6 @@ function NameChangeForm(p: { token: string; profile: User }) {
     () => updateUserName(p.token, name),
     {
       onSuccess: (data) => {
-        console.log(data);
         if (data.type === "Ok") {
           setProfile(data.profile);
           alert("저장되었습니다.");
@@ -81,7 +81,7 @@ function NameChangeForm(p: { token: string; profile: User }) {
 
   return (
     <form
-      className="flex flex-col gap-2"
+      className="flex flex-row gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         if (cannotUpdate) {
@@ -91,8 +91,8 @@ function NameChangeForm(p: { token: string; profile: User }) {
         void updateName.trigger();
       }}
     >
-      <label className="flex flex-col gap-1">
-        이름
+      <label className="flex flex-row gap-2 items-center">
+        <span className="whitespace-nowrap">이름</span>
         <input
           className="input outline-none"
           type="text"
@@ -105,10 +105,46 @@ function NameChangeForm(p: { token: string; profile: User }) {
         className={`button ${cannotUpdate ? "button-disabled" : ""}`}
         type="submit"
       >
-        저장
+        이름 저장
       </button>
     </form>
   );
+}
+
+function NewArticleNotifyForm(p: { token: string }) {
+  const notifySetting = useSWR([p.token, "newArticleNotify"], () => getUserNewArticleNotify(p.token));
+  const updateNotify = useSWRMutation(
+    notifySetting.data && [p.token, "newArticleNotify"],
+    () => setUserNewArticleNotify(p.token, !notifySetting.data?.notify),
+    {
+      onSuccess: (data) => {
+        if (data.type === "Ok") {
+          void notifySetting.mutate();
+          alert("저장되었습니다.");
+        }
+      },
+    },
+  );
+  if (notifySetting.error || notifySetting.data?.type !== "Ok") {
+    return <p>알림 설정을 불러오는 중 오류가 발생했습니다</p>;
+  } else if (notifySetting.isLoading || notifySetting.data === undefined) {
+    return <p>알림 설정을 불러오는 중...</p>;
+  } else {
+    return (
+      <form
+        className="flex flex-col gap-2"
+      >
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={notifySetting.data.notify}
+            onChange={() => void updateNotify.trigger()}
+          />
+          <span>새글 알림 보내기</span>
+        </label>
+      </form>
+    );
+  }
 }
 
 function WebhookForm(p: { token: string }) {
@@ -121,7 +157,6 @@ function WebhookForm(p: { token: string }) {
     () => createWebhook(p.token, name, url),
     {
       onSuccess: (data) => {
-        console.log(data);
         if (data.type === "Ok") {
           setName("");
           setUrl("");
