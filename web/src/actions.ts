@@ -13,6 +13,7 @@ import * as newdb from "@/newdb";
 import * as Queries from "@/queries_sql";
 import { User } from "@/types";
 import path from "path";
+import { getClientEnv } from "./clientEnv";
 
 const stringSchema = z.string();
 const numberSchema = z.number();
@@ -21,7 +22,7 @@ export async function tryLogin(codeRaw: string) {
   const code = stringSchema.parse(codeRaw);
 
   // 네이버 access token을 받아오기
-  const client_id = getEnv().NAVER_ID;
+  const client_id = getClientEnv().NAVER_ID;
   const client_secret = getEnv().NAVER_SECRET;
   const res = await fetch("https://nid.naver.com/oauth2.0/token", {
     method: "POST",
@@ -380,21 +381,23 @@ async function webhookNotifyNewArticle(articleId: number) {
 
 const booleanSchema = z.boolean();
 
+const publishDraftSchema = z.object({
+  id: z.number(),
+  notes: z.string().max(255),
+  notify: z.boolean(),
+  rememberNotify: z.boolean(),
+  thumbnailId: z.number().nullable(),
+});
+
 export async function publishDraft(
   tokenRaw: string,
-  idRaw: number,
-  notesRaw: string,
-  notifyRaw: boolean,
-  rememberNotifyRaw: boolean,
+  payload: z.infer<typeof publishDraftSchema>,
 ) {
   const token = stringSchema.parse(tokenRaw);
-  const id = numberSchema.parse(idRaw);
-  const notes = stringSchema.parse(notesRaw).normalize();
-  const notify = booleanSchema.parse(notifyRaw);
-  const rememberNotify = booleanSchema.parse(rememberNotifyRaw);
+  const { id, notes, notify, rememberNotify, thumbnailId } = publishDraftSchema.parse(payload);
   const userId = (await decodeToken(token)).id;
 
-  const res = await newdb.tx(async ({ first, unique, execute }) => {
+  const res = await newdb.tx(async ({ first, unique, execute, list }) => {
     const hasTitle = await first(Queries.draftHasTitle, { id, userId });
     if (hasTitle === null) {
       return { type: "NotFound" } as const;
@@ -402,17 +405,26 @@ export async function publishDraft(
       return { type: "NoTitle" } as const;
     }
 
-    const files = await unique(Queries.countDraftFiles, { id });
+    const files = await list(Queries.listDraftFiles, { id });
+
+    if (thumbnailId !== null) {
+      // thumbnail should be one of the files uploaded to this draft
+      // and should be an image
+      const thumbnail = files.find((f) => f.id === thumbnailId);
+      if (!thumbnail || !thumbnail.mimeType.startsWith("image/")) {
+        return { type: "InvalidThumbnail" } as const;
+      }
+    }
 
     const { articleId, editionId } = await unique(
       Queries.createEditionFromDraft,
-      { draftId: id, notes },
+      { draftId: id, notes, thumbnail: thumbnailId },
     );
 
     await execute(Queries.moveDraftFilesToEdition, { draftId: id, editionId });
     await execute(Queries.deleteDraft, { id, userId });
 
-    if (files.count !== 0) {
+    if (files.length !== 0) {
       await fs.promises.rename(draftFilesPath(id), editionFilesPath(editionId));
     }
 
@@ -427,7 +439,7 @@ export async function publishDraft(
   });
 
   if (res.type !== "Ok") {
-    return res.type;
+    return res;
   }
 
   revalidatePath("/articles");
@@ -436,7 +448,7 @@ export async function publishDraft(
     // ignore the result of executeWebhooks
     void webhookNotifyNewArticle(res.articleId);
   }
-  return res.articleId;
+  return res;
 }
 
 const commentContentSchema = z.string().min(1).max(1023);

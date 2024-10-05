@@ -138,7 +138,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   return (
-    <main className="flex flex-col gap-4 p-4 min-w-0 w-screen max-w-screen-md">
+    <main className="flex flex-col gap-2 p-4 min-w-0 w-screen max-w-screen-md">
       <input
         className="input focus:outline-none focus:bg-gray-100 text-2xl font-bold"
         type="text"
@@ -254,6 +254,8 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         >
           삭제
         </button>
+      </section>
+      <section className="flex gap-2 justify-end">
         {res.data?.published && (
           <Link
             className="button"

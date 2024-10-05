@@ -43,6 +43,12 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   const [rememberNotify, setRememberNotify] = useState(false);
   const finalNotify = notify?.value ?? notifySetting?.value ?? true;
 
+  const [thumbnail, setThumbnail] = useState<{ id: number, name: string } | null>(null);
+  if (res.data && res.data.files.length > 0 && thumbnail === null) {
+    setThumbnail(res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null);
+  }
+  const [thumbnailStatus, setThumbnailStatus] = useState<"loading" | "error" | "ok">("loading");
+
   const router = useRouter();
 
   const publish = useSWRMutation(
@@ -52,30 +58,25 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
         notes: string,
         notify: boolean,
         rememberNotify: boolean,
+        thumbnailId?: number,
       }
     }) => {
-      if (notes.length === 0) {
-        alert("변경사항을 적어주세요");
-        return;
-      }
-      if (gAuthState.value.type !== "login") {
-        alert("먼저 로그인하세요");
-        return;
-      }
-      if (draftId === null || !res.data) {
-        alert("초안을 찾을 수 없습니다");
-        return;
-      }
-      if (!confirm("발행하시겠습니까?")) return;
-
-      const publishRes = await publishDraft(gAuthState.value.token, draftId, opt.arg.notes, opt.arg.notify, opt.arg.rememberNotify);
+      if (gAuthState.value.type !== "login")
+        throw new Error("non-login state found in publishDraft mutation");
+      const publishRes = await publishDraft(gAuthState.value.token, {
+        id: draftId,
+        notes: opt.arg.notes,
+        notify: opt.arg.notify,
+        rememberNotify: opt.arg.rememberNotify,
+        thumbnailId: opt.arg.thumbnailId ?? null,
+      });
       return publishRes;
     },
     {
       revalidate: false,
       onSuccess: (data) => {
-        if (typeof data === "number") {
-          router.push(`/articles/${data}`);
+        if (data.type === "Ok") {
+          router.push(`/articles/${data.articleId}`);
         } else {
           alert("발행 중 오류가 발생했습니다");
         }
@@ -83,7 +84,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
     },
   );
 
-  const publishDisabled = notes.length === 0 || !res.data || publish.isMutating;
+  const publishDisabled = !res.data || publish.isMutating || thumbnailStatus !== "ok";
 
   if (authState.value.type === "loading") {
     return <main>로그인 중...</main>;
@@ -111,18 +112,77 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
           className="border-t border-gray-200 mt-4 pt-4"
           onSubmit={(e) => {
             e.preventDefault();
-            void publish.trigger({ notes, notify: finalNotify, rememberNotify });
+            if (gAuthState.value.type !== "login") {
+              alert("먼저 로그인하세요");
+              return;
+            }
+            if (draftId === null || !res.data) {
+              alert("초안을 찾을 수 없습니다");
+              return;
+            }
+            if (thumbnailStatus === "loading") {
+              alert("썸네일이 이미지인지 확인 중입니다");
+              return;
+            }
+            if (thumbnailStatus === "error") {
+              alert("썸네일이 이미지가 아닙니다");
+              return;
+            }
+            if (!confirm("발행하시겠습니까?")) return;
+
+            void publish.trigger({ notes, notify: finalNotify, rememberNotify, thumbnailId: thumbnail?.id });
           }}
         >
           <input
             className="input"
             type="text"
             placeholder="변경사항을 짧게 적어주세요"
-            required
             maxLength={255}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
+          {res.data.files.length > 0 && (
+            <label className="flex items-center gap-2 mt-2 flex-wrap justify-end">
+              <span>썸네일</span>
+              <select
+                value={thumbnail?.id ?? ""}
+                onChange={(e) => {
+                  if (e.target.value === "") {
+                    setThumbnail(null);
+                    setThumbnailStatus("ok");
+                  } else {
+                    const id = parseInt(e.target.value);
+                    const file = res.data!.files.find((f) => f.id === id)!;
+                    setThumbnail(file);
+                    setThumbnailStatus("loading");
+                  }
+                }}
+                className={`p-1 pb-0 border border-gray-300 rounded-md flex-1 bg-white ${thumbnail === null ? "text-gray-500" : ""}`}
+              >
+                <option value="">없음</option>
+                {res.data.files.filter((f) => f.mimeType.startsWith("image/")).map((file) => (
+                  <option key={file.id} value={file.id}>
+                    {file.name}
+                  </option>
+                ))}
+              </select>
+              {thumbnail && thumbnailStatus !== "error" && (
+                <img src={`/files/private/${thumbnail?.id}/${thumbnail?.name}`} alt={thumbnail?.name}
+                  className="w-8 h-8 object-cover rounded"
+                  onLoad={() => setThumbnailStatus("ok")}
+                  onError={() => setThumbnailStatus("error")} />
+              )}
+              {
+                thumbnail === null ? null :
+                  thumbnailStatus === "loading" ? (
+                    <span className="text-gray-500">이미지인지 확인중...</span>
+                ) : thumbnailStatus === "error" ? (
+                  <span className="text-red-500">이미지가 아닙니다</span>
+                ) : (
+                  <span className="text-green-500">썸네일로 쓸 수 있습니다</span>
+                )}
+            </label>
+          )}
           <label className="flex items-center gap-2 mt-2">
             <input
               type="checkbox"

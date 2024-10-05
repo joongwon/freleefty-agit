@@ -25,6 +25,7 @@
 /* buttons */
 .button {
   @apply
+    whitespace-nowrap
     inline-flex
     items-center
     justify-center

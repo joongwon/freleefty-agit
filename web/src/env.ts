@@ -1,7 +1,6 @@
 import "server-only";
 
 const keys = [
-  "NAVER_ID",
   "NAVER_SECRET",
   "JWT_SECRET",
   "DATABASE_URL",

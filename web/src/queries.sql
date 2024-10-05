@@ -1,13 +1,16 @@
 /* @name ListArticles */
 SELECT
   a.id,
+  e.id AS "editionId!",
   title AS "title!",
   author_id AS "authorId!",
   name AS "authorName!",
   first_published_at AS "publishedAt!",
   comments_count AS "commentsCount!",
   views_count AS "viewsCount!",
-  likes_count AS "likesCount!"
+  likes_count AS "likesCount!",
+  thumbnail_id AS "thumbnailId!",
+  thumbnail_name AS "thumbnailName!"
 FROM last_editions e
   JOIN articles a ON e.article_id = a.id
   JOIN users u ON a.author_id = u.id
@@ -19,13 +22,16 @@ LIMIT :limit!;
 /* @name ListArticlesByAuthor */
 SELECT
   a.id,
+  e.id AS "editionId!",
   title AS "title!",
   author_id AS "authorId!",
   name AS "authorName!",
   first_published_at AS "publishedAt!",
   comments_count AS "commentsCount!",
   views_count AS "viewsCount!",
-  likes_count AS "likesCount!"
+  likes_count AS "likesCount!",
+  thumbnail_id AS "thumbnailId!",
+  thumbnail_name AS "thumbnailName!"
 FROM last_editions e
   JOIN articles a ON e.article_id = a.id
   JOIN users u ON a.author_id = u.id
@@ -76,13 +82,16 @@ SELECT
 /* @name GetNextArticle */
 SELECT
   a.id,
+  e.id AS "editionId!",
   title AS "title!",
   author_id AS "authorId!",
   name AS "authorName!",
   first_published_at AS "publishedAt!",
   comments_count AS "commentsCount!",
   views_count AS "viewsCount!",
-  likes_count AS "likesCount!"
+  likes_count AS "likesCount!",
+  thumbnail_id AS "thumbnailId!",
+  thumbnail_name AS "thumbnailName!"
 FROM last_editions e
 JOIN articles a ON e.article_id = a.id
 JOIN users u ON a.author_id = u.id
@@ -93,13 +102,16 @@ ORDER BY (first_published_at, a.id) ASC LIMIT 1;
 /* @name GetPrevArticle */
 SELECT
   a.id,
+  e.id AS "editionId!",
   title AS "title!",
   author_id AS "authorId!",
   name AS "authorName!",
   first_published_at AS "publishedAt!",
   comments_count AS "commentsCount!",
   views_count AS "viewsCount!",
-  likes_count AS "likesCount!"
+  likes_count AS "likesCount!",
+  thumbnail_id AS "thumbnailId!",
+  thumbnail_name AS "thumbnailName!"
 FROM last_editions e
 JOIN articles a ON e.article_id = a.id
 JOIN users u ON a.author_id = u.id
@@ -190,11 +202,11 @@ SELECT title <> '' AS "hasTitle!" FROM drafts
 WHERE id = :id! AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!;
 
 /* @name CreateEditionFromDraft */
-INSERT INTO editions (article_id, title, content, notes)
-  SELECT article_id, title, content, :notes!
+INSERT INTO editions (article_id, title, content, notes, thumbnail)
+SELECT article_id, title, content, :notes!, :thumbnail
   FROM drafts
   WHERE id = :draftId!
-  RETURNING article_id AS "articleId", id AS "editionId";
+RETURNING article_id AS "articleId", id AS "editionId";
 
 /* @name MoveDraftFilesToEdition */
 UPDATE files
@@ -292,12 +304,9 @@ JOIN articles ON drafts.article_id = articles.id
 WHERE drafts.id = :id! AND author_id = :authorId!;
 
 /* @name ListDraftFiles */
-SELECT id, name
+SELECT id, name, mime_type AS "mimeType"
 FROM files
 WHERE draft_id = :id!;
-
-/* @name CountDraftFiles */
-SELECT COUNT(*) AS "count!" FROM files WHERE draft_id = :id!;
 
 /* @name GetEdition */
 SELECT id, article_id AS "articleId", title, content, notes, published_at AS "publishedAt"

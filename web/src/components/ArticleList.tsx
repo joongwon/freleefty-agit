@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import Time from "@/components/Time";
 import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
 import { DraftSummary, EditionSummary } from "@/types";
+import { getClientEnv } from "@/clientEnv";
 
 export function Container(p: { children: ReactNode }) {
   return <ul className="not-prose">{p.children}</ul>;
@@ -33,7 +34,7 @@ function Stat(p: { icon: ReactNode; value: number }) {
 }
 
 export type ItemType = {
-  id: number;
+  id: number; // for creating links
   title: string;
   commentsCount?: number;
   viewsCount?: number;
@@ -43,9 +44,15 @@ export type ItemType = {
   publishedAt?: string;
   updatedAt?: string;
   published?: boolean;
-  articleId?: number;
+  articleId?: number; // for appending 발행판 보기 link
   notes?: string;
-};
+} & ({
+  editionId: number;
+  thumbnailId: number;
+  thumbnailName: string;
+} | {
+  thumbnailId?: never;
+});
 
 /**
  * before: 제목 앞에 표시할 내용. 이전/다음 글을 표시할 때 사용
@@ -60,7 +67,14 @@ export function Item(p: {
   return (
     <ItemBase before={p.before}>
       <p>
-        <Link href={`${p.hrefPrefix}/${p.item.id}`}>
+        <Link href={`${p.hrefPrefix}/${p.item.id}`} className="inline-block">
+          {p.item.thumbnailId && (
+            <img
+              src={`${getClientEnv().THUMBNAIL_URL}/${p.item.editionId}/${p.item.thumbnailId}/${p.item.thumbnailName}`}
+              alt={p.item.thumbnailName}
+              className="w-16 h-16 object-cover rounded inline-block mr-2"
+            />
+          )}
           {p.title ?? p.item.title}
         </Link>
         {p.item.commentsCount !== undefined && (
