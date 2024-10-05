@@ -138,7 +138,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   return (
-    <main className="flex flex-col gap-4 m-4 max-w-prose w-screen">
+    <main className="flex flex-col gap-4 p-4 min-w-0 w-screen max-w-screen-md">
       <input
         className="input focus:outline-none focus:bg-gray-100 text-2xl font-bold"
         type="text"
