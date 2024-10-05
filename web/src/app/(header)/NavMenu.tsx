@@ -23,7 +23,7 @@ export default function NavMenu() {
   return (
     <>
       <nav
-        className="fixed bottom-0 right-0 m-8 flex flex-col text-xl md:static md:inset-auto md:m-0 md:text-base md:bg-gray-200 md:p-4 md:shadow-lg"
+        className="fixed bottom-0 right-0 m-8 flex flex-col text-xl md:static md:inset-auto md:m-0 md:text-base md:bg-gray-200 md:p-4 md:shadow-lg z-10"
         onClick={(e) => {
           if (e.target instanceof HTMLAnchorElement) {
             setIsOpen(false);

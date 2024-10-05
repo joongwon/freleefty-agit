@@ -30,7 +30,7 @@ export default function Buttons(p: { article: Article }) {
 
   return (
     <>
-      <p className="text-sm text-gray-500 h-5">
+      <p className="text-sm text-gray-500 min-h-5">
         {likes.data && likes.data.length > 0 && (
           <>
             {likes.data.map((e, i, arr) => (
