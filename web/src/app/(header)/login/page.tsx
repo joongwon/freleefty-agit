@@ -14,7 +14,10 @@ function useAuthUrl(clientId: string, from?: string) {
 
 export default function LoginPage(p: PageProps) {
   const authState = useHookstate(gAuthState);
-  const authUrl = useAuthUrl(getClientEnv().NAVER_ID, onlyString(p.searchParams.from));
+  const authUrl = useAuthUrl(
+    getClientEnv().NAVER_ID,
+    onlyString(p.searchParams.from),
+  );
   switch (authState.value.type) {
     case "loading":
       return <main>로딩중...</main>;

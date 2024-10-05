@@ -46,13 +46,16 @@ export type ItemType = {
   published?: boolean;
   articleId?: number; // for appending 발행판 보기 link
   notes?: string;
-} & ({
-  editionId: number;
-  thumbnailId: number;
-  thumbnailName: string;
-} | {
-  thumbnailId?: never;
-});
+} & (
+  | {
+      editionId: number;
+      thumbnailId: number;
+      thumbnailName: string;
+    }
+  | {
+      thumbnailId?: never;
+    }
+);
 
 /**
  * before: 제목 앞에 표시할 내용. 이전/다음 글을 표시할 때 사용

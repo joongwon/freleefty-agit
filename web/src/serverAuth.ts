@@ -16,4 +16,3 @@ export function setRefreshTokenCookie(refreshToken: string) {
     maxAge: 7 * 24 * 60 * 60,
   });
 }
-

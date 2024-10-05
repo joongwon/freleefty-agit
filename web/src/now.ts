@@ -12,7 +12,7 @@ export function useNow() {
     listeners.add(listener);
     return () => {
       listeners.delete(listener);
-    }
+    };
   }, []);
   return nowState;
 }

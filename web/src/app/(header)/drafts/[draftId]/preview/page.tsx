@@ -28,7 +28,9 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   });
 
   // SWR cache is not needed; always most fresh setting is fetched
-  const [notifySetting, setNotifySetting] = useState<{ value: boolean } | null>(null);
+  const [notifySetting, setNotifySetting] = useState<{ value: boolean } | null>(
+    null,
+  );
   const token = authState.value.type === "login" ? authState.value.token : null;
   useEffect(() => {
     if (token) {
@@ -43,24 +45,34 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   const [rememberNotify, setRememberNotify] = useState(false);
   const finalNotify = notify?.value ?? notifySetting?.value ?? true;
 
-  const [thumbnail, setThumbnail] = useState<{ id: number, name: string } | null>(null);
+  const [thumbnail, setThumbnail] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
   if (res.data && res.data.files.length > 0 && thumbnail === null) {
-    setThumbnail(res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null);
+    setThumbnail(
+      res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null,
+    );
   }
-  const [thumbnailStatus, setThumbnailStatus] = useState<"loading" | "error" | "ok">("loading");
+  const [thumbnailStatus, setThumbnailStatus] = useState<
+    "loading" | "error" | "ok"
+  >("loading");
 
   const router = useRouter();
 
   const publish = useSWRMutation(
     swrKey,
-    async ([draftId], opt: {
-      arg: {
-        notes: string,
-        notify: boolean,
-        rememberNotify: boolean,
-        thumbnailId?: number,
-      }
-    }) => {
+    async (
+      [draftId],
+      opt: {
+        arg: {
+          notes: string;
+          notify: boolean;
+          rememberNotify: boolean;
+          thumbnailId?: number;
+        };
+      },
+    ) => {
       if (gAuthState.value.type !== "login")
         throw new Error("non-login state found in publishDraft mutation");
       const publishRes = await publishDraft(gAuthState.value.token, {
@@ -84,7 +96,8 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
     },
   );
 
-  const publishDisabled = !res.data || publish.isMutating || thumbnailStatus !== "ok";
+  const publishDisabled =
+    !res.data || publish.isMutating || thumbnailStatus !== "ok";
 
   if (authState.value.type === "loading") {
     return <main>로그인 중...</main>;
@@ -130,7 +143,12 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
             }
             if (!confirm("발행하시겠습니까?")) return;
 
-            void publish.trigger({ notes, notify: finalNotify, rememberNotify, thumbnailId: thumbnail?.id });
+            void publish.trigger({
+              notes,
+              notify: finalNotify,
+              rememberNotify,
+              thumbnailId: thumbnail?.id,
+            });
           }}
         >
           <input
@@ -160,27 +178,30 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
                 className={`p-1 pb-0 border border-gray-300 rounded-md flex-1 bg-white ${thumbnail === null ? "text-gray-500" : ""}`}
               >
                 <option value="">없음</option>
-                {res.data.files.filter((f) => f.mimeType.startsWith("image/")).map((file) => (
-                  <option key={file.id} value={file.id}>
-                    {file.name}
-                  </option>
-                ))}
+                {res.data.files
+                  .filter((f) => f.mimeType.startsWith("image/"))
+                  .map((file) => (
+                    <option key={file.id} value={file.id}>
+                      {file.name}
+                    </option>
+                  ))}
               </select>
               {thumbnail && thumbnailStatus !== "error" && (
-                <img src={`/files/private/${thumbnail?.id}/${thumbnail?.name}`} alt={thumbnail?.name}
+                <img
+                  src={`/files/private/${thumbnail?.id}/${thumbnail?.name}`}
+                  alt={thumbnail?.name}
                   className="w-8 h-8 object-cover rounded"
                   onLoad={() => setThumbnailStatus("ok")}
-                  onError={() => setThumbnailStatus("error")} />
+                  onError={() => setThumbnailStatus("error")}
+                />
               )}
-              {
-                thumbnail === null ? null :
-                  thumbnailStatus === "loading" ? (
-                    <span className="text-gray-500">이미지인지 확인중...</span>
-                ) : thumbnailStatus === "error" ? (
-                  <span className="text-red-500">이미지가 아닙니다</span>
-                ) : (
-                  <span className="text-green-500">썸네일로 쓸 수 있습니다</span>
-                )}
+              {thumbnail === null ? null : thumbnailStatus === "loading" ? (
+                <span className="text-gray-500">이미지인지 확인중...</span>
+              ) : thumbnailStatus === "error" ? (
+                <span className="text-red-500">이미지가 아닙니다</span>
+              ) : (
+                <span className="text-green-500">썸네일로 쓸 수 있습니다</span>
+              )}
             </label>
           )}
           <label className="flex items-center gap-2 mt-2">
@@ -202,19 +223,15 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
             />
             <span>알림 설정 기억</span>
           </label>
-          <p className="text-sm text-gray-500">{finalNotify ? (
-            rememberNotify ? (
-              "앞으로도 새글 알림을 보냅니다"
-            ) : (
-              "이번에만 새글 알림을 보냅니다"
-            )
-          ) : (
-            rememberNotify ? (
-              "앞으로도 알림 없이 조용히 발행합니다"
-            ) : (
-              "이번에만 알림 없이 조용히 발행합니다"
-            )
-          )}</p>
+          <p className="text-sm text-gray-500">
+            {finalNotify
+              ? rememberNotify
+                ? "앞으로도 새글 알림을 보냅니다"
+                : "이번에만 새글 알림을 보냅니다"
+              : rememberNotify
+                ? "앞으로도 알림 없이 조용히 발행합니다"
+                : "이번에만 알림 없이 조용히 발행합니다"}
+          </p>
           <section className="mt-2 flex justify-end gap-2">
             <Link href={`/drafts/${draftId}`} className="button button-blue">
               계속 수정

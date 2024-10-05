@@ -1,6 +1,13 @@
 "use client";
 
-import { updateUserName, createWebhook, listWebhooks, deleteWebhook, getUserNewArticleNotify, setUserNewArticleNotify } from "@/actions";
+import {
+  updateUserName,
+  createWebhook,
+  listWebhooks,
+  deleteWebhook,
+  getUserNewArticleNotify,
+  setUserNewArticleNotify,
+} from "@/actions";
 import { gAuthState, setProfile } from "@/auth";
 import { User } from "@/types";
 import { useHookstate } from "@hookstate/core";
@@ -10,7 +17,6 @@ import useSWRMutation from "swr/mutation";
 
 export default function SettingsPage() {
   const auth = useHookstate(gAuthState);
-
 
   switch (auth.value.type) {
     case "loading":
@@ -112,7 +118,9 @@ function NameChangeForm(p: { token: string; profile: User }) {
 }
 
 function NewArticleNotifyForm(p: { token: string }) {
-  const notifySetting = useSWR([p.token, "newArticleNotify"], () => getUserNewArticleNotify(p.token));
+  const notifySetting = useSWR([p.token, "newArticleNotify"], () =>
+    getUserNewArticleNotify(p.token),
+  );
   const updateNotify = useSWRMutation(
     notifySetting.data && [p.token, "newArticleNotify"],
     () => setUserNewArticleNotify(p.token, !notifySetting.data?.notify),
@@ -131,9 +139,7 @@ function NewArticleNotifyForm(p: { token: string }) {
     return <p>알림 설정을 불러오는 중...</p>;
   } else {
     return (
-      <form
-        className="flex flex-col gap-2"
-      >
+      <form className="flex flex-col gap-2">
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -168,7 +174,7 @@ function WebhookForm(p: { token: string }) {
   );
   const deleteMutation = useSWRMutation(
     ["webhooks"],
-    (_, opt: { arg: { id: number } }) => deleteWebhook(p.token, opt.arg.id)
+    (_, opt: { arg: { id: number } }) => deleteWebhook(p.token, opt.arg.id),
   );
   const isMutating = create.isMutating || deleteMutation.isMutating;
 
@@ -190,15 +196,15 @@ function WebhookForm(p: { token: string }) {
                     void deleteMutation.trigger({ id: webhook.id });
                   }
                 }}
-                className="button mx-4">삭제</button>
+                className="button mx-4"
+              >
+                삭제
+              </button>
             </li>
           ))}
         </ul>
       )}
-      <button
-        className="button"
-        onClick={() => setShow(!show)}
-      >
+      <button className="button" onClick={() => setShow(!show)}>
         {show ? "추가 취소" : "추가하기"}
       </button>
       {show && (

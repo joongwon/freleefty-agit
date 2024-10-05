@@ -75,20 +75,16 @@ export async function tryLogin(codeRaw: string) {
   }
 }
 
-type JwtPayload = { id: string, role: Queries.role };
+type JwtPayload = { id: string; role: Queries.role };
 
 async function login(profile: User) {
   const JWT_SECRET = getEnv().JWT_SECRET;
   const payload: JwtPayload = { id: profile.id, role: profile.role };
   const accessToken = await new Promise<string>((resolve, reject) =>
-    jwt.sign(
-      payload,
-      JWT_SECRET,
-      { expiresIn: "1h" },
-      (err, token) =>
-        token !== undefined
-          ? resolve(token)
-          : reject(err ?? new Error("Unreachable")),
+    jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" }, (err, token) =>
+      token !== undefined
+        ? resolve(token)
+        : reject(err ?? new Error("Unreachable")),
     ),
   );
   const refreshToken = randomUUID();
@@ -100,7 +96,7 @@ async function login(profile: User) {
   return { accessToken, profile };
 }
 
-async function decodeToken(token: string) : Promise<JwtPayload> {
+async function decodeToken(token: string): Promise<JwtPayload> {
   const JWT_SECRET = getEnv().JWT_SECRET;
   return await new Promise<JwtPayload>((resolve, reject) =>
     jwt.verify(token, JWT_SECRET, (err, decoded) =>
@@ -335,7 +331,7 @@ async function webhookSendEmbed(
     description?: string;
     author?: { name: string; url: string };
     url?: string;
-  }
+  },
 ) {
   const payload = {
     username: "아지트새글알리미",
@@ -361,21 +357,27 @@ async function webhookSendEmbed(
 }
 
 async function webhookNotifyNewArticle(articleId: number) {
-  const article = await newdb.option(Queries.getArticleForWebhook, { id: articleId });
+  const article = await newdb.option(Queries.getArticleForWebhook, {
+    id: articleId,
+  });
   if (!article) {
-    console.error(`webhookNorifyNewArticle(): article with id=${articleId} not found`);
+    console.error(
+      `webhookNorifyNewArticle(): article with id=${articleId} not found`,
+    );
     return;
   }
   const webhooks = await newdb.list(Queries.listWebhooks, undefined);
   await Promise.all(
-    webhooks.map(({ url }) => webhookSendEmbed(url, {
-      title: article.title,
-      author: {
-        name: article.authorName,
-        url: `https://blog.freleefty.org/users/${article.authorId}/`,
-      },
-      url: `https://blog.freleefty.org/articles/${articleId}`,
-    }))
+    webhooks.map(({ url }) =>
+      webhookSendEmbed(url, {
+        title: article.title,
+        author: {
+          name: article.authorName,
+          url: `https://blog.freleefty.org/users/${article.authorId}/`,
+        },
+        url: `https://blog.freleefty.org/articles/${articleId}`,
+      }),
+    ),
   );
 }
 
@@ -394,7 +396,8 @@ export async function publishDraft(
   payload: z.infer<typeof publishDraftSchema>,
 ) {
   const token = stringSchema.parse(tokenRaw);
-  const { id, notes, notify, rememberNotify, thumbnailId } = publishDraftSchema.parse(payload);
+  const { id, notes, notify, rememberNotify, thumbnailId } =
+    publishDraftSchema.parse(payload);
   const userId = (await decodeToken(token)).id;
 
   const res = await newdb.tx(async ({ first, unique, execute, list }) => {
@@ -737,25 +740,37 @@ export async function getUserNewArticleNotify(tokenRaw: string) {
   const token = stringSchema.parse(tokenRaw);
   const userId = (await decodeToken(token)).id;
 
-  const res = await newdb.option(Queries.getUserNewArticleNotifySetting, { id: userId });
+  const res = await newdb.option(Queries.getUserNewArticleNotifySetting, {
+    id: userId,
+  });
   if (!res) {
     return { type: "NotFound" } as const;
   }
   return { type: "Ok", notify: res.newArticleNotify } as const;
 }
 
-export async function setUserNewArticleNotify(tokenRaw: string, notifyRaw: boolean) {
+export async function setUserNewArticleNotify(
+  tokenRaw: string,
+  notifyRaw: boolean,
+) {
   const token = stringSchema.parse(tokenRaw);
   const notify = booleanSchema.parse(notifyRaw);
   const userId = (await decodeToken(token)).id;
 
-  await newdb.execute(Queries.setUserNewArticleNotifySetting, { id: userId, newArticleNotify: notify });
+  await newdb.execute(Queries.setUserNewArticleNotifySetting, {
+    id: userId,
+    newArticleNotify: notify,
+  });
   return { type: "Ok" } as const;
 }
 
 const nullableNumberSchema = numberSchema.nullable();
 
-export async function listArticles(beforeRaw: string, limitRaw: number, prevIdRaw: number | null) {
+export async function listArticles(
+  beforeRaw: string,
+  limitRaw: number,
+  prevIdRaw: number | null,
+) {
   const before = stringSchema.parse(beforeRaw);
   const limit = numberSchema.parse(limitRaw);
   const prevId = nullableNumberSchema.parse(prevIdRaw);
@@ -763,25 +778,49 @@ export async function listArticles(beforeRaw: string, limitRaw: number, prevIdRa
   return await newdb.list(Queries.listArticles, { before, limit, prevId });
 }
 
-export async function listArticlesByAuthor(authorIdRaw: string, beforeRaw: string, limitRaw: number, prevIdRaw: number | null) {
+export async function listArticlesByAuthor(
+  authorIdRaw: string,
+  beforeRaw: string,
+  limitRaw: number,
+  prevIdRaw: number | null,
+) {
   const authorId = stringSchema.parse(authorIdRaw);
   const before = stringSchema.parse(beforeRaw);
   const limit = numberSchema.parse(limitRaw);
   const prevId = nullableNumberSchema.parse(prevIdRaw);
 
-  return await newdb.list(Queries.listArticlesByAuthor, { authorId, before, limit, prevId });
+  return await newdb.list(Queries.listArticlesByAuthor, {
+    authorId,
+    before,
+    limit,
+    prevId,
+  });
 }
 
-export async function listUserComments(authorIdRaw: string, beforeRaw: string, limitRaw: number, prevIdRaw: number | null) {
+export async function listUserComments(
+  authorIdRaw: string,
+  beforeRaw: string,
+  limitRaw: number,
+  prevIdRaw: number | null,
+) {
   const authorId = stringSchema.parse(authorIdRaw);
   const before = stringSchema.parse(beforeRaw);
   const limit = numberSchema.parse(limitRaw);
   const prevId = nullableNumberSchema.parse(prevIdRaw);
 
-  return await newdb.list(Queries.listUserComments, { authorId, before, limit, prevId });
+  return await newdb.list(Queries.listUserComments, {
+    authorId,
+    before,
+    limit,
+    prevId,
+  });
 }
 
-export async function createWebhook(tokenRaw: string, nameRaw: string, urlRaw: string) {
+export async function createWebhook(
+  tokenRaw: string,
+  nameRaw: string,
+  urlRaw: string,
+) {
   const token = stringSchema.parse(tokenRaw);
   const name = stringSchema.parse(nameRaw).normalize();
   const url = stringSchema.parse(urlRaw);
@@ -796,7 +835,7 @@ export async function createWebhook(tokenRaw: string, nameRaw: string, urlRaw: s
     description: "오늘부터 아지트새글을 알려드려요!",
     url: "https://blog.freleefty.org/",
   });
-  return { type: "Ok" }
+  return { type: "Ok" };
 }
 
 export async function deleteWebhook(tokenRaw: string, idRaw: number) {

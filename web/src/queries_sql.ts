@@ -1,7 +1,7 @@
 /** Types generated for queries found in "src/queries.sql" */
-import { PreparedQuery } from '@pgtyped/runtime';
+import { PreparedQuery } from "@pgtyped/runtime";
 
-export type role = 'admin' | 'user';
+export type role = "admin" | "user";
 
 /** 'ListArticles' parameters type */
 export interface IListArticlesParams {
@@ -31,7 +31,31 @@ export interface IListArticlesQuery {
   result: IListArticlesResult;
 }
 
-const listArticlesIR: any = {"usedParamSet":{"before":true,"prevId":true,"limit":true},"params":[{"name":"before","required":true,"transform":{"type":"scalar"},"locs":[{"a":499,"b":506}]},{"name":"prevId","required":false,"transform":{"type":"scalar"},"locs":[{"a":518,"b":524}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":578,"b":584}]}],"statement":"SELECT\n  a.id,\n  e.id AS \"editionId!\",\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\",\n  thumbnail_id AS \"thumbnailId!\",\n  thumbnail_name AS \"thumbnailName!\"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))\nORDER BY (first_published_at, a.id) DESC\nLIMIT :limit!"};
+const listArticlesIR: any = {
+  usedParamSet: { before: true, prevId: true, limit: true },
+  params: [
+    {
+      name: "before",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 499, b: 506 }],
+    },
+    {
+      name: "prevId",
+      required: false,
+      transform: { type: "scalar" },
+      locs: [{ a: 518, b: 524 }],
+    },
+    {
+      name: "limit",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 578, b: 584 }],
+    },
+  ],
+  statement:
+    'SELECT\n  a.id,\n  e.id AS "editionId!",\n  title AS "title!",\n  author_id AS "authorId!",\n  name AS "authorName!",\n  first_published_at AS "publishedAt!",\n  comments_count AS "commentsCount!",\n  views_count AS "viewsCount!",\n  likes_count AS "likesCount!",\n  thumbnail_id AS "thumbnailId!",\n  thumbnail_name AS "thumbnailName!"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))\nORDER BY (first_published_at, a.id) DESC\nLIMIT :limit!',
+};
 
 /**
  * Query generated from SQL:
@@ -57,8 +81,10 @@ const listArticlesIR: any = {"usedParamSet":{"before":true,"prevId":true,"limit"
  * LIMIT :limit!
  * ```
  */
-export const listArticles = new PreparedQuery<IListArticlesParams,IListArticlesResult>(listArticlesIR);
-
+export const listArticles = new PreparedQuery<
+  IListArticlesParams,
+  IListArticlesResult
+>(listArticlesIR);
 
 /** 'ListArticlesByAuthor' parameters type */
 export interface IListArticlesByAuthorParams {
@@ -89,7 +115,37 @@ export interface IListArticlesByAuthorQuery {
   result: IListArticlesByAuthorResult;
 }
 
-const listArticlesByAuthorIR: any = {"usedParamSet":{"authorId":true,"before":true,"prevId":true,"limit":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":483,"b":492}]},{"name":"before","required":true,"transform":{"type":"scalar"},"locs":[{"a":530,"b":537}]},{"name":"prevId","required":false,"transform":{"type":"scalar"},"locs":[{"a":549,"b":555}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":609,"b":615}]}],"statement":"SELECT\n  a.id,\n  e.id AS \"editionId!\",\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\",\n  thumbnail_id AS \"thumbnailId!\",\n  thumbnail_name AS \"thumbnailName!\"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE a.author_id = :authorId!\n  AND (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))\nORDER BY (first_published_at, a.id) DESC\nLIMIT :limit!"};
+const listArticlesByAuthorIR: any = {
+  usedParamSet: { authorId: true, before: true, prevId: true, limit: true },
+  params: [
+    {
+      name: "authorId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 483, b: 492 }],
+    },
+    {
+      name: "before",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 530, b: 537 }],
+    },
+    {
+      name: "prevId",
+      required: false,
+      transform: { type: "scalar" },
+      locs: [{ a: 549, b: 555 }],
+    },
+    {
+      name: "limit",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 609, b: 615 }],
+    },
+  ],
+  statement:
+    'SELECT\n  a.id,\n  e.id AS "editionId!",\n  title AS "title!",\n  author_id AS "authorId!",\n  name AS "authorName!",\n  first_published_at AS "publishedAt!",\n  comments_count AS "commentsCount!",\n  views_count AS "viewsCount!",\n  likes_count AS "likesCount!",\n  thumbnail_id AS "thumbnailId!",\n  thumbnail_name AS "thumbnailName!"\nFROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\nWHERE a.author_id = :authorId!\n  AND (first_published_at, a.id) < (:before!, COALESCE(:prevId, 0))\nORDER BY (first_published_at, a.id) DESC\nLIMIT :limit!',
+};
 
 /**
  * Query generated from SQL:
@@ -116,8 +172,10 @@ const listArticlesByAuthorIR: any = {"usedParamSet":{"authorId":true,"before":tr
  * LIMIT :limit!
  * ```
  */
-export const listArticlesByAuthor = new PreparedQuery<IListArticlesByAuthorParams,IListArticlesByAuthorResult>(listArticlesByAuthorIR);
-
+export const listArticlesByAuthor = new PreparedQuery<
+  IListArticlesByAuthorParams,
+  IListArticlesByAuthorResult
+>(listArticlesByAuthorIR);
 
 /** 'ListPopularArticles' parameters type */
 export type IListPopularArticlesParams = void;
@@ -140,13 +198,18 @@ export interface IListPopularArticlesQuery {
   result: IListPopularArticlesResult;
 }
 
-const listPopularArticlesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM (\n    SELECT \n      a.id,\n      title AS \"title!\",\n      author_id AS \"authorId!\",\n      name AS \"authorName!\",\n      first_published_at AS \"publishedAt!\",\n      comments_count AS \"commentsCount!\",\n      likes_count AS \"likesCount!\",\n      (SELECT COUNT(*) FROM views WHERE views.article_id = a.id\n        AND (now() - views.created_at < '14 days'::interval)) AS \"viewsCount!\"\n    FROM last_editions e\n    JOIN articles a ON e.article_id = a.id\n    JOIN users u ON a.author_id = u.id\n    JOIN article_stats s ON a.id = s.id\n    ORDER BY \"viewsCount!\" DESC LIMIT 5\n) AS t WHERE \"viewsCount!\" > 0"};
+const listPopularArticlesIR: any = {
+  usedParamSet: {},
+  params: [],
+  statement:
+    'SELECT * FROM (\n    SELECT \n      a.id,\n      title AS "title!",\n      author_id AS "authorId!",\n      name AS "authorName!",\n      first_published_at AS "publishedAt!",\n      comments_count AS "commentsCount!",\n      likes_count AS "likesCount!",\n      (SELECT COUNT(*) FROM views WHERE views.article_id = a.id\n        AND (now() - views.created_at < \'14 days\'::interval)) AS "viewsCount!"\n    FROM last_editions e\n    JOIN articles a ON e.article_id = a.id\n    JOIN users u ON a.author_id = u.id\n    JOIN article_stats s ON a.id = s.id\n    ORDER BY "viewsCount!" DESC LIMIT 5\n) AS t WHERE "viewsCount!" > 0',
+};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT * FROM (
- *     SELECT 
+ *     SELECT
  *       a.id,
  *       title AS "title!",
  *       author_id AS "authorId!",
@@ -164,8 +227,10 @@ const listPopularArticlesIR: any = {"usedParamSet":{},"params":[],"statement":"S
  * ) AS t WHERE "viewsCount!" > 0
  * ```
  */
-export const listPopularArticles = new PreparedQuery<IListPopularArticlesParams,IListPopularArticlesResult>(listPopularArticlesIR);
-
+export const listPopularArticles = new PreparedQuery<
+  IListPopularArticlesParams,
+  IListPopularArticlesResult
+>(listPopularArticlesIR);
 
 /** 'GetArticle' parameters type */
 export interface IGetArticleParams {
@@ -193,7 +258,19 @@ export interface IGetArticleQuery {
   result: IGetArticleResult;
 }
 
-const getArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":544,"b":547}]}],"statement":"SELECT\n    a.id,\n    title AS \"title!\",\n    content AS \"content!\",\n    author_id AS \"authorId!\",\n    name AS \"authorName!\",\n    views_count AS \"viewsCount!\",\n    likes_count AS \"likesCount!\",\n    e.id AS \"editionId!\",\n    first_published_at AS \"firstPublishedAt!\",\n    last_published_at AS \"lastPublishedAt!\",\n    (SELECT COUNT(*) FROM editions WHERE article_id = a.id) AS \"editionsCount!\"\n  FROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\n  WHERE a.id = :id!"};
+const getArticleIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 544, b: 547 }],
+    },
+  ],
+  statement:
+    'SELECT\n    a.id,\n    title AS "title!",\n    content AS "content!",\n    author_id AS "authorId!",\n    name AS "authorName!",\n    views_count AS "viewsCount!",\n    likes_count AS "likesCount!",\n    e.id AS "editionId!",\n    first_published_at AS "firstPublishedAt!",\n    last_published_at AS "lastPublishedAt!",\n    (SELECT COUNT(*) FROM editions WHERE article_id = a.id) AS "editionsCount!"\n  FROM last_editions e\n  JOIN articles a ON e.article_id = a.id\n  JOIN users u ON a.author_id = u.id\n  JOIN article_stats s ON a.id = s.id\n  WHERE a.id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -217,8 +294,10 @@ const getArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","re
  *   WHERE a.id = :id!
  * ```
  */
-export const getArticle = new PreparedQuery<IGetArticleParams,IGetArticleResult>(getArticleIR);
-
+export const getArticle = new PreparedQuery<
+  IGetArticleParams,
+  IGetArticleResult
+>(getArticleIR);
 
 /** 'GetNextArticle' parameters type */
 export interface IGetNextArticleParams {
@@ -246,7 +325,22 @@ export interface IGetNextArticleQuery {
   result: IGetNextArticleResult;
 }
 
-const getNextArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":558,"b":561},{"a":565,"b":568}]}],"statement":"SELECT\n  a.id,\n  e.id AS \"editionId!\",\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\",\n  thumbnail_id AS \"thumbnailId!\",\n  thumbnail_name AS \"thumbnailName!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) > ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)\nORDER BY (first_published_at, a.id) ASC LIMIT 1"};
+const getNextArticleIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [
+        { a: 558, b: 561 },
+        { a: 565, b: 568 },
+      ],
+    },
+  ],
+  statement:
+    'SELECT\n  a.id,\n  e.id AS "editionId!",\n  title AS "title!",\n  author_id AS "authorId!",\n  name AS "authorName!",\n  first_published_at AS "publishedAt!",\n  comments_count AS "commentsCount!",\n  views_count AS "viewsCount!",\n  likes_count AS "likesCount!",\n  thumbnail_id AS "thumbnailId!",\n  thumbnail_name AS "thumbnailName!"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) > ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)\nORDER BY (first_published_at, a.id) ASC LIMIT 1',
+};
 
 /**
  * Query generated from SQL:
@@ -271,8 +365,10 @@ const getNextArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id"
  * ORDER BY (first_published_at, a.id) ASC LIMIT 1
  * ```
  */
-export const getNextArticle = new PreparedQuery<IGetNextArticleParams,IGetNextArticleResult>(getNextArticleIR);
-
+export const getNextArticle = new PreparedQuery<
+  IGetNextArticleParams,
+  IGetNextArticleResult
+>(getNextArticleIR);
 
 /** 'GetPrevArticle' parameters type */
 export interface IGetPrevArticleParams {
@@ -300,7 +396,22 @@ export interface IGetPrevArticleQuery {
   result: IGetPrevArticleResult;
 }
 
-const getPrevArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":558,"b":561},{"a":565,"b":568}]}],"statement":"SELECT\n  a.id,\n  e.id AS \"editionId!\",\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\",\n  first_published_at AS \"publishedAt!\",\n  comments_count AS \"commentsCount!\",\n  views_count AS \"viewsCount!\",\n  likes_count AS \"likesCount!\",\n  thumbnail_id AS \"thumbnailId!\",\n  thumbnail_name AS \"thumbnailName!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) < ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)\nORDER BY (first_published_at, a.id) DESC LIMIT 1"};
+const getPrevArticleIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [
+        { a: 558, b: 561 },
+        { a: 565, b: 568 },
+      ],
+    },
+  ],
+  statement:
+    'SELECT\n  a.id,\n  e.id AS "editionId!",\n  title AS "title!",\n  author_id AS "authorId!",\n  name AS "authorName!",\n  first_published_at AS "publishedAt!",\n  comments_count AS "commentsCount!",\n  views_count AS "viewsCount!",\n  likes_count AS "likesCount!",\n  thumbnail_id AS "thumbnailId!",\n  thumbnail_name AS "thumbnailName!"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nJOIN article_stats s ON a.id = s.id\nWHERE (first_published_at, a.id) < ((SELECT first_published_at FROM last_editions WHERE article_id = :id!), :id!)\nORDER BY (first_published_at, a.id) DESC LIMIT 1',
+};
 
 /**
  * Query generated from SQL:
@@ -325,8 +436,10 @@ const getPrevArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id"
  * ORDER BY (first_published_at, a.id) DESC LIMIT 1
  * ```
  */
-export const getPrevArticle = new PreparedQuery<IGetPrevArticleParams,IGetPrevArticleResult>(getPrevArticleIR);
-
+export const getPrevArticle = new PreparedQuery<
+  IGetPrevArticleParams,
+  IGetPrevArticleResult
+>(getPrevArticleIR);
 
 /** 'GetArticleFiles' parameters type */
 export interface IGetArticleFilesParams {
@@ -345,7 +458,19 @@ export interface IGetArticleFilesQuery {
   result: IGetArticleFilesResult;
 }
 
-const getArticleFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":102}]}],"statement":"SELECT id, name\n  FROM files\n  WHERE edition_id = (SELECT id FROM last_editions WHERE article_id = :id!)"};
+const getArticleFilesIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 99, b: 102 }],
+    },
+  ],
+  statement:
+    "SELECT id, name\n  FROM files\n  WHERE edition_id = (SELECT id FROM last_editions WHERE article_id = :id!)",
+};
 
 /**
  * Query generated from SQL:
@@ -355,8 +480,10 @@ const getArticleFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id
  *   WHERE edition_id = (SELECT id FROM last_editions WHERE article_id = :id!)
  * ```
  */
-export const getArticleFiles = new PreparedQuery<IGetArticleFilesParams,IGetArticleFilesResult>(getArticleFilesIR);
-
+export const getArticleFiles = new PreparedQuery<
+  IGetArticleFilesParams,
+  IGetArticleFilesResult
+>(getArticleFilesIR);
 
 /** 'GetArticleComments' parameters type */
 export interface IGetArticleCommentsParams {
@@ -378,7 +505,19 @@ export interface IGetArticleCommentsQuery {
   result: IGetArticleCommentsResult;
 }
 
-const getArticleCommentsIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":193,"b":196}]}],"statement":"SELECT\n  comments.id,\n  content,\n  created_at AS \"createdAt\",\n  author_id AS \"authorId\",\n  name AS \"authorName\"\n  FROM comments JOIN users ON comments.author_id = users.id\n  WHERE article_id = :id!\n  ORDER BY (created_at, comments.id) DESC"};
+const getArticleCommentsIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 193, b: 196 }],
+    },
+  ],
+  statement:
+    'SELECT\n  comments.id,\n  content,\n  created_at AS "createdAt",\n  author_id AS "authorId",\n  name AS "authorName"\n  FROM comments JOIN users ON comments.author_id = users.id\n  WHERE article_id = :id!\n  ORDER BY (created_at, comments.id) DESC',
+};
 
 /**
  * Query generated from SQL:
@@ -394,8 +533,10 @@ const getArticleCommentsIR: any = {"usedParamSet":{"id":true},"params":[{"name":
  *   ORDER BY (created_at, comments.id) DESC
  * ```
  */
-export const getArticleComments = new PreparedQuery<IGetArticleCommentsParams,IGetArticleCommentsResult>(getArticleCommentsIR);
-
+export const getArticleComments = new PreparedQuery<
+  IGetArticleCommentsParams,
+  IGetArticleCommentsResult
+>(getArticleCommentsIR);
 
 /** 'ListUserComments' parameters type */
 export interface IListUserCommentsParams {
@@ -422,7 +563,37 @@ export interface IListUserCommentsQuery {
   result: IListUserCommentsResult;
 }
 
-const listUserCommentsIR: any = {"usedParamSet":{"authorId":true,"before":true,"prevId":true,"limit":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":435,"b":444}]},{"name":"before","required":true,"transform":{"type":"scalar"},"locs":[{"a":483,"b":490}]},{"name":"prevId","required":false,"transform":{"type":"scalar"},"locs":[{"a":502,"b":508}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":565,"b":571}]}],"statement":"SELECT\n  comments.id,\n  comments.content,\n  created_at AS \"createdAt\",\n  articles.id AS \"articleId\",\n  title AS \"articleTitle\",\n  articles.author_id AS \"articleAuthorId\",\n  art_author.name AS \"articleAuthorName\"\n  FROM comments\n  JOIN articles ON comments.article_id = articles.id\n  JOIN last_editions ON articles.id = last_editions.article_id\n  JOIN users art_author ON articles.author_id = art_author.id\n  WHERE comments.author_id = :authorId!\n    AND (created_at, comments.id) < (:before!, COALESCE(:prevId, 0))\n  ORDER BY (created_at, comments.id) DESC\n  LIMIT :limit!"};
+const listUserCommentsIR: any = {
+  usedParamSet: { authorId: true, before: true, prevId: true, limit: true },
+  params: [
+    {
+      name: "authorId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 435, b: 444 }],
+    },
+    {
+      name: "before",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 483, b: 490 }],
+    },
+    {
+      name: "prevId",
+      required: false,
+      transform: { type: "scalar" },
+      locs: [{ a: 502, b: 508 }],
+    },
+    {
+      name: "limit",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 565, b: 571 }],
+    },
+  ],
+  statement:
+    'SELECT\n  comments.id,\n  comments.content,\n  created_at AS "createdAt",\n  articles.id AS "articleId",\n  title AS "articleTitle",\n  articles.author_id AS "articleAuthorId",\n  art_author.name AS "articleAuthorName"\n  FROM comments\n  JOIN articles ON comments.article_id = articles.id\n  JOIN last_editions ON articles.id = last_editions.article_id\n  JOIN users art_author ON articles.author_id = art_author.id\n  WHERE comments.author_id = :authorId!\n    AND (created_at, comments.id) < (:before!, COALESCE(:prevId, 0))\n  ORDER BY (created_at, comments.id) DESC\n  LIMIT :limit!',
+};
 
 /**
  * Query generated from SQL:
@@ -445,8 +616,10 @@ const listUserCommentsIR: any = {"usedParamSet":{"authorId":true,"before":true,"
  *   LIMIT :limit!
  * ```
  */
-export const listUserComments = new PreparedQuery<IListUserCommentsParams,IListUserCommentsResult>(listUserCommentsIR);
-
+export const listUserComments = new PreparedQuery<
+  IListUserCommentsParams,
+  IListUserCommentsResult
+>(listUserCommentsIR);
 
 /** 'GetUserByNaverId' parameters type */
 export interface IGetUserByNaverIdParams {
@@ -466,7 +639,18 @@ export interface IGetUserByNaverIdQuery {
   result: IGetUserByNaverIdResult;
 }
 
-const getUserByNaverIdIR: any = {"usedParamSet":{"naverId":true},"params":[{"name":"naverId","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":58}]}],"statement":"SELECT id, role, name FROM users WHERE naver_id = :naverId!"};
+const getUserByNaverIdIR: any = {
+  usedParamSet: { naverId: true },
+  params: [
+    {
+      name: "naverId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 50, b: 58 }],
+    },
+  ],
+  statement: "SELECT id, role, name FROM users WHERE naver_id = :naverId!",
+};
 
 /**
  * Query generated from SQL:
@@ -474,8 +658,10 @@ const getUserByNaverIdIR: any = {"usedParamSet":{"naverId":true},"params":[{"nam
  * SELECT id, role, name FROM users WHERE naver_id = :naverId!
  * ```
  */
-export const getUserByNaverId = new PreparedQuery<IGetUserByNaverIdParams,IGetUserByNaverIdResult>(getUserByNaverIdIR);
-
+export const getUserByNaverId = new PreparedQuery<
+  IGetUserByNaverIdParams,
+  IGetUserByNaverIdResult
+>(getUserByNaverIdIR);
 
 /** 'CreateUser' parameters type */
 export interface ICreateUserParams {
@@ -493,7 +679,31 @@ export interface ICreateUserQuery {
   result: ICreateUserResult;
 }
 
-const createUserIR: any = {"usedParamSet":{"naverId":true,"id":true,"name":true},"params":[{"name":"naverId","required":true,"transform":{"type":"scalar"},"locs":[{"a":47,"b":55}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":58,"b":61}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":69}]}],"statement":"INSERT INTO users (naver_id, id, name) VALUES (:naverId!, :id!, :name!)"};
+const createUserIR: any = {
+  usedParamSet: { naverId: true, id: true, name: true },
+  params: [
+    {
+      name: "naverId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 47, b: 55 }],
+    },
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 58, b: 61 }],
+    },
+    {
+      name: "name",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 64, b: 69 }],
+    },
+  ],
+  statement:
+    "INSERT INTO users (naver_id, id, name) VALUES (:naverId!, :id!, :name!)",
+};
 
 /**
  * Query generated from SQL:
@@ -501,8 +711,10 @@ const createUserIR: any = {"usedParamSet":{"naverId":true,"id":true,"name":true}
  * INSERT INTO users (naver_id, id, name) VALUES (:naverId!, :id!, :name!)
  * ```
  */
-export const createUser = new PreparedQuery<ICreateUserParams,ICreateUserResult>(createUserIR);
-
+export const createUser = new PreparedQuery<
+  ICreateUserParams,
+  ICreateUserResult
+>(createUserIR);
 
 /** 'GetUserById' parameters type */
 export interface IGetUserByIdParams {
@@ -522,7 +734,18 @@ export interface IGetUserByIdQuery {
   result: IGetUserByIdResult;
 }
 
-const getUserByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":44,"b":51}]}],"statement":"SELECT id, role, name FROM users WHERE id = :userId!"};
+const getUserByIdIR: any = {
+  usedParamSet: { userId: true },
+  params: [
+    {
+      name: "userId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 44, b: 51 }],
+    },
+  ],
+  statement: "SELECT id, role, name FROM users WHERE id = :userId!",
+};
 
 /**
  * Query generated from SQL:
@@ -530,8 +753,10 @@ const getUserByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"us
  * SELECT id, role, name FROM users WHERE id = :userId!
  * ```
  */
-export const getUserById = new PreparedQuery<IGetUserByIdParams,IGetUserByIdResult>(getUserByIdIR);
-
+export const getUserById = new PreparedQuery<
+  IGetUserByIdParams,
+  IGetUserByIdResult
+>(getUserByIdIR);
 
 /** 'DeleteDraft' parameters type */
 export interface IDeleteDraftParams {
@@ -550,19 +775,39 @@ export interface IDeleteDraftQuery {
   result: IDeleteDraftResult;
 }
 
-const deleteDraftIR: any = {"usedParamSet":{"id":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":30,"b":33}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":115}]}],"statement":"DELETE FROM drafts\nWHERE id = :id! \n  AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!\nRETURNING article_id AS \"articleId\""};
+const deleteDraftIR: any = {
+  usedParamSet: { id: true, userId: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 30, b: 33 }],
+    },
+    {
+      name: "userId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 108, b: 115 }],
+    },
+  ],
+  statement:
+    'DELETE FROM drafts\nWHERE id = :id! \n  AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!\nRETURNING article_id AS "articleId"',
+};
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM drafts
- * WHERE id = :id! 
+ * WHERE id = :id!
  *   AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!
  * RETURNING article_id AS "articleId"
  * ```
  */
-export const deleteDraft = new PreparedQuery<IDeleteDraftParams,IDeleteDraftResult>(deleteDraftIR);
-
+export const deleteDraft = new PreparedQuery<
+  IDeleteDraftParams,
+  IDeleteDraftResult
+>(deleteDraftIR);
 
 /** 'DeleteArticleIfNoEditions' parameters type */
 export interface IDeleteArticleIfNoEditionsParams {
@@ -578,7 +823,19 @@ export interface IDeleteArticleIfNoEditionsQuery {
   result: IDeleteArticleIfNoEditionsResult;
 }
 
-const deleteArticleIfNoEditionsIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":32,"b":35}]}],"statement":"DELETE FROM articles WHERE id = :id! AND id NOT IN (SELECT article_id FROM editions)"};
+const deleteArticleIfNoEditionsIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 32, b: 35 }],
+    },
+  ],
+  statement:
+    "DELETE FROM articles WHERE id = :id! AND id NOT IN (SELECT article_id FROM editions)",
+};
 
 /**
  * Query generated from SQL:
@@ -586,8 +843,10 @@ const deleteArticleIfNoEditionsIR: any = {"usedParamSet":{"id":true},"params":[{
  * DELETE FROM articles WHERE id = :id! AND id NOT IN (SELECT article_id FROM editions)
  * ```
  */
-export const deleteArticleIfNoEditions = new PreparedQuery<IDeleteArticleIfNoEditionsParams,IDeleteArticleIfNoEditionsResult>(deleteArticleIfNoEditionsIR);
-
+export const deleteArticleIfNoEditions = new PreparedQuery<
+  IDeleteArticleIfNoEditionsParams,
+  IDeleteArticleIfNoEditionsResult
+>(deleteArticleIfNoEditionsIR);
 
 /** 'CreateDraft' parameters type */
 export interface ICreateDraftParams {
@@ -608,7 +867,19 @@ export interface ICreateDraftQuery {
   result: ICreateDraftResult;
 }
 
-const createDraftIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":74}]}],"statement":"WITH new_article AS (\n  INSERT INTO articles (author_id) VALUES (:authorId!) RETURNING id\n)\nINSERT INTO drafts (article_id) SELECT id FROM new_article\nRETURNING id, title, created_at, updated_at"};
+const createDraftIR: any = {
+  usedParamSet: { authorId: true },
+  params: [
+    {
+      name: "authorId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 65, b: 74 }],
+    },
+  ],
+  statement:
+    "WITH new_article AS (\n  INSERT INTO articles (author_id) VALUES (:authorId!) RETURNING id\n)\nINSERT INTO drafts (article_id) SELECT id FROM new_article\nRETURNING id, title, created_at, updated_at",
+};
 
 /**
  * Query generated from SQL:
@@ -620,8 +891,10 @@ const createDraftIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"
  * RETURNING id, title, created_at, updated_at
  * ```
  */
-export const createDraft = new PreparedQuery<ICreateDraftParams,ICreateDraftResult>(createDraftIR);
-
+export const createDraft = new PreparedQuery<
+  ICreateDraftParams,
+  ICreateDraftResult
+>(createDraftIR);
 
 /** 'GetArticleAuthorId' parameters type */
 export interface IGetArticleAuthorIdParams {
@@ -639,7 +912,18 @@ export interface IGetArticleAuthorIdQuery {
   result: IGetArticleAuthorIdResult;
 }
 
-const getArticleAuthorIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":59}]}],"statement":"SELECT author_id AS \"authorId\" FROM articles WHERE id = :id!"};
+const getArticleAuthorIdIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 56, b: 59 }],
+    },
+  ],
+  statement: 'SELECT author_id AS "authorId" FROM articles WHERE id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -647,8 +931,10 @@ const getArticleAuthorIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":
  * SELECT author_id AS "authorId" FROM articles WHERE id = :id!
  * ```
  */
-export const getArticleAuthorId = new PreparedQuery<IGetArticleAuthorIdParams,IGetArticleAuthorIdResult>(getArticleAuthorIdIR);
-
+export const getArticleAuthorId = new PreparedQuery<
+  IGetArticleAuthorIdParams,
+  IGetArticleAuthorIdResult
+>(getArticleAuthorIdIR);
 
 /** 'ListEditionIds' parameters type */
 export interface IListEditionIdsParams {
@@ -666,7 +952,18 @@ export interface IListEditionIdsQuery {
   result: IListEditionIdsResult;
 }
 
-const listEditionIdsIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":46}]}],"statement":"SELECT id FROM editions WHERE article_id = :id!"};
+const listEditionIdsIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 43, b: 46 }],
+    },
+  ],
+  statement: "SELECT id FROM editions WHERE article_id = :id!",
+};
 
 /**
  * Query generated from SQL:
@@ -674,8 +971,10 @@ const listEditionIdsIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id"
  * SELECT id FROM editions WHERE article_id = :id!
  * ```
  */
-export const listEditionIds = new PreparedQuery<IListEditionIdsParams,IListEditionIdsResult>(listEditionIdsIR);
-
+export const listEditionIds = new PreparedQuery<
+  IListEditionIdsParams,
+  IListEditionIdsResult
+>(listEditionIdsIR);
 
 /** 'GetDraftIdOfArticle' parameters type */
 export interface IGetDraftIdOfArticleParams {
@@ -694,18 +993,38 @@ export interface IGetDraftIdOfArticleQuery {
   result: IGetDraftIdOfArticleResult;
 }
 
-const getDraftIdOfArticleIR: any = {"usedParamSet":{"id":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":41,"b":44}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":119,"b":126}]}],"statement":"SELECT id FROM drafts\nWHERE article_id = :id! \n  AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!"};
+const getDraftIdOfArticleIR: any = {
+  usedParamSet: { id: true, userId: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 41, b: 44 }],
+    },
+    {
+      name: "userId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 119, b: 126 }],
+    },
+  ],
+  statement:
+    "SELECT id FROM drafts\nWHERE article_id = :id! \n  AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!",
+};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT id FROM drafts
- * WHERE article_id = :id! 
+ * WHERE article_id = :id!
  *   AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!
  * ```
  */
-export const getDraftIdOfArticle = new PreparedQuery<IGetDraftIdOfArticleParams,IGetDraftIdOfArticleResult>(getDraftIdOfArticleIR);
-
+export const getDraftIdOfArticle = new PreparedQuery<
+  IGetDraftIdOfArticleParams,
+  IGetDraftIdOfArticleResult
+>(getDraftIdOfArticleIR);
 
 /** 'DeleteArticle' parameters type */
 export interface IDeleteArticleParams {
@@ -721,7 +1040,18 @@ export interface IDeleteArticleQuery {
   result: IDeleteArticleResult;
 }
 
-const deleteArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":32,"b":35}]}],"statement":"DELETE FROM articles WHERE id = :id!"};
+const deleteArticleIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 32, b: 35 }],
+    },
+  ],
+  statement: "DELETE FROM articles WHERE id = :id!",
+};
 
 /**
  * Query generated from SQL:
@@ -729,8 +1059,10 @@ const deleteArticleIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id",
  * DELETE FROM articles WHERE id = :id!
  * ```
  */
-export const deleteArticle = new PreparedQuery<IDeleteArticleParams,IDeleteArticleResult>(deleteArticleIR);
-
+export const deleteArticle = new PreparedQuery<
+  IDeleteArticleParams,
+  IDeleteArticleResult
+>(deleteArticleIR);
 
 /** 'CreateComment' parameters type */
 export interface ICreateCommentParams {
@@ -750,7 +1082,31 @@ export interface ICreateCommentQuery {
   result: ICreateCommentResult;
 }
 
-const createCommentIR: any = {"usedParamSet":{"articleId":true,"authorId":true,"content":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":74}]},{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":77,"b":86}]},{"name":"content","required":true,"transform":{"type":"scalar"},"locs":[{"a":89,"b":97}]}],"statement":"INSERT INTO comments (article_id, author_id, content)\n  VALUES (:articleId!, :authorId!, :content!)\n  RETURNING id"};
+const createCommentIR: any = {
+  usedParamSet: { articleId: true, authorId: true, content: true },
+  params: [
+    {
+      name: "articleId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 64, b: 74 }],
+    },
+    {
+      name: "authorId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 77, b: 86 }],
+    },
+    {
+      name: "content",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 89, b: 97 }],
+    },
+  ],
+  statement:
+    "INSERT INTO comments (article_id, author_id, content)\n  VALUES (:articleId!, :authorId!, :content!)\n  RETURNING id",
+};
 
 /**
  * Query generated from SQL:
@@ -760,8 +1116,10 @@ const createCommentIR: any = {"usedParamSet":{"articleId":true,"authorId":true,"
  *   RETURNING id
  * ```
  */
-export const createComment = new PreparedQuery<ICreateCommentParams,ICreateCommentResult>(createCommentIR);
-
+export const createComment = new PreparedQuery<
+  ICreateCommentParams,
+  ICreateCommentResult
+>(createCommentIR);
 
 /** 'DraftHasTitle' parameters type */
 export interface IDraftHasTitleParams {
@@ -780,7 +1138,25 @@ export interface IDraftHasTitleQuery {
   result: IDraftHasTitleResult;
 }
 
-const draftHasTitleIR: any = {"usedParamSet":{"id":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":60}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":139}]}],"statement":"SELECT title <> '' AS \"hasTitle!\" FROM drafts\nWHERE id = :id! AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!"};
+const draftHasTitleIR: any = {
+  usedParamSet: { id: true, userId: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 57, b: 60 }],
+    },
+    {
+      name: "userId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 132, b: 139 }],
+    },
+  ],
+  statement:
+    "SELECT title <> '' AS \"hasTitle!\" FROM drafts\nWHERE id = :id! AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!",
+};
 
 /**
  * Query generated from SQL:
@@ -789,8 +1165,10 @@ const draftHasTitleIR: any = {"usedParamSet":{"id":true,"userId":true},"params":
  * WHERE id = :id! AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!
  * ```
  */
-export const draftHasTitle = new PreparedQuery<IDraftHasTitleParams,IDraftHasTitleResult>(draftHasTitleIR);
-
+export const draftHasTitle = new PreparedQuery<
+  IDraftHasTitleParams,
+  IDraftHasTitleResult
+>(draftHasTitleIR);
 
 /** 'CreateEditionFromDraft' parameters type */
 export interface ICreateEditionFromDraftParams {
@@ -811,7 +1189,31 @@ export interface ICreateEditionFromDraftQuery {
   result: ICreateEditionFromDraftResult;
 }
 
-const createEditionFromDraftIR: any = {"usedParamSet":{"notes":true,"thumbnail":true,"draftId":true},"params":[{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":109}]},{"name":"thumbnail","required":false,"transform":{"type":"scalar"},"locs":[{"a":112,"b":121}]},{"name":"draftId","required":true,"transform":{"type":"scalar"},"locs":[{"a":150,"b":158}]}],"statement":"INSERT INTO editions (article_id, title, content, notes, thumbnail)\nSELECT article_id, title, content, :notes!, :thumbnail\n  FROM drafts\n  WHERE id = :draftId!\nRETURNING article_id AS \"articleId\", id AS \"editionId\""};
+const createEditionFromDraftIR: any = {
+  usedParamSet: { notes: true, thumbnail: true, draftId: true },
+  params: [
+    {
+      name: "notes",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 103, b: 109 }],
+    },
+    {
+      name: "thumbnail",
+      required: false,
+      transform: { type: "scalar" },
+      locs: [{ a: 112, b: 121 }],
+    },
+    {
+      name: "draftId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 150, b: 158 }],
+    },
+  ],
+  statement:
+    'INSERT INTO editions (article_id, title, content, notes, thumbnail)\nSELECT article_id, title, content, :notes!, :thumbnail\n  FROM drafts\n  WHERE id = :draftId!\nRETURNING article_id AS "articleId", id AS "editionId"',
+};
 
 /**
  * Query generated from SQL:
@@ -823,8 +1225,10 @@ const createEditionFromDraftIR: any = {"usedParamSet":{"notes":true,"thumbnail":
  * RETURNING article_id AS "articleId", id AS "editionId"
  * ```
  */
-export const createEditionFromDraft = new PreparedQuery<ICreateEditionFromDraftParams,ICreateEditionFromDraftResult>(createEditionFromDraftIR);
-
+export const createEditionFromDraft = new PreparedQuery<
+  ICreateEditionFromDraftParams,
+  ICreateEditionFromDraftResult
+>(createEditionFromDraftIR);
 
 /** 'MoveDraftFilesToEdition' parameters type */
 export interface IMoveDraftFilesToEditionParams {
@@ -841,7 +1245,25 @@ export interface IMoveDraftFilesToEditionQuery {
   result: IMoveDraftFilesToEditionResult;
 }
 
-const moveDraftFilesToEditionIR: any = {"usedParamSet":{"editionId":true,"draftId":true},"params":[{"name":"editionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":32,"b":42}]},{"name":"draftId","required":true,"transform":{"type":"scalar"},"locs":[{"a":80,"b":88}]}],"statement":"UPDATE files\n  SET edition_id = :editionId!, draft_id = NULL\n  WHERE draft_id = :draftId!"};
+const moveDraftFilesToEditionIR: any = {
+  usedParamSet: { editionId: true, draftId: true },
+  params: [
+    {
+      name: "editionId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 32, b: 42 }],
+    },
+    {
+      name: "draftId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 80, b: 88 }],
+    },
+  ],
+  statement:
+    "UPDATE files\n  SET edition_id = :editionId!, draft_id = NULL\n  WHERE draft_id = :draftId!",
+};
 
 /**
  * Query generated from SQL:
@@ -851,8 +1273,10 @@ const moveDraftFilesToEditionIR: any = {"usedParamSet":{"editionId":true,"draftI
  *   WHERE draft_id = :draftId!
  * ```
  */
-export const moveDraftFilesToEdition = new PreparedQuery<IMoveDraftFilesToEditionParams,IMoveDraftFilesToEditionResult>(moveDraftFilesToEditionIR);
-
+export const moveDraftFilesToEdition = new PreparedQuery<
+  IMoveDraftFilesToEditionParams,
+  IMoveDraftFilesToEditionResult
+>(moveDraftFilesToEditionIR);
 
 /** 'GetCommentAuthorId' parameters type */
 export interface IGetCommentAuthorIdParams {
@@ -870,7 +1294,18 @@ export interface IGetCommentAuthorIdQuery {
   result: IGetCommentAuthorIdResult;
 }
 
-const getCommentAuthorIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":59}]}],"statement":"SELECT author_id AS \"authorId\" FROM comments WHERE id = :id!"};
+const getCommentAuthorIdIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 56, b: 59 }],
+    },
+  ],
+  statement: 'SELECT author_id AS "authorId" FROM comments WHERE id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -878,8 +1313,10 @@ const getCommentAuthorIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":
  * SELECT author_id AS "authorId" FROM comments WHERE id = :id!
  * ```
  */
-export const getCommentAuthorId = new PreparedQuery<IGetCommentAuthorIdParams,IGetCommentAuthorIdResult>(getCommentAuthorIdIR);
-
+export const getCommentAuthorId = new PreparedQuery<
+  IGetCommentAuthorIdParams,
+  IGetCommentAuthorIdResult
+>(getCommentAuthorIdIR);
 
 /** 'DeleteComment' parameters type */
 export interface IDeleteCommentParams {
@@ -895,7 +1332,18 @@ export interface IDeleteCommentQuery {
   result: IDeleteCommentResult;
 }
 
-const deleteCommentIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":32,"b":35}]}],"statement":"DELETE FROM comments WHERE id = :id!"};
+const deleteCommentIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 32, b: 35 }],
+    },
+  ],
+  statement: "DELETE FROM comments WHERE id = :id!",
+};
 
 /**
  * Query generated from SQL:
@@ -903,8 +1351,10 @@ const deleteCommentIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id",
  * DELETE FROM comments WHERE id = :id!
  * ```
  */
-export const deleteComment = new PreparedQuery<IDeleteCommentParams,IDeleteCommentResult>(deleteCommentIR);
-
+export const deleteComment = new PreparedQuery<
+  IDeleteCommentParams,
+  IDeleteCommentResult
+>(deleteCommentIR);
 
 /** 'CreateViewLog' parameters type */
 export interface ICreateViewLogParams {
@@ -920,7 +1370,18 @@ export interface ICreateViewLogQuery {
   result: ICreateViewLogResult;
 }
 
-const createViewLogIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":49}]}],"statement":"INSERT INTO views (article_id) VALUES (:articleId!)"};
+const createViewLogIR: any = {
+  usedParamSet: { articleId: true },
+  params: [
+    {
+      name: "articleId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 39, b: 49 }],
+    },
+  ],
+  statement: "INSERT INTO views (article_id) VALUES (:articleId!)",
+};
 
 /**
  * Query generated from SQL:
@@ -928,8 +1389,10 @@ const createViewLogIR: any = {"usedParamSet":{"articleId":true},"params":[{"name
  * INSERT INTO views (article_id) VALUES (:articleId!)
  * ```
  */
-export const createViewLog = new PreparedQuery<ICreateViewLogParams,ICreateViewLogResult>(createViewLogIR);
-
+export const createViewLog = new PreparedQuery<
+  ICreateViewLogParams,
+  ICreateViewLogResult
+>(createViewLogIR);
 
 /** 'CreateLike' parameters type */
 export interface ICreateLikeParams {
@@ -946,7 +1409,25 @@ export interface ICreateLikeQuery {
   result: ICreateLikeResult;
 }
 
-const createLikeIR: any = {"usedParamSet":{"articleId":true,"userId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":48,"b":58}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":68}]}],"statement":"INSERT INTO likes (article_id, user_id) VALUES (:articleId!, :userId!)"};
+const createLikeIR: any = {
+  usedParamSet: { articleId: true, userId: true },
+  params: [
+    {
+      name: "articleId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 48, b: 58 }],
+    },
+    {
+      name: "userId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 61, b: 68 }],
+    },
+  ],
+  statement:
+    "INSERT INTO likes (article_id, user_id) VALUES (:articleId!, :userId!)",
+};
 
 /**
  * Query generated from SQL:
@@ -954,8 +1435,10 @@ const createLikeIR: any = {"usedParamSet":{"articleId":true,"userId":true},"para
  * INSERT INTO likes (article_id, user_id) VALUES (:articleId!, :userId!)
  * ```
  */
-export const createLike = new PreparedQuery<ICreateLikeParams,ICreateLikeResult>(createLikeIR);
-
+export const createLike = new PreparedQuery<
+  ICreateLikeParams,
+  ICreateLikeResult
+>(createLikeIR);
 
 /** 'DeleteLike' parameters type */
 export interface IDeleteLikeParams {
@@ -974,7 +1457,25 @@ export interface IDeleteLikeQuery {
   result: IDeleteLikeResult;
 }
 
-const deleteLikeIR: any = {"usedParamSet":{"articleId":true,"userId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":37,"b":47}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":70}]}],"statement":"DELETE FROM likes WHERE article_id = :articleId! AND user_id = :userId!\nRETURNING TRUE AS \"deleted!\""};
+const deleteLikeIR: any = {
+  usedParamSet: { articleId: true, userId: true },
+  params: [
+    {
+      name: "articleId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 37, b: 47 }],
+    },
+    {
+      name: "userId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 63, b: 70 }],
+    },
+  ],
+  statement:
+    'DELETE FROM likes WHERE article_id = :articleId! AND user_id = :userId!\nRETURNING TRUE AS "deleted!"',
+};
 
 /**
  * Query generated from SQL:
@@ -983,8 +1484,10 @@ const deleteLikeIR: any = {"usedParamSet":{"articleId":true,"userId":true},"para
  * RETURNING TRUE AS "deleted!"
  * ```
  */
-export const deleteLike = new PreparedQuery<IDeleteLikeParams,IDeleteLikeResult>(deleteLikeIR);
-
+export const deleteLike = new PreparedQuery<
+  IDeleteLikeParams,
+  IDeleteLikeResult
+>(deleteLikeIR);
 
 /** 'ListLikes' parameters type */
 export interface IListLikesParams {
@@ -1004,7 +1507,19 @@ export interface IListLikesQuery {
   result: IListLikesResult;
 }
 
-const listLikesIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":159}]}],"statement":"SELECT user_id AS \"userId\", name AS \"userName\", created_at AS \"createdAt\"\n  FROM likes\n  JOIN users ON likes.user_id = users.id\n  WHERE article_id = :articleId!\n  ORDER BY (created_at, user_id) ASC"};
+const listLikesIR: any = {
+  usedParamSet: { articleId: true },
+  params: [
+    {
+      name: "articleId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 149, b: 159 }],
+    },
+  ],
+  statement:
+    'SELECT user_id AS "userId", name AS "userName", created_at AS "createdAt"\n  FROM likes\n  JOIN users ON likes.user_id = users.id\n  WHERE article_id = :articleId!\n  ORDER BY (created_at, user_id) ASC',
+};
 
 /**
  * Query generated from SQL:
@@ -1016,8 +1531,9 @@ const listLikesIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"a
  *   ORDER BY (created_at, user_id) ASC
  * ```
  */
-export const listLikes = new PreparedQuery<IListLikesParams,IListLikesResult>(listLikesIR);
-
+export const listLikes = new PreparedQuery<IListLikesParams, IListLikesResult>(
+  listLikesIR,
+);
 
 /** 'CreateDraftFromArticle' parameters type */
 export interface ICreateDraftFromArticleParams {
@@ -1035,7 +1551,19 @@ export interface ICreateDraftFromArticleQuery {
   result: ICreateDraftFromArticleResult;
 }
 
-const createDraftFromArticleIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":120,"b":130}]}],"statement":"INSERT INTO drafts (article_id, title, content)\nSELECT article_id, title, content FROM last_editions WHERE article_id = :articleId!\nRETURNING drafts.id"};
+const createDraftFromArticleIR: any = {
+  usedParamSet: { articleId: true },
+  params: [
+    {
+      name: "articleId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 120, b: 130 }],
+    },
+  ],
+  statement:
+    "INSERT INTO drafts (article_id, title, content)\nSELECT article_id, title, content FROM last_editions WHERE article_id = :articleId!\nRETURNING drafts.id",
+};
 
 /**
  * Query generated from SQL:
@@ -1045,8 +1573,10 @@ const createDraftFromArticleIR: any = {"usedParamSet":{"articleId":true},"params
  * RETURNING drafts.id
  * ```
  */
-export const createDraftFromArticle = new PreparedQuery<ICreateDraftFromArticleParams,ICreateDraftFromArticleResult>(createDraftFromArticleIR);
-
+export const createDraftFromArticle = new PreparedQuery<
+  ICreateDraftFromArticleParams,
+  ICreateDraftFromArticleResult
+>(createDraftFromArticleIR);
 
 /** 'GetLastEditionId' parameters type */
 export interface IGetLastEditionIdParams {
@@ -1064,7 +1594,18 @@ export interface IGetLastEditionIdQuery {
   result: IGetLastEditionIdResult;
 }
 
-const getLastEditionIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":60}]}],"statement":"SELECT id AS \"id!\" FROM last_editions WHERE article_id = :id!"};
+const getLastEditionIdIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 57, b: 60 }],
+    },
+  ],
+  statement: 'SELECT id AS "id!" FROM last_editions WHERE article_id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -1072,8 +1613,10 @@ const getLastEditionIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"i
  * SELECT id AS "id!" FROM last_editions WHERE article_id = :id!
  * ```
  */
-export const getLastEditionId = new PreparedQuery<IGetLastEditionIdParams,IGetLastEditionIdResult>(getLastEditionIdIR);
-
+export const getLastEditionId = new PreparedQuery<
+  IGetLastEditionIdParams,
+  IGetLastEditionIdResult
+>(getLastEditionIdIR);
 
 /** 'CopyEditionFilesToDraft' parameters type */
 export interface ICopyEditionFilesToDraftParams {
@@ -1094,7 +1637,28 @@ export interface ICopyEditionFilesToDraftQuery {
   result: ICopyEditionFilesToDraftResult;
 }
 
-const copyEditionFilesToDraftIR: any = {"usedParamSet":{"draftId":true,"editionId":true},"params":[{"name":"draftId","required":true,"transform":{"type":"scalar"},"locs":[{"a":79,"b":87}]},{"name":"editionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":144,"b":154},{"a":318,"b":328}]}],"statement":"WITH new_files as (\n  INSERT INTO files (draft_id, name, mime_type)\n    SELECT :draftId!, name, mime_type\n    FROM files\n    WHERE edition_id = :editionId!\n  RETURNING id, name)\nSELECT files.id as \"oldId\", new_files.id as \"newId\", files.name\nFROM files JOIN new_files ON files.name = new_files.name\nWHERE edition_id = :editionId!"};
+const copyEditionFilesToDraftIR: any = {
+  usedParamSet: { draftId: true, editionId: true },
+  params: [
+    {
+      name: "draftId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 79, b: 87 }],
+    },
+    {
+      name: "editionId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [
+        { a: 144, b: 154 },
+        { a: 318, b: 328 },
+      ],
+    },
+  ],
+  statement:
+    'WITH new_files as (\n  INSERT INTO files (draft_id, name, mime_type)\n    SELECT :draftId!, name, mime_type\n    FROM files\n    WHERE edition_id = :editionId!\n  RETURNING id, name)\nSELECT files.id as "oldId", new_files.id as "newId", files.name\nFROM files JOIN new_files ON files.name = new_files.name\nWHERE edition_id = :editionId!',
+};
 
 /**
  * Query generated from SQL:
@@ -1110,8 +1674,10 @@ const copyEditionFilesToDraftIR: any = {"usedParamSet":{"draftId":true,"editionI
  * WHERE edition_id = :editionId!
  * ```
  */
-export const copyEditionFilesToDraft = new PreparedQuery<ICopyEditionFilesToDraftParams,ICopyEditionFilesToDraftResult>(copyEditionFilesToDraftIR);
-
+export const copyEditionFilesToDraft = new PreparedQuery<
+  ICopyEditionFilesToDraftParams,
+  ICopyEditionFilesToDraftResult
+>(copyEditionFilesToDraftIR);
 
 /** 'GetDraftAuthorId' parameters type */
 export interface IGetDraftAuthorIdParams {
@@ -1129,7 +1695,19 @@ export interface IGetDraftAuthorIdQuery {
   result: IGetDraftAuthorIdResult;
 }
 
-const getDraftAuthorIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":110,"b":113}]}],"statement":"SELECT author_id AS \"authorId\"\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE drafts.id = :id!"};
+const getDraftAuthorIdIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 110, b: 113 }],
+    },
+  ],
+  statement:
+    'SELECT author_id AS "authorId"\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE drafts.id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -1140,8 +1718,10 @@ const getDraftAuthorIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"i
  * WHERE drafts.id = :id!
  * ```
  */
-export const getDraftAuthorId = new PreparedQuery<IGetDraftAuthorIdParams,IGetDraftAuthorIdResult>(getDraftAuthorIdIR);
-
+export const getDraftAuthorId = new PreparedQuery<
+  IGetDraftAuthorIdParams,
+  IGetDraftAuthorIdResult
+>(getDraftAuthorIdIR);
 
 /** 'CreateFile' parameters type */
 export interface ICreateFileParams {
@@ -1161,7 +1741,31 @@ export interface ICreateFileQuery {
   result: ICreateFileResult;
 }
 
-const createFileIR: any = {"usedParamSet":{"draftId":true,"name":true,"mimeType":true},"params":[{"name":"draftId","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":64}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":72}]},{"name":"mimeType","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":84}]}],"statement":"INSERT INTO files (draft_id, name, mime_type)\n  VALUES (:draftId!, :name!, :mimeType!)\n  RETURNING id"};
+const createFileIR: any = {
+  usedParamSet: { draftId: true, name: true, mimeType: true },
+  params: [
+    {
+      name: "draftId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 56, b: 64 }],
+    },
+    {
+      name: "name",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 67, b: 72 }],
+    },
+    {
+      name: "mimeType",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 75, b: 84 }],
+    },
+  ],
+  statement:
+    "INSERT INTO files (draft_id, name, mime_type)\n  VALUES (:draftId!, :name!, :mimeType!)\n  RETURNING id",
+};
 
 /**
  * Query generated from SQL:
@@ -1171,8 +1775,10 @@ const createFileIR: any = {"usedParamSet":{"draftId":true,"name":true,"mimeType"
  *   RETURNING id
  * ```
  */
-export const createFile = new PreparedQuery<ICreateFileParams,ICreateFileResult>(createFileIR);
-
+export const createFile = new PreparedQuery<
+  ICreateFileParams,
+  ICreateFileResult
+>(createFileIR);
 
 /** 'GetFileInfo' parameters type */
 export interface IGetFileInfoParams {
@@ -1193,7 +1799,19 @@ export interface IGetFileInfoQuery {
   result: IGetFileInfoResult;
 }
 
-const getFileInfoIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":213,"b":216}]}],"statement":"SELECT\n  author_id AS \"authorId\",\n  name,\n  draft_id AS \"draftId!\",\n  mime_type AS \"mimeType\"\nFROM files\nJOIN drafts ON files.draft_id = drafts.id\nJOIN articles ON drafts.article_id = articles.id\nWHERE files.id = :id! AND draft_id IS NOT NULL"};
+const getFileInfoIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 213, b: 216 }],
+    },
+  ],
+  statement:
+    'SELECT\n  author_id AS "authorId",\n  name,\n  draft_id AS "draftId!",\n  mime_type AS "mimeType"\nFROM files\nJOIN drafts ON files.draft_id = drafts.id\nJOIN articles ON drafts.article_id = articles.id\nWHERE files.id = :id! AND draft_id IS NOT NULL',
+};
 
 /**
  * Query generated from SQL:
@@ -1209,8 +1827,10 @@ const getFileInfoIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","r
  * WHERE files.id = :id! AND draft_id IS NOT NULL
  * ```
  */
-export const getFileInfo = new PreparedQuery<IGetFileInfoParams,IGetFileInfoResult>(getFileInfoIR);
-
+export const getFileInfo = new PreparedQuery<
+  IGetFileInfoParams,
+  IGetFileInfoResult
+>(getFileInfoIR);
 
 /** 'DeleteFile' parameters type */
 export interface IDeleteFileParams {
@@ -1226,7 +1846,18 @@ export interface IDeleteFileQuery {
   result: IDeleteFileResult;
 }
 
-const deleteFileIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":29,"b":32}]}],"statement":"DELETE FROM files WHERE id = :id!"};
+const deleteFileIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 29, b: 32 }],
+    },
+  ],
+  statement: "DELETE FROM files WHERE id = :id!",
+};
 
 /**
  * Query generated from SQL:
@@ -1234,8 +1865,10 @@ const deleteFileIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","re
  * DELETE FROM files WHERE id = :id!
  * ```
  */
-export const deleteFile = new PreparedQuery<IDeleteFileParams,IDeleteFileResult>(deleteFileIR);
-
+export const deleteFile = new PreparedQuery<
+  IDeleteFileParams,
+  IDeleteFileResult
+>(deleteFileIR);
 
 /** 'UpdateDraft' parameters type */
 export interface IUpdateDraftParams {
@@ -1256,7 +1889,37 @@ export interface IUpdateDraftQuery {
   result: IUpdateDraftResult;
 }
 
-const updateDraftIR: any = {"usedParamSet":{"title":true,"content":true,"id":true,"userId":true},"params":[{"name":"title","required":true,"transform":{"type":"scalar"},"locs":[{"a":26,"b":32}]},{"name":"content","required":true,"transform":{"type":"scalar"},"locs":[{"a":45,"b":53}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":89}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":161,"b":168}]}],"statement":"UPDATE drafts\nSET title = :title!, content = :content!, updated_at = now()\nWHERE id = :id! AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!\nRETURNING TRUE as \"ok!\""};
+const updateDraftIR: any = {
+  usedParamSet: { title: true, content: true, id: true, userId: true },
+  params: [
+    {
+      name: "title",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 26, b: 32 }],
+    },
+    {
+      name: "content",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 45, b: 53 }],
+    },
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 86, b: 89 }],
+    },
+    {
+      name: "userId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 161, b: 168 }],
+    },
+  ],
+  statement:
+    'UPDATE drafts\nSET title = :title!, content = :content!, updated_at = now()\nWHERE id = :id! AND (SELECT author_id FROM articles WHERE articles.id = article_id) = :userId!\nRETURNING TRUE as "ok!"',
+};
 
 /**
  * Query generated from SQL:
@@ -1267,8 +1930,10 @@ const updateDraftIR: any = {"usedParamSet":{"title":true,"content":true,"id":tru
  * RETURNING TRUE as "ok!"
  * ```
  */
-export const updateDraft = new PreparedQuery<IUpdateDraftParams,IUpdateDraftResult>(updateDraftIR);
-
+export const updateDraft = new PreparedQuery<
+  IUpdateDraftParams,
+  IUpdateDraftResult
+>(updateDraftIR);
 
 /** 'ListDrafts' parameters type */
 export interface IListDraftsParams {
@@ -1291,7 +1956,19 @@ export interface IListDraftsQuery {
   result: IListDraftsResult;
 }
 
-const listDraftsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":274,"b":283}]}],"statement":"SELECT drafts.id, title, created_at AS \"createdAt\", updated_at AS \"updatedAt\",\n  article_id AS \"articleId\",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS \"published!\"\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE author_id = :authorId!\nORDER BY (updated_at, drafts.id) DESC"};
+const listDraftsIR: any = {
+  usedParamSet: { authorId: true },
+  params: [
+    {
+      name: "authorId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 274, b: 283 }],
+    },
+  ],
+  statement:
+    'SELECT drafts.id, title, created_at AS "createdAt", updated_at AS "updatedAt",\n  article_id AS "articleId",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS "published!"\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE author_id = :authorId!\nORDER BY (updated_at, drafts.id) DESC',
+};
 
 /**
  * Query generated from SQL:
@@ -1305,8 +1982,10 @@ const listDraftsIR: any = {"usedParamSet":{"authorId":true},"params":[{"name":"a
  * ORDER BY (updated_at, drafts.id) DESC
  * ```
  */
-export const listDrafts = new PreparedQuery<IListDraftsParams,IListDraftsResult>(listDraftsIR);
-
+export const listDrafts = new PreparedQuery<
+  IListDraftsParams,
+  IListDraftsResult
+>(listDraftsIR);
 
 /** 'GetDraft' parameters type */
 export interface IGetDraftParams {
@@ -1331,7 +2010,25 @@ export interface IGetDraftQuery {
   result: IGetDraftResult;
 }
 
-const getDraftIR: any = {"usedParamSet":{"id":true,"authorId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":280,"b":283}]},{"name":"authorId","required":true,"transform":{"type":"scalar"},"locs":[{"a":301,"b":310}]}],"statement":"SELECT drafts.id, title, content,\n  created_at AS \"createdAt\", updated_at AS \"updatedAt\", article_id AS \"articleId\",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE drafts.id = :id! AND author_id = :authorId!"};
+const getDraftIR: any = {
+  usedParamSet: { id: true, authorId: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 280, b: 283 }],
+    },
+    {
+      name: "authorId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 301, b: 310 }],
+    },
+  ],
+  statement:
+    'SELECT drafts.id, title, content,\n  created_at AS "createdAt", updated_at AS "updatedAt", article_id AS "articleId",\n  EXISTS (SELECT 1 FROM editions WHERE article_id = drafts.article_id) AS published\nFROM drafts\nJOIN articles ON drafts.article_id = articles.id\nWHERE drafts.id = :id! AND author_id = :authorId!',
+};
 
 /**
  * Query generated from SQL:
@@ -1344,8 +2041,9 @@ const getDraftIR: any = {"usedParamSet":{"id":true,"authorId":true},"params":[{"
  * WHERE drafts.id = :id! AND author_id = :authorId!
  * ```
  */
-export const getDraft = new PreparedQuery<IGetDraftParams,IGetDraftResult>(getDraftIR);
-
+export const getDraft = new PreparedQuery<IGetDraftParams, IGetDraftResult>(
+  getDraftIR,
+);
 
 /** 'ListDraftFiles' parameters type */
 export interface IListDraftFilesParams {
@@ -1365,7 +2063,19 @@ export interface IListDraftFilesQuery {
   result: IListDraftFilesResult;
 }
 
-const listDraftFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":69,"b":72}]}],"statement":"SELECT id, name, mime_type AS \"mimeType\"\nFROM files\nWHERE draft_id = :id!"};
+const listDraftFilesIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 69, b: 72 }],
+    },
+  ],
+  statement:
+    'SELECT id, name, mime_type AS "mimeType"\nFROM files\nWHERE draft_id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -1375,8 +2085,10 @@ const listDraftFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id"
  * WHERE draft_id = :id!
  * ```
  */
-export const listDraftFiles = new PreparedQuery<IListDraftFilesParams,IListDraftFilesResult>(listDraftFilesIR);
-
+export const listDraftFiles = new PreparedQuery<
+  IListDraftFilesParams,
+  IListDraftFilesResult
+>(listDraftFilesIR);
 
 /** 'GetEdition' parameters type */
 export interface IGetEditionParams {
@@ -1399,7 +2111,19 @@ export interface IGetEditionQuery {
   result: IGetEditionResult;
 }
 
-const getEditionIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":116,"b":119}]}],"statement":"SELECT id, article_id AS \"articleId\", title, content, notes, published_at AS \"publishedAt\"\nFROM editions\nWHERE id = :id!"};
+const getEditionIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 116, b: 119 }],
+    },
+  ],
+  statement:
+    'SELECT id, article_id AS "articleId", title, content, notes, published_at AS "publishedAt"\nFROM editions\nWHERE id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -1409,8 +2133,10 @@ const getEditionIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","re
  * WHERE id = :id!
  * ```
  */
-export const getEdition = new PreparedQuery<IGetEditionParams,IGetEditionResult>(getEditionIR);
-
+export const getEdition = new PreparedQuery<
+  IGetEditionParams,
+  IGetEditionResult
+>(getEditionIR);
 
 /** 'ListEditions' parameters type */
 export interface IListEditionsParams {
@@ -1431,7 +2157,19 @@ export interface IListEditionsQuery {
   result: IListEditionsResult;
 }
 
-const listEditionsIR: any = {"usedParamSet":{"articleId":true},"params":[{"name":"articleId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":98}]}],"statement":"SELECT id, title, notes, published_at AS \"publishedAt\"\nFROM editions\nWHERE article_id = :articleId!\nORDER BY (published_at, id) DESC"};
+const listEditionsIR: any = {
+  usedParamSet: { articleId: true },
+  params: [
+    {
+      name: "articleId",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 88, b: 98 }],
+    },
+  ],
+  statement:
+    'SELECT id, title, notes, published_at AS "publishedAt"\nFROM editions\nWHERE article_id = :articleId!\nORDER BY (published_at, id) DESC',
+};
 
 /**
  * Query generated from SQL:
@@ -1442,8 +2180,10 @@ const listEditionsIR: any = {"usedParamSet":{"articleId":true},"params":[{"name"
  * ORDER BY (published_at, id) DESC
  * ```
  */
-export const listEditions = new PreparedQuery<IListEditionsParams,IListEditionsResult>(listEditionsIR);
-
+export const listEditions = new PreparedQuery<
+  IListEditionsParams,
+  IListEditionsResult
+>(listEditionsIR);
 
 /** 'ListEditionFiles' parameters type */
 export interface IListEditionFilesParams {
@@ -1462,7 +2202,18 @@ export interface IListEditionFilesQuery {
   result: IListEditionFilesResult;
 }
 
-const listEditionFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":46,"b":49}]}],"statement":"SELECT id, name\nFROM files\nWHERE edition_id = :id!"};
+const listEditionFilesIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 46, b: 49 }],
+    },
+  ],
+  statement: "SELECT id, name\nFROM files\nWHERE edition_id = :id!",
+};
 
 /**
  * Query generated from SQL:
@@ -1472,8 +2223,10 @@ const listEditionFilesIR: any = {"usedParamSet":{"id":true},"params":[{"name":"i
  * WHERE edition_id = :id!
  * ```
  */
-export const listEditionFiles = new PreparedQuery<IListEditionFilesParams,IListEditionFilesResult>(listEditionFilesIR);
-
+export const listEditionFiles = new PreparedQuery<
+  IListEditionFilesParams,
+  IListEditionFilesResult
+>(listEditionFilesIR);
 
 /** 'UpdateUserName' parameters type */
 export interface IUpdateUserNameParams {
@@ -1490,7 +2243,25 @@ export interface IUpdateUserNameQuery {
   result: IUpdateUserNameResult;
 }
 
-const updateUserNameIR: any = {"usedParamSet":{"name":true,"id":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":24,"b":29}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":70}]}],"statement":"UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!"};
+const updateUserNameIR: any = {
+  usedParamSet: { name: true, id: true },
+  params: [
+    {
+      name: "name",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 24, b: 29 }],
+    },
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 67, b: 70 }],
+    },
+  ],
+  statement:
+    "UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!",
+};
 
 /**
  * Query generated from SQL:
@@ -1498,8 +2269,10 @@ const updateUserNameIR: any = {"usedParamSet":{"name":true,"id":true},"params":[
  * UPDATE users SET name = :name!, name_updated_at = NOW() WHERE id = :id!
  * ```
  */
-export const updateUserName = new PreparedQuery<IUpdateUserNameParams,IUpdateUserNameResult>(updateUserNameIR);
-
+export const updateUserName = new PreparedQuery<
+  IUpdateUserNameParams,
+  IUpdateUserNameResult
+>(updateUserNameIR);
 
 /** 'GetUserNameUpdatedAt' parameters type */
 export interface IGetUserNameUpdatedAtParams {
@@ -1517,7 +2290,19 @@ export interface IGetUserNameUpdatedAtQuery {
   result: IGetUserNameUpdatedAtResult;
 }
 
-const getUserNameUpdatedAtIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":67}]}],"statement":"SELECT name_updated_at AS \"nameUpdatedAt\" FROM users WHERE id = :id!"};
+const getUserNameUpdatedAtIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 64, b: 67 }],
+    },
+  ],
+  statement:
+    'SELECT name_updated_at AS "nameUpdatedAt" FROM users WHERE id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -1525,8 +2310,10 @@ const getUserNameUpdatedAtIR: any = {"usedParamSet":{"id":true},"params":[{"name
  * SELECT name_updated_at AS "nameUpdatedAt" FROM users WHERE id = :id!
  * ```
  */
-export const getUserNameUpdatedAt = new PreparedQuery<IGetUserNameUpdatedAtParams,IGetUserNameUpdatedAtResult>(getUserNameUpdatedAtIR);
-
+export const getUserNameUpdatedAt = new PreparedQuery<
+  IGetUserNameUpdatedAtParams,
+  IGetUserNameUpdatedAtResult
+>(getUserNameUpdatedAtIR);
 
 /** 'GetUserNewArticleNotifySetting' parameters type */
 export interface IGetUserNewArticleNotifySettingParams {
@@ -1544,7 +2331,19 @@ export interface IGetUserNewArticleNotifySettingQuery {
   result: IGetUserNewArticleNotifySettingResult;
 }
 
-const getUserNewArticleNotifySettingIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":70,"b":73}]}],"statement":"SELECT new_article_notify AS \"newArticleNotify\" FROM users WHERE id = :id!"};
+const getUserNewArticleNotifySettingIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 70, b: 73 }],
+    },
+  ],
+  statement:
+    'SELECT new_article_notify AS "newArticleNotify" FROM users WHERE id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -1552,8 +2351,10 @@ const getUserNewArticleNotifySettingIR: any = {"usedParamSet":{"id":true},"param
  * SELECT new_article_notify AS "newArticleNotify" FROM users WHERE id = :id!
  * ```
  */
-export const getUserNewArticleNotifySetting = new PreparedQuery<IGetUserNewArticleNotifySettingParams,IGetUserNewArticleNotifySettingResult>(getUserNewArticleNotifySettingIR);
-
+export const getUserNewArticleNotifySetting = new PreparedQuery<
+  IGetUserNewArticleNotifySettingParams,
+  IGetUserNewArticleNotifySettingResult
+>(getUserNewArticleNotifySettingIR);
 
 /** 'SetUserNewArticleNotifySetting' parameters type */
 export interface ISetUserNewArticleNotifySettingParams {
@@ -1570,7 +2371,25 @@ export interface ISetUserNewArticleNotifySettingQuery {
   result: ISetUserNewArticleNotifySettingResult;
 }
 
-const setUserNewArticleNotifySettingIR: any = {"usedParamSet":{"newArticleNotify":true,"id":true},"params":[{"name":"newArticleNotify","required":true,"transform":{"type":"scalar"},"locs":[{"a":38,"b":55}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":71}]}],"statement":"UPDATE users SET new_article_notify = :newArticleNotify! WHERE id = :id!"};
+const setUserNewArticleNotifySettingIR: any = {
+  usedParamSet: { newArticleNotify: true, id: true },
+  params: [
+    {
+      name: "newArticleNotify",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 38, b: 55 }],
+    },
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 68, b: 71 }],
+    },
+  ],
+  statement:
+    "UPDATE users SET new_article_notify = :newArticleNotify! WHERE id = :id!",
+};
 
 /**
  * Query generated from SQL:
@@ -1578,8 +2397,10 @@ const setUserNewArticleNotifySettingIR: any = {"usedParamSet":{"newArticleNotify
  * UPDATE users SET new_article_notify = :newArticleNotify! WHERE id = :id!
  * ```
  */
-export const setUserNewArticleNotifySetting = new PreparedQuery<ISetUserNewArticleNotifySettingParams,ISetUserNewArticleNotifySettingResult>(setUserNewArticleNotifySettingIR);
-
+export const setUserNewArticleNotifySetting = new PreparedQuery<
+  ISetUserNewArticleNotifySettingParams,
+  ISetUserNewArticleNotifySettingResult
+>(setUserNewArticleNotifySettingIR);
 
 /** 'ListWebhooks' parameters type */
 export type IListWebhooksParams = void;
@@ -1597,7 +2418,11 @@ export interface IListWebhooksQuery {
   result: IListWebhooksResult;
 }
 
-const listWebhooksIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT id, name, url FROM webhooks"};
+const listWebhooksIR: any = {
+  usedParamSet: {},
+  params: [],
+  statement: "SELECT id, name, url FROM webhooks",
+};
 
 /**
  * Query generated from SQL:
@@ -1605,8 +2430,10 @@ const listWebhooksIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT i
  * SELECT id, name, url FROM webhooks
  * ```
  */
-export const listWebhooks = new PreparedQuery<IListWebhooksParams,IListWebhooksResult>(listWebhooksIR);
-
+export const listWebhooks = new PreparedQuery<
+  IListWebhooksParams,
+  IListWebhooksResult
+>(listWebhooksIR);
 
 /** 'CreateWebhook' parameters type */
 export interface ICreateWebhookParams {
@@ -1623,7 +2450,24 @@ export interface ICreateWebhookQuery {
   result: ICreateWebhookResult;
 }
 
-const createWebhookIR: any = {"usedParamSet":{"name":true,"url":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":41,"b":46}]},{"name":"url","required":true,"transform":{"type":"scalar"},"locs":[{"a":49,"b":53}]}],"statement":"INSERT INTO webhooks (name, url) VALUES (:name!, :url!)"};
+const createWebhookIR: any = {
+  usedParamSet: { name: true, url: true },
+  params: [
+    {
+      name: "name",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 41, b: 46 }],
+    },
+    {
+      name: "url",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 49, b: 53 }],
+    },
+  ],
+  statement: "INSERT INTO webhooks (name, url) VALUES (:name!, :url!)",
+};
 
 /**
  * Query generated from SQL:
@@ -1631,8 +2475,10 @@ const createWebhookIR: any = {"usedParamSet":{"name":true,"url":true},"params":[
  * INSERT INTO webhooks (name, url) VALUES (:name!, :url!)
  * ```
  */
-export const createWebhook = new PreparedQuery<ICreateWebhookParams,ICreateWebhookResult>(createWebhookIR);
-
+export const createWebhook = new PreparedQuery<
+  ICreateWebhookParams,
+  ICreateWebhookResult
+>(createWebhookIR);
 
 /** 'DeleteWebhook' parameters type */
 export interface IDeleteWebhookParams {
@@ -1650,7 +2496,18 @@ export interface IDeleteWebhookQuery {
   result: IDeleteWebhookResult;
 }
 
-const deleteWebhookIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":32,"b":35}]}],"statement":"DELETE FROM webhooks WHERE id = :id! RETURNING url"};
+const deleteWebhookIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 32, b: 35 }],
+    },
+  ],
+  statement: "DELETE FROM webhooks WHERE id = :id! RETURNING url",
+};
 
 /**
  * Query generated from SQL:
@@ -1658,8 +2515,10 @@ const deleteWebhookIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id",
  * DELETE FROM webhooks WHERE id = :id! RETURNING url
  * ```
  */
-export const deleteWebhook = new PreparedQuery<IDeleteWebhookParams,IDeleteWebhookResult>(deleteWebhookIR);
-
+export const deleteWebhook = new PreparedQuery<
+  IDeleteWebhookParams,
+  IDeleteWebhookResult
+>(deleteWebhookIR);
 
 /** 'GetArticleForWebhook' parameters type */
 export interface IGetArticleForWebhookParams {
@@ -1679,7 +2538,19 @@ export interface IGetArticleForWebhookQuery {
   result: IGetArticleForWebhookResult;
 }
 
-const getArticleForWebhookIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":191}]}],"statement":"SELECT\n  title AS \"title!\",\n  author_id AS \"authorId!\",\n  name AS \"authorName!\"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nWHERE a.id = :id!"};
+const getArticleForWebhookIR: any = {
+  usedParamSet: { id: true },
+  params: [
+    {
+      name: "id",
+      required: true,
+      transform: { type: "scalar" },
+      locs: [{ a: 188, b: 191 }],
+    },
+  ],
+  statement:
+    'SELECT\n  title AS "title!",\n  author_id AS "authorId!",\n  name AS "authorName!"\nFROM last_editions e\nJOIN articles a ON e.article_id = a.id\nJOIN users u ON a.author_id = u.id\nWHERE a.id = :id!',
+};
 
 /**
  * Query generated from SQL:
@@ -1694,6 +2565,7 @@ const getArticleForWebhookIR: any = {"usedParamSet":{"id":true},"params":[{"name
  * WHERE a.id = :id!
  * ```
  */
-export const getArticleForWebhook = new PreparedQuery<IGetArticleForWebhookParams,IGetArticleForWebhookResult>(getArticleForWebhookIR);
-
-
+export const getArticleForWebhook = new PreparedQuery<
+  IGetArticleForWebhookParams,
+  IGetArticleForWebhookResult
+>(getArticleForWebhookIR);

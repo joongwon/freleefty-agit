@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ListArticles() {
   const articles = await newdb.list(Queries.listArticles, {
-    before: (new Date()).toISOString(),
+    before: new Date().toISOString(),
     limit: 40,
   });
   return (

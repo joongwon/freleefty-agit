@@ -8,16 +8,23 @@ import { useNow } from "@/now";
 
 const LIMIT = 40;
 
-export default function InfiniteComments(p: { authorId: string; initialItems: UserComment[] }) {
+export default function InfiniteComments(p: {
+  authorId: string;
+  initialItems: UserComment[];
+}) {
   const now = useNow().toISOString();
   const list = useSWRInfinite(
     (index, previous) => {
       if (index !== 0 && (previous?.length ?? 0) < LIMIT) return null;
       const before = previous?.[previous.length - 1]?.createdAt ?? now;
       const prevId = previous?.[previous.length - 1]?.id ?? null;
-      return ["comments", { before, prevId, limit: LIMIT, authorId: p.authorId }];
+      return [
+        "comments",
+        { before, prevId, limit: LIMIT, authorId: p.authorId },
+      ];
     },
-    ([, { authorId, before, prevId, limit }]) => listUserComments(authorId, before, limit, prevId),
+    ([, { authorId, before, prevId, limit }]) =>
+      listUserComments(authorId, before, limit, prevId),
     { fallbackData: [p.initialItems], revalidateOnMount: false },
   );
   const isEnd =

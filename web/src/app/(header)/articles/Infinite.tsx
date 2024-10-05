@@ -27,7 +27,11 @@ export default function Infinite(p: { initialItems: ArticleSummary[] }) {
     <>
       <ArticleList.Container>
         {flatList.map((article) => (
-          <ArticleList.Item key={article.id} item={article} hrefPrefix="/articles" />
+          <ArticleList.Item
+            key={article.id}
+            item={article}
+            hrefPrefix="/articles"
+          />
         ))}
       </ArticleList.Container>
       <p className="text-center py-4 text-gray-500">

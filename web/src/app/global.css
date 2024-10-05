@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100..900&display=swap");
 @font-face {
   font-family: "GmarketSansMedium";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff")
@@ -18,14 +18,12 @@
 }
 
 .symbol-no-fill > .material-symbols-outlined {
-  font-variation-settings:
-    "FILL" 0;
+  font-variation-settings: "FILL" 0;
 }
 
 /* buttons */
 .button {
-  @apply
-    whitespace-nowrap
+  @apply whitespace-nowrap
     inline-flex
     items-center
     justify-center
@@ -39,29 +37,25 @@
 }
 
 .button.button-blue {
-  @apply
-    bg-blue-300
+  @apply bg-blue-300
     border-blue-400
     hover:bg-blue-400;
 }
 
 .button.button-red {
-  @apply
-    bg-red-200
+  @apply bg-red-200
     border-red-300
     hover:bg-red-300;
 }
 
 .button.button-green {
-  @apply
-    bg-green-200
+  @apply bg-green-200
     border-green-300
     hover:bg-green-300;
 }
 
 .button.button-disabled {
-  @apply
-    cursor-not-allowed
+  @apply cursor-not-allowed
     bg-gray-200
     border-gray-300
     text-gray-400
