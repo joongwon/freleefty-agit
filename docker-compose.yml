@@ -1,7 +1,11 @@
 services:
   next:
     # image: registry.freleefty.org/joongwon/blog-server:latest
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_NAVER_ID: ${NEXT_PUBLIC_NAVER_ID}
+        NEXT_PUBLIC_THUMBNAIL_URL: ${NEXT_PUBLIC_THUMBNAIL_URL}
     env_file: .env
     environment:
       DATABASE_URL: postgres://blog:blog@db/blog
