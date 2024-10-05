@@ -49,14 +49,20 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
     id: number;
     name: string;
   } | null>(null);
-  if (res.data && res.data.files.length > 0 && thumbnail === null) {
-    setThumbnail(
-      res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null,
-    );
-  }
   const [thumbnailStatus, setThumbnailStatus] = useState<
     "loading" | "error" | "ok"
   >("loading");
+  // update thumbnail after draft data loaded
+  if (res.data && thumbnail === null && thumbnailStatus === "loading") {
+    const newThumbnail = 
+      res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null;
+    if (newThumbnail === null)
+      // if no image, then null / ok
+      setThumbnailStatus("ok");
+    else
+      // if any image, then first / loading
+      setThumbnail(newThumbnail);
+  }
 
   const router = useRouter();
 
@@ -164,6 +170,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
               <span>썸네일</span>
               <select
                 value={thumbnail?.id ?? ""}
+                disabled={thumbnailStatus === "loading"}
                 onChange={(e) => {
                   if (e.target.value === "") {
                     setThumbnail(null);
