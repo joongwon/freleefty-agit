@@ -1,13 +1,11 @@
 "use client";
 
+import { createWebhook, listWebhooks, deleteWebhook } from "@/actions/webhooks";
 import {
   updateUserName,
-  createWebhook,
-  listWebhooks,
-  deleteWebhook,
   getUserNewArticleNotify,
   setUserNewArticleNotify,
-} from "@/actions";
+} from "@/actions/users";
 import { gAuthState, setProfile } from "@/auth";
 import { User } from "@/types";
 import { useHookstate } from "@hookstate/core";
@@ -53,7 +51,7 @@ function NameChangeForm(p: { token: string; profile: User }) {
   const [name, setName] = useState(p.profile.name);
   const updateName = useSWRMutation(
     ["user", p.profile.id],
-    () => updateUserName(p.token, name),
+    () => updateUserName({ token: p.token }, { name }),
     {
       onSuccess: (data) => {
         if (data.type === "Ok") {
@@ -119,11 +117,15 @@ function NameChangeForm(p: { token: string; profile: User }) {
 
 function NewArticleNotifyForm(p: { token: string }) {
   const notifySetting = useSWR([p.token, "newArticleNotify"], () =>
-    getUserNewArticleNotify(p.token),
+    getUserNewArticleNotify({ token: p.token }),
   );
   const updateNotify = useSWRMutation(
     notifySetting.data && [p.token, "newArticleNotify"],
-    () => setUserNewArticleNotify(p.token, !notifySetting.data?.notify),
+    () =>
+      setUserNewArticleNotify(
+        { token: p.token },
+        { notify: !notifySetting.data?.notify },
+      ),
     {
       onSuccess: (data) => {
         if (data.type === "Ok") {
@@ -154,13 +156,13 @@ function NewArticleNotifyForm(p: { token: string }) {
 }
 
 function WebhookForm(p: { token: string }) {
-  const webhooks = useSWR(["webhooks"], () => listWebhooks(p.token));
+  const webhooks = useSWR(["webhooks"], () => listWebhooks({ token: p.token }));
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const create = useSWRMutation(
     ["webhooks"],
-    () => createWebhook(p.token, name, url),
+    () => createWebhook({ token: p.token }, { name, url }),
     {
       onSuccess: (data) => {
         if (data.type === "Ok") {
@@ -174,7 +176,8 @@ function WebhookForm(p: { token: string }) {
   );
   const deleteMutation = useSWRMutation(
     ["webhooks"],
-    (_, opt: { arg: { id: number } }) => deleteWebhook(p.token, opt.arg.id),
+    (_, opt: { arg: { id: number } }) =>
+      deleteWebhook({ token: p.token }, { id: opt.arg.id }),
   );
   const isMutating = create.isMutating || deleteMutation.isMutating;
 

@@ -2,7 +2,8 @@
 import useSWR from "swr";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { getDraft, publishDraft, getUserNewArticleNotify } from "@/actions";
+import { getUserNewArticleNotify } from "@/actions/users";
+import { getDraft, publishDraft } from "@/actions/drafts";
 import { parseSafeInt } from "@/utils";
 import Viewer from "@/components/Viewer";
 import Link from "next/link";
@@ -24,7 +25,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   const res = useSWR(swrKey, ([draftId]) => {
     if (gAuthState.value.type !== "login")
       throw new Error("non-login state found in useSWR([draftId, 'draft'])");
-    return getDraft(gAuthState.value.token, draftId);
+    return getDraft({ token: gAuthState.value.token }, { id: draftId });
   });
 
   // SWR cache is not needed; always most fresh setting is fetched
@@ -34,7 +35,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   const token = authState.value.type === "login" ? authState.value.token : null;
   useEffect(() => {
     if (token) {
-      void getUserNewArticleNotify(token).then((data) => {
+      void getUserNewArticleNotify({ token }).then((data) => {
         if (data.type === "Ok") setNotifySetting({ value: data.notify });
         else setNotifySetting({ value: true }); // ignore error
       });
@@ -54,14 +55,13 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   >("loading");
   // update thumbnail after draft data loaded
   if (res.data && thumbnail === null && thumbnailStatus === "loading") {
-    const newThumbnail = 
+    const newThumbnail =
       res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null;
     if (newThumbnail === null)
       // if no image, then null / ok
       setThumbnailStatus("ok");
-    else
-      // if any image, then first / loading
-      setThumbnail(newThumbnail);
+    // if any image, then first / loading
+    else setThumbnail(newThumbnail);
   }
 
   const router = useRouter();
@@ -81,13 +81,16 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
     ) => {
       if (gAuthState.value.type !== "login")
         throw new Error("non-login state found in publishDraft mutation");
-      const publishRes = await publishDraft(gAuthState.value.token, {
-        id: draftId,
-        notes: opt.arg.notes,
-        notify: opt.arg.notify,
-        rememberNotify: opt.arg.rememberNotify,
-        thumbnailId: opt.arg.thumbnailId ?? null,
-      });
+      const publishRes = await publishDraft(
+        { token: gAuthState.value.token },
+        {
+          id: draftId,
+          notes: opt.arg.notes,
+          notify: opt.arg.notify,
+          rememberNotify: opt.arg.rememberNotify,
+          thumbnailId: opt.arg.thumbnailId ?? null,
+        },
+      );
       return publishRes;
     },
     {

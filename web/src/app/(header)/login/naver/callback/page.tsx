@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { tryLogin } from "@/actions";
+import { tryLogin } from "@/actions/auth";
 import { PageProps, onlyString } from "@/utils";
 import { hookstate, useHookstate } from "@hookstate/core";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,7 @@ async function initLogin() {
     return;
   }
 
-  const res = await tryLogin(code).catch(() => null);
+  const res = await tryLogin({ code }).catch(() => null);
   if (!res) {
     gLoginState.set({ type: "error" });
   } else if (res.type === "login") {

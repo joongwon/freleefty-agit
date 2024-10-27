@@ -2,15 +2,10 @@
 import { COMMENT, FAVORITE, MORE } from "@/components/icons";
 import Link from "next/link";
 import type { Article } from "@/types";
-import {
-  deleteArticle,
-  createComment,
-  listLikers,
-  unlikeArticle,
-  likeArticle,
-  editArticle,
-  getArticleDraftId,
-} from "@/actions";
+import { listLikers, unlikeArticle, likeArticle } from "@/actions/likes";
+import { editArticle, getArticleDraftId } from "@/actions/articles";
+import { deleteArticle } from "@/actions/articles";
+import { createComment } from "@/actions/comments";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
 import { useRouter } from "next/navigation";
@@ -81,7 +76,10 @@ function CommentForm(p: { articleId: number; afterSubmit: () => void }) {
       throw new Error("non-login state detected in handleComment");
     }
     try {
-      await createComment(auth.value.token, p.articleId, comment);
+      await createComment(
+        { token: auth.value.token },
+        { article: { id: p.articleId }, content: comment },
+      );
       p.afterSubmit();
     } catch (e) {
       console.error(e);
@@ -112,7 +110,7 @@ function CommentForm(p: { articleId: number; afterSubmit: () => void }) {
 }
 
 function useLikes(articleId: number) {
-  return useSWR([articleId, "like"], async ([id]) => listLikers(id));
+  return useSWR([articleId, "like"], async ([id]) => listLikers({ id }));
 }
 
 function LikeButton(p: { article: Article }) {
@@ -130,8 +128,8 @@ function LikeButton(p: { article: Article }) {
       return {
         req: opt.arg.like,
         res: opt.arg.like
-          ? await likeArticle(auth.value.token, articleId)
-          : await unlikeArticle(auth.value.token, articleId),
+          ? await likeArticle({ token: auth.value.token }, { id: articleId })
+          : await unlikeArticle({ token: auth.value.token }, { id: articleId }),
       } as const;
     },
     {
@@ -140,7 +138,7 @@ function LikeButton(p: { article: Article }) {
         alert("공감 처리 중 오류가 발생했습니다.");
       },
       onSuccess: (data) => {
-        if (data.res === "InvalidAction") {
+        if (data.res.type === "InvalidAction") {
           if (data.req === true) {
             alert("이미 공감한 일지입니다.");
           } else {
@@ -185,7 +183,7 @@ function AuthorMenu(p: { article: Article }) {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in author menu");
     }
-    return await getArticleDraftId(auth.value.token, id);
+    return await getArticleDraftId({ token: auth.value.token }, { id });
   });
   const handleDeleteArticle = async () => {
     if (auth.value.type !== "login") {
@@ -195,8 +193,11 @@ function AuthorMenu(p: { article: Article }) {
       return;
     }
     try {
-      const res = await deleteArticle(auth.value.token, p.article.id);
-      switch (res) {
+      const res = await deleteArticle(
+        { token: auth.value.token },
+        { id: p.article.id },
+      );
+      switch (res.type) {
         case "Ok":
           router.push("/articles");
           return;
@@ -216,8 +217,11 @@ function AuthorMenu(p: { article: Article }) {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleUpdateArticle");
     }
-    const res = await editArticle(auth.value.token, p.article.id);
-    switch (res) {
+    const res = await editArticle(
+      { token: auth.value.token },
+      { id: p.article.id },
+    );
+    switch (res.type) {
       case "NotFound":
         alert("일지를 찾을 수 없습니다");
         return;
@@ -225,7 +229,7 @@ function AuthorMenu(p: { article: Article }) {
         alert("수정할 권한이 없습니다");
         return;
       default:
-        router.push(`/drafts/${res}`);
+        router.push(`/drafts/${res.draftId}`);
         return;
     }
   };

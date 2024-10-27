@@ -1,6 +1,6 @@
 "use client";
 
-import { listArticles } from "@/actions";
+import { listArticles } from "@/actions/articles";
 import { ArticleSummary } from "@/types";
 import useSWRInfinite from "swr/infinite";
 import * as ArticleList from "@/components/ArticleList";
@@ -17,7 +17,7 @@ export default function Infinite(p: { initialItems: ArticleSummary[] }) {
       const prevId = previous?.[previous.length - 1]?.id ?? null;
       return ["articles", { before, prevId, limit: LIMIT }];
     },
-    ([, { before, prevId, limit }]) => listArticles(before, limit, prevId),
+    ([, { before, prevId, limit }]) => listArticles({ before, limit, prevId }),
     { fallbackData: [p.initialItems], revalidateOnMount: false },
   );
   const isEnd =

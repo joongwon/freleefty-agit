@@ -1,6 +1,6 @@
 "use client";
 
-import { listArticlesByAuthor } from "@/actions";
+import { listArticlesByAuthor } from "@/actions/articles";
 import { ArticleSummary } from "@/types";
 import useSWRInfinite from "swr/infinite";
 import * as ArticleList from "@/components/ArticleList";
@@ -24,7 +24,7 @@ export default function InfiniteArticles(p: {
       ];
     },
     ([, { authorId, before, prevId, limit }]) =>
-      listArticlesByAuthor(authorId, before, limit, prevId),
+      listArticlesByAuthor({ authorId, before, limit, prevId }),
     { fallbackData: [p.initialItems], revalidateOnMount: false },
   );
   const isEnd =

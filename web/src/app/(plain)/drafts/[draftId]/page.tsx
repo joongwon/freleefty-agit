@@ -3,13 +3,8 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import {
-  getDraft,
-  updateDraft,
-  deleteDraft,
-  createFile,
-  deleteFile,
-} from "@/actions";
+import { getDraft, updateDraft, deleteDraft } from "@/actions/drafts";
+import { createFile, deleteFile } from "@/actions/files";
 import { parseSafeInt } from "@/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -33,7 +28,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   const res = useSWR(swrKey, ([draftId]) => {
     if (gAuthState.value.type !== "login")
       throw new Error("non-login state found in useSWR([draftId, 'draft'])");
-    return getDraft(gAuthState.value.token, draftId);
+    return getDraft({ token: gAuthState.value.token }, { id: draftId });
   });
 
   // title and content; undefined before loaded
@@ -55,7 +50,12 @@ export default function EditDraft(p: { params: { draftId: string } }) {
       opt: {
         arg: { title: string; content: string; token: string; publish?: true };
       },
-    ) => updateDraft(opt.arg.token, draftId, opt.arg.title, opt.arg.content),
+    ) =>
+      updateDraft(
+        { token: opt.arg.token },
+        { id: draftId },
+        { title: opt.arg.title, content: opt.arg.content },
+      ),
   );
 
   const router = useRouter();
@@ -64,12 +64,12 @@ export default function EditDraft(p: { params: { draftId: string } }) {
   const del = useSWRMutation(
     swrKey,
     ([draftId], opt: { arg: { token: string } }) =>
-      deleteDraft(opt.arg.token, draftId),
+      deleteDraft({ token: opt.arg.token }, { id: draftId }),
     {
       // prevent not found error before navigating
       revalidate: false,
       onSuccess: (data) => {
-        if (data === "Ok") {
+        if (data.type === "Ok") {
           router.replace("/drafts");
         }
       },
@@ -109,7 +109,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
     if (res.isLoading) return "저장된 일지를 불러오는 중...";
     if (res.error) return "초안을 불러오는 중 오류가 발생했습니다";
     if (update.error) return "초안을 저장하는 중 오류가 발생했습니다";
-    if (delData === "NotFound") return "이미 삭제된 초안입니다";
+    if (delData?.type === "NotFound") return "이미 삭제된 초안입니다";
     if (del.error) return "초안을 삭제하는 중 오류가 발생했습니다";
     return null;
   })();
@@ -285,9 +285,8 @@ function FileForm(p: { swrKey: readonly [number, "draft"] | null }) {
       const formData = new FormData();
       formData.append("file", opt.arg.data);
       return createFile(
-        gAuthState.value.token,
-        draftId,
-        opt.arg.name,
+        { token: gAuthState.value.token },
+        { draft: { id: draftId }, name: opt.arg.name },
         formData,
       );
     },
@@ -388,7 +387,7 @@ function DeleteFileButton(p: {
     () => {
       if (gAuthState.value.type !== "login")
         throw new Error("non-login state found in deleteFile");
-      return deleteFile(gAuthState.value.token, p.fileId);
+      return deleteFile({ token: gAuthState.value.token }, { id: p.fileId });
     },
     {
       onSuccess: (data) => {

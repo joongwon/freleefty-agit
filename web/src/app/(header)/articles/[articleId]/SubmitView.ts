@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { submitView } from "@/actions";
+import { submitView } from "@/actions/views";
 import { gAuthState } from "@/auth";
 
 export default function SubmitView(p: { viewToken: string; authorId: string }) {
@@ -19,7 +19,7 @@ export default function SubmitView(p: { viewToken: string; authorId: string }) {
       }
       submittedRef.current = true;
       // don't care about the result
-      void submitView(p.viewToken);
+      void submitView({ viewToken: p.viewToken });
     }, 1000);
     return () => clearTimeout(timeout);
   }, [p.viewToken, p.authorId]);

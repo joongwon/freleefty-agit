@@ -2,7 +2,7 @@
 import type { ArticleComment } from "@/types";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { deleteComment } from "@/actions";
+import { deleteComment } from "@/actions/comments";
 
 export default function DeleteCommentButton(p: {
   articleId: number;
@@ -20,11 +20,10 @@ export default function DeleteCommentButton(p: {
     }
     try {
       const res = await deleteComment(
-        auth.value.token,
-        p.articleId,
-        p.comment.id,
+        { token: auth.value.token },
+        { article: { id: p.articleId }, id: p.comment.id },
       );
-      switch (res) {
+      switch (res.type) {
         case "Ok":
           return;
         case "NotFound":

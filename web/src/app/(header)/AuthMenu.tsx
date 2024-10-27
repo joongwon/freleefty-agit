@@ -1,6 +1,6 @@
 "use client";
 
-import { logout, devLogin } from "@/actions";
+import { logout, devLogin } from "@/actions/auth";
 import { useRouter } from "next/navigation";
 import { useHookstate } from "@hookstate/core";
 import { gAuthState } from "@/auth";

@@ -1,6 +1,6 @@
 "use client";
 
-import { listUserComments } from "@/actions";
+import { listUserComments } from "@/actions/comments";
 import { UserComment } from "@/types";
 import useSWRInfinite from "swr/infinite";
 import * as CommentList from "@/components/CommentList";
@@ -24,7 +24,7 @@ export default function InfiniteComments(p: {
       ];
     },
     ([, { authorId, before, prevId, limit }]) =>
-      listUserComments(authorId, before, limit, prevId),
+      listUserComments({ authorId, before, limit, prevId }),
     { fallbackData: [p.initialItems], revalidateOnMount: false },
   );
   const isEnd =

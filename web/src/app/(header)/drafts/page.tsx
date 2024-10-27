@@ -2,7 +2,7 @@
 import useSWR from "swr";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
-import { createDraft, listDrafts } from "@/actions";
+import { createDraft, listDrafts } from "@/actions/drafts";
 import { useRouter } from "next/navigation";
 import * as ArticleList from "@/components/ArticleList";
 import useSWRMutation from "swr/mutation";
@@ -12,13 +12,13 @@ export default function ListDrafts() {
   const swrKey = authState.type.get() === "login" ? "drafts" : null;
   const list = useSWR(swrKey, () => {
     if (gAuthState.value.type !== "login") throw new Error("Not logged in");
-    return listDrafts(gAuthState.value.token);
+    return listDrafts({ token: gAuthState.value.token });
   });
   const create = useSWRMutation(
     swrKey,
     () => {
       if (gAuthState.value.type !== "login") throw new Error("Not logged in");
-      return createDraft(gAuthState.value.token);
+      return createDraft({ token: gAuthState.value.token });
     },
     {
       revalidate: false,

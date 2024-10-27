@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
-import { createUser } from "@/actions";
+import { createUser } from "@/actions/auth";
 import Link from "next/link";
 import { PageProps, onlyString } from "@/utils";
 import { gAuthState } from "@/auth";
@@ -72,7 +72,7 @@ export default function Register(p: PageProps) {
           e.preventDefault();
           if (code) {
             setCode(null);
-            createUser(code, id, name)
+            createUser({ code, id, name })
               .then((res) => {
                 switch (res.type) {
                   case "success":

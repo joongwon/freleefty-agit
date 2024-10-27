@@ -2,7 +2,7 @@
 
 import { hookstate } from "@hookstate/core";
 import { useEffect } from "react";
-import { refresh } from "@/actions";
+import { refresh } from "@/actions/auth";
 import type { User } from "@/types";
 
 type AuthState =
