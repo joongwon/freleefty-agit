@@ -21,6 +21,7 @@ export default async function Intro() {
       <ul>
         <li><a href="https://discord.gg/BxDNvqWQmf">왼손잡이해방연대 제1대피소</a>: 디스코드 서버입니다. 아지트새글알리미도 상주합니다.</li>
         <li><a href="https://blog.naver.com/freleefty">왼손잡이해방연대 제2대피소</a>: 네이버 블로그입니다. 삐걱임이 길어지면 글이 올라올지도 모릅니다.</li>
+        <li><a href="https://github.com/joongwon/freleefty-agit/issues">건의함</a>: 깃허브 레포 이슈 트래커입니다. 아지트 기능 관련해서 건의하고 싶은 게 있다면 올려주십쇼.</li>
       </ul>
       <h2>인기 일지</h2>
       <p>

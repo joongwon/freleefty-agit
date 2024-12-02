@@ -1,4 +1,4 @@
-FROM node:slim AS base
+FROM node:20-slim AS base
 
 FROM base AS web
 # Install packages
