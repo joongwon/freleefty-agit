@@ -2,9 +2,8 @@
 import { z } from "zod";
 import { authSchema } from "@/serverAuth";
 import { articleIdSchema, paginationWithAuthorSchema } from "@/schemas";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
 import { revalidatePath } from "next/cache";
+import { getNNDB } from "@/db";
 
 export { createComment, deleteComment, listUserComments };
 
@@ -23,11 +22,10 @@ async function createComment(
     article: { id: articleId },
   } = createCommentSchema.parse(payload);
 
-  await newdb.execute(Queries.createComment, {
-    articleId,
-    authorId: userId,
-    content,
-  });
+  await getNNDB()
+    .insertInto("comments")
+    .values({ article_id: articleId, author_id: userId, content })
+    .execute();
 
   revalidatePath(`/articles/${articleId}`);
   return { type: "Ok" } as const;
@@ -48,16 +46,19 @@ async function deleteComment(
     article: { id: articleId },
   } = deleteCommentSchema.parse(payload);
 
-  const res = await newdb.tx(async ({ first, execute }) => {
-    const authorId = (await first(Queries.getCommentAuthorId, { id }))
-      ?.authorId;
-    if (authorId === undefined) {
+  const res = await getNNDB().transaction().execute(async (tx) => {
+    const comment = await tx
+      .selectFrom("comments")
+      .select("author_id")
+      .where("id", "=", id)
+      .executeTakeFirst();
+    if (!comment) {
       return { type: "NotFound" } as const;
-    } else if (authorId !== userId) {
+    } else if (comment.author_id !== userId) {
       return { type: "Forbidden" } as const;
     }
 
-    await execute(Queries.deleteComment, { id });
+    await tx.deleteFrom("comments").where("id", "=", id).execute();
     return { type: "Ok" } as const;
   });
   revalidatePath(`/articles/${articleId}`);
@@ -70,10 +71,22 @@ async function listUserComments(
   const { authorId, before, limit, prevId } =
     paginationWithAuthorSchema.parse(payload);
 
-  return await newdb.list(Queries.listUserComments, {
-    authorId,
-    before,
-    limit,
-    prevId,
-  });
+  return await getNNDB()
+    .selectFrom("comments")
+    .innerJoin("articles", "comments.article_id", "articles.id")
+    .innerJoin("last_editions", "articles.id", "last_editions.article_id")
+    .innerJoin("users as article_author", "comments.author_id", "article_author.id")
+    .select("comments.id")
+    .select("comments.content")
+    .select("comments.created_at")
+    .select("comments.article_id")
+    .select("article_author.name as article_author_name")
+    .select("last_editions.title as article_title")
+    .where("comments.author_id", "=", authorId)
+    .where(({ eb, refTuple, tuple }) =>
+      eb(refTuple("comments.created_at", "comments.id"), "<", tuple(before, prevId ?? 0))
+    )
+    .orderBy(["comments.created_at desc", "comments.id desc"])
+    .limit(limit)
+    .execute();
 }

@@ -1,8 +1,8 @@
 "use server";
 import { z } from "zod";
 import { authSchema } from "@/serverAuth";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
+import { getNNDB } from "@/db";
+import { sql } from "kysely";
 
 const nameUpdateDuration = 24 * 60 * 60 * 1000 * 7;
 const userNameSchema = z.object({
@@ -21,13 +21,12 @@ export async function updateUserName(
   const { name } = userNameSchema.parse(user);
 
   const now = Date.now();
-  const res = await newdb.tx(async ({ unique, execute }) => {
-    const { nameUpdatedAt: nameUpdatedAtRaw } = await unique(
-      Queries.getUserNameUpdatedAt,
-      {
-        id: userId,
-      },
-    );
+  const res = await getNNDB().transaction().execute(async (tx) => {
+    const { name_updated_at: nameUpdatedAtRaw } = await tx
+      .selectFrom("users")
+      .select("name_updated_at")
+      .where("id", "=", userId)
+      .executeTakeFirstOrThrow();
     const nameUpdatedAt = Date.parse(nameUpdatedAtRaw);
     if (now - nameUpdatedAt < nameUpdateDuration) {
       return {
@@ -35,10 +34,14 @@ export async function updateUserName(
         remaining: nameUpdateDuration - (now - nameUpdatedAt),
       } as const;
     }
-    await execute(Queries.updateUserName, { id: userId, name });
+    await tx
+      .updateTable("users")
+      .set("name", name)
+      .set("name_updated_at", sql`now()`)
+      .where("id", "=", userId)
+      .execute();
     return {
       type: "Ok",
-      profile: await unique(Queries.getUserById, { userId }),
     } as const;
   });
 
@@ -50,13 +53,15 @@ export async function getUserNewArticleNotify(
 ) {
   const { id: userId } = await authSchema.parseAsync(auth);
 
-  const res = await newdb.option(Queries.getUserNewArticleNotifySetting, {
-    id: userId,
-  });
+  const res = await getNNDB()
+    .selectFrom("users")
+    .select("new_article_notify")
+    .where("id", "=", userId)
+    .executeTakeFirst();
   if (!res) {
     return { type: "NotFound" } as const;
   }
-  return { type: "Ok", notify: res.newArticleNotify } as const;
+  return { type: "Ok", notify: res.new_article_notify } as const;
 }
 
 const notifySchema = z.object({
@@ -69,9 +74,10 @@ export async function setUserNewArticleNotify(
   const { id: userId } = await authSchema.parseAsync(auth);
   const { notify } = notifySchema.parse(payload);
 
-  await newdb.execute(Queries.setUserNewArticleNotifySetting, {
-    id: userId,
-    newArticleNotify: notify,
-  });
+  await getNNDB()
+    .updateTable("users")
+    .set("new_article_notify", notify)
+    .where("id", "=", userId)
+    .execute();
   return { type: "Ok" } as const;
 }

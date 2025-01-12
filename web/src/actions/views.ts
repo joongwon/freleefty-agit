@@ -1,8 +1,7 @@
 "use server";
 import { z } from "zod";
 import { getRedis } from "@/db";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
+import { getNNDB } from "@/db";
 
 const submitViewSchema = z.object({
   viewToken: z.string(),
@@ -16,5 +15,8 @@ export async function submitView(payload: z.input<typeof submitViewSchema>) {
     return;
   }
   const articleId = parseInt(rawArticleId);
-  await newdb.execute(Queries.createViewLog, { articleId });
+  await getNNDB()
+    .insertInto("views")
+    .values({ article_id: articleId })
+    .execute();
 }

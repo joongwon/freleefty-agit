@@ -1,6 +1,7 @@
 import * as Queries from "./queries_sql";
+import type * as ArticleActions from "@/actions/articles";
 
-export type ArticleSummary = Queries.IListArticlesResult;
+export type ArticleSummary = Awaited<ReturnType<typeof ArticleActions.listArticles>>[number];
 export type UserComment = Queries.IListUserCommentsResult;
 export type ArticleComment = Queries.IGetArticleCommentsResult;
 export type Article = Queries.IGetArticleResult & {

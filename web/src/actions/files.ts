@@ -2,9 +2,8 @@
 import { z } from "zod";
 import { authSchema } from "@/serverAuth";
 import { draftIdSchema } from "@/schemas";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
 import * as Files from "@/files";
+import { getNNDB } from "@/db";
 
 const createFileSchema = z.object({
   draft: draftIdSchema,
@@ -20,8 +19,10 @@ export async function createFile(
   formData: FormData,
 ) {
   const { id: userId } = await authSchema.parseAsync(auth);
-  const { id: draftId } = await draftIdSchema.parseAsync(payload);
-  const { name: fileName } = createFileSchema.parse(payload);
+  const {
+    draft: { id: draftId },
+    name: fileName
+  } = createFileSchema.parse(payload);
   if (!(formData instanceof FormData)) {
     throw new Error("Invalid form data");
   }
@@ -34,17 +35,22 @@ export async function createFile(
   }
 
   const upload = Files.uploadFile(file);
-  const result = await newdb.tx(async ({ first, unique }) => {
-    const author = await first(Queries.getDraftAuthorId, { id: draftId });
-    if (author?.authorId !== userId) {
+  const result = await getNNDB().transaction().execute(async (tx) => {
+    const author = await tx
+      .selectFrom("drafts")
+      .innerJoin("articles", "drafts.article_id", "articles.id")
+      .select("author_id")
+      .where("id", "=", draftId)
+      .executeTakeFirst();
+    if (author?.author_id !== userId) {
       return "NotFound" as const;
     }
     try {
-      const { id: fileId } = await unique(Queries.createFile, {
-        draftId,
-        name: fileName,
-        mimeType: file.type,
-      });
+      const { id: fileId } = await tx
+        .insertInto("files")
+        .values({ draft_id: draftId, name: fileName, mime_type: file.type })
+        .returning("id")
+        .executeTakeFirstOrThrow();
       await upload.rename({ draftId, fileId, fileName });
       return "Ok" as const;
     } catch (e) {
@@ -70,13 +76,19 @@ export async function deleteFile(
   const { id: userId } = await authSchema.parseAsync(auth);
   const { id: fileId } = await fileIdSchema.parseAsync(file);
 
-  const res = await newdb.tx(async ({ first, execute }) => {
-    const fileInfo = await first(Queries.getFileInfo, { id: fileId });
-    if (fileInfo?.authorId !== userId) {
+  const res = await getNNDB().transaction().execute(async (tx) => {
+    const fileInfo = await tx
+      .selectFrom("files")
+      .innerJoin("drafts", "files.draft_id", "drafts.id")
+      .innerJoin("articles", "drafts.article_id", "articles.id")
+      .select(["draft_id", "author_id"])
+      .where("id", "=", fileId)
+      .executeTakeFirst();
+    if (!fileInfo || fileInfo.author_id !== userId || fileInfo.draft_id === null) {
       return { type: "Forbidden" } as const;
     }
-    await execute(Queries.deleteFile, { id: fileId });
-    await Files.deleteOneDraftFile({ draftId: fileInfo.draftId, fileId });
+    await tx.deleteFrom("files").where("id", "=", fileId).execute();
+    await Files.deleteOneDraftFile({ draftId: fileInfo.draft_id, fileId });
     return { type: "Ok" } as const;
   });
   return res.type;

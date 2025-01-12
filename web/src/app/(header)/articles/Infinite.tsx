@@ -1,10 +1,10 @@
 "use client";
 
 import { listArticles } from "@/actions/articles";
-import { ArticleSummary } from "@/types";
 import useSWRInfinite from "swr/infinite";
 import * as ArticleList from "@/components/ArticleList";
 import { useNow } from "@/now";
+import { ArticleSummary } from "@/types";
 
 const LIMIT = 40;
 
@@ -13,7 +13,7 @@ export default function Infinite(p: { initialItems: ArticleSummary[] }) {
   const list = useSWRInfinite(
     (index, previous) => {
       if (index !== 0 && (previous?.length ?? 0) < LIMIT) return null;
-      const before = previous?.[previous.length - 1]?.publishedAt ?? now;
+      const before = previous?.[previous.length - 1]?.published_at ?? now;
       const prevId = previous?.[previous.length - 1]?.id ?? null;
       return ["articles", { before, prevId, limit: LIMIT }];
     },

@@ -56,7 +56,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   // update thumbnail after draft data loaded
   if (res.data && thumbnail === null && thumbnailStatus === "loading") {
     const newThumbnail =
-      res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null;
+      res.data.files.find((f) => f.mime_type.startsWith("image/")) ?? null;
     if (newThumbnail === null)
       // if no image, then null / ok
       setThumbnailStatus("ok");
@@ -189,7 +189,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
               >
                 <option value="">없음</option>
                 {res.data.files
-                  .filter((f) => f.mimeType.startsWith("image/"))
+                  .filter((f) => f.mime_type.startsWith("image/"))
                   .map((file) => (
                     <option key={file.id} value={file.id}>
                       {file.name}

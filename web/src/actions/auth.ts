@@ -3,8 +3,6 @@
 import { z } from "zod";
 import { getEnv } from "@/env";
 import { getClientEnv } from "@/clientEnv";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
 import { getRedis } from "@/db";
 import { randomUUID } from "crypto";
 import { User } from "@/types";
@@ -14,6 +12,7 @@ import {
   getRefreshTokenCookie,
   JwtPayload,
 } from "@/serverAuth";
+import { getNNDB } from "@/db";
 
 export { tryLogin, logout, refresh, createUser, devLogin };
 export type { TryLoginResult };
@@ -68,7 +67,11 @@ async function tryLogin(payload: z.infer<typeof tryLoginSchema>) {
   const naverName = profileData.response.nickname ?? "";
 
   // 네이버 아이디로 사용자가 등록되어 있는지 확인
-  const user = await newdb.option(Queries.getUserByNaverId, { naverId });
+  const user = await getNNDB()
+    .selectFrom("users")
+    .select(["id", "role", "name"])
+    .where("naver_id", "=", naverId)
+    .executeTakeFirst();
 
   if (!user) {
     // 등록되어 있지 않다면, 가입 페이지로 이동
@@ -107,7 +110,10 @@ async function createUser(payload: z.infer<typeof createUserSchema>) {
   }
 
   try {
-    await newdb.execute(Queries.createUser, { naverId, id, name });
+    await getNNDB()
+      .insertInto("users")
+      .values({ naver_id: naverId, id, name })
+      .execute();
     return {
       type: "success",
       ...(await login({ id, role: "user", name })),
@@ -148,7 +154,11 @@ async function refresh() {
     return null;
   }
 
-  const profile = await newdb.option(Queries.getUserById, { userId });
+  const profile = await getNNDB()
+    .selectFrom("users")
+    .select(["id", "role", "name"])
+    .where("id", "=", userId)
+    .executeTakeFirst();
 
   if (!profile) {
     return null;
@@ -196,7 +206,11 @@ async function devLogin() {
   if (process.env.NODE_ENV !== "development") {
     throw new Error("This function is only available in development mode");
   }
-  const profile = await newdb.option(Queries.getUserById, { userId: "test" });
+  const profile = await getNNDB()
+    .selectFrom("users")
+    .select(["id", "role", "name"])
+    .where("id", "=", "test")
+    .executeTakeFirst();
   if (!profile) {
     throw new Error("User not found");
   }

@@ -8,8 +8,9 @@ module.exports = {
       build: 'dotenv -e .env -- pgtyped -c pgtyped.json',
       dev: 'dotenv -e .env -- pgtyped -w -c pgtyped.json'
     },
-    migrate: 'dotenv -e .env -- node-pg-migrate',
+    kanel: 'dotenv -e .env -- kanel',
     mig: {
+      default: 'dotenv -e .env -- node-pg-migrate',
       prod: 'node-pg-migrate up'
     }
   }

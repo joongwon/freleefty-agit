@@ -29,8 +29,8 @@ export default function Buttons(p: { article: Article }) {
         {likes.data && likes.data.length > 0 && (
           <>
             {likes.data.map((e, i, arr) => (
-              <span key={e.userId} title={moment(e.createdAt).fromNow()}>
-                <Link href={`/users/${e.userId}`}>{e.userName}</Link>
+              <span key={e.user_id} title={moment(e.created_at).fromNow()}>
+                <Link href={`/users/${e.user_id}`}>{e.user_name}</Link>
                 {i < arr.length - 1 && ", "}
               </span>
             ))}
@@ -117,7 +117,7 @@ function LikeButton(p: { article: Article }) {
   const auth = useHookstate(gAuthState);
   const likes = useLikes(p.article.id);
   const userId = auth.value.type === "login" ? auth.value.profile.id : null;
-  const userInLike = likes.data?.some((e) => e.userId === userId) ?? false;
+  const userInLike = likes.data?.some((e) => e.user_id === userId) ?? false;
   const canClick = auth.value.type === "login" && likes.data !== undefined;
   const toggleLike = useSWRMutation(
     [p.article.id, "like"],

@@ -1,9 +1,8 @@
 "use server";
 import { z } from "zod";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
 import { authSchema } from "@/serverAuth";
 import { webhookSendEmbed } from "@/webhooks";
+import { getNNDB } from "@/db";
 
 const createWebhookSchema = z.object({
   name: z.string().min(1).max(255),
@@ -19,7 +18,11 @@ export async function createWebhook(
   if (role !== "admin") {
     return { type: "Forbidden" };
   }
-  await newdb.execute(Queries.createWebhook, { name, url });
+
+  await getNNDB()
+    .insertInto("webhooks")
+    .values({ name, url })
+    .execute();
   void webhookSendEmbed(url, {
     title: "안녕하세요!",
     description: "오늘부터 아지트새글을 알려드려요!",
@@ -41,7 +44,11 @@ export async function deleteWebhook(
   if (role !== "admin") {
     return { type: "Forbidden" } as const;
   }
-  const res = await newdb.option(Queries.deleteWebhook, { id });
+  const res = await getNNDB()
+    .deleteFrom("webhooks")
+    .where("id", "=", id)
+    .returning("url")
+    .executeTakeFirst();
   if (!res) {
     return { type: "NotFound" } as const;
   }
@@ -58,6 +65,9 @@ export async function listWebhooks(auth: z.input<typeof authSchema>) {
   if (role !== "admin") {
     return { type: "Forbidden" } as const;
   }
-  const webhooks = await newdb.list(Queries.listWebhooks, undefined);
+  const webhooks = await getNNDB()
+    .selectFrom("webhooks")
+    .select(["id", "name", "url"])
+    .execute();
   return { type: "Ok", webhooks } as const;
 }
