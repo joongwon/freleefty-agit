@@ -54,14 +54,13 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   >("loading");
   // update thumbnail after draft data loaded
   if (res.data && thumbnail === null && thumbnailStatus === "loading") {
-    const newThumbnail = 
+    const newThumbnail =
       res.data.files.find((f) => f.mimeType.startsWith("image/")) ?? null;
     if (newThumbnail === null)
       // if no image, then null / ok
       setThumbnailStatus("ok");
-    else
-      // if any image, then first / loading
-      setThumbnail(newThumbnail);
+    // if any image, then first / loading
+    else setThumbnail(newThumbnail);
   }
 
   const router = useRouter();

@@ -133,7 +133,7 @@ SELECT
   name AS "authorName"
   FROM comments JOIN users ON comments.author_id = users.id
   WHERE article_id = :id!
-  ORDER BY (created_at, comments.id) DESC;
+  ORDER BY (created_at, comments.id) ASC;
 
 /* @name ListUserComments */
 SELECT

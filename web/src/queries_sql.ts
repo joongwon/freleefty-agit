@@ -516,7 +516,7 @@ const getArticleCommentsIR: any = {
     },
   ],
   statement:
-    'SELECT\n  comments.id,\n  content,\n  created_at AS "createdAt",\n  author_id AS "authorId",\n  name AS "authorName"\n  FROM comments JOIN users ON comments.author_id = users.id\n  WHERE article_id = :id!\n  ORDER BY (created_at, comments.id) DESC',
+    'SELECT\n  comments.id,\n  content,\n  created_at AS "createdAt",\n  author_id AS "authorId",\n  name AS "authorName"\n  FROM comments JOIN users ON comments.author_id = users.id\n  WHERE article_id = :id!\n  ORDER BY (created_at, comments.id) ASC',
 };
 
 /**
@@ -530,7 +530,7 @@ const getArticleCommentsIR: any = {
  *   name AS "authorName"
  *   FROM comments JOIN users ON comments.author_id = users.id
  *   WHERE article_id = :id!
- *   ORDER BY (created_at, comments.id) DESC
+ *   ORDER BY (created_at, comments.id) ASC
  * ```
  */
 export const getArticleComments = new PreparedQuery<
