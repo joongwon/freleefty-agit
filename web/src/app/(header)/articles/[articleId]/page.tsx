@@ -11,22 +11,97 @@ import SubmitView from "./SubmitView";
 import Viewer from "@/components/Viewer";
 import { cache } from "react";
 import { getEnv } from "@/env";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
 import * as CommentList from "@/components/CommentList";
 import Link from "next/link";
+import { getNNDB } from "@/db";
 
 const getArticle = cache(async (articleId: number) => {
-  return newdb.tx(async ({ first, list }) => {
-    const article = await first(Queries.getArticle, { id: articleId });
-    if (article === null) {
+  return await getNNDB().transaction().execute(async (tx) => {
+    const article = await tx
+      .selectFrom("articles")
+      .innerJoin("users", "articles.author_id", "users.id")
+      .innerJoin("last_editions", "articles.id", "last_editions.article_id")
+      .innerJoin("article_stats", "articles.id", "article_stats.id")
+      .where("articles.id", "=", articleId)
+      .select("articles.id as id")
+      .select("last_editions.id as edition_id")
+      .select("title")
+      .select("content")
+      .select("author_id")
+      .select("users.name as author_name")
+      .select("views_count")
+      .select("likes_count")
+      .select("first_published_at")
+      .select("last_published_at")
+      .executeTakeFirst();
+    if (!article) {
       return null;
     }
-    const next = await first(Queries.getNextArticle, { id: articleId });
-    const prev = await first(Queries.getPrevArticle, { id: articleId });
-    const files = await list(Queries.getArticleFiles, { id: articleId });
-    const comments = await list(Queries.getArticleComments, { id: articleId });
-    return { ...article, next, prev, files, comments };
+
+    const editionsCount = await tx
+      .selectFrom("editions")
+      .where("article_id", "=", articleId)
+      .select(eb => eb.fn.countAll().as("count"))
+      .executeTakeFirstOrThrow();
+
+    const makeAdjacentQuery = () => tx
+      .selectFrom("articles")
+      .innerJoin("last_editions", "articles.id", "last_editions.article_id")
+      .innerJoin("users", "articles.author_id", "users.id")
+      .innerJoin("article_stats", "articles.id", "article_stats.id")
+      .select("articles.id as id")
+      .select("last_editions.id as edition_id")
+      .select("title")
+      .select("author_id")
+      .select("users.name as author_name")
+      .select("first_published_at")
+      .select("comments_count")
+      .select("views_count")
+      .select("likes_count")
+      .select("thumbnail_id")
+      .select("thumbnail_name");
+
+    const next = await makeAdjacentQuery()
+      .where(({eb, refTuple, tuple}) => eb(
+        refTuple("first_published_at", "id"),
+        ">",
+        tuple(article.first_published_at, articleId)))
+      .orderBy(({refTuple}) => refTuple("first_published_at", "id"), "asc")
+      .limit(1)
+      .executeTakeFirst();
+
+    const prev = await makeAdjacentQuery()
+      .where(({eb, refTuple, tuple}) => eb(
+        refTuple("first_published_at", "id"),
+        "<",
+        tuple(article.first_published_at, articleId)))
+      .orderBy(({refTuple}) => refTuple("first_published_at", "id"), "desc")
+      .limit(1)
+      .executeTakeFirst();
+
+    const files = await tx
+      .selectFrom("files")
+      .where("edition_id", "=", article.edition_id)
+      .select("id")
+      .select("name")
+      .execute();
+
+    const comments = await tx
+      .selectFrom("comments")
+      .innerJoin("users", "comments.author_id", "users.id")
+      .where("article_id", "=", articleId)
+      .select("comments.id")
+      .select("content")
+      .select("comments.created_at")
+      .select("author_id")
+      .select("users.name as author_name")
+      .orderBy(({refTuple}) => refTuple("created_at", "id"), "asc")
+      .execute();
+
+    const toNumber = (x: number | bigint | string) => Number(x);
+
+    return { ...article, next, prev, files, comments,
+      editions_count: toNumber(editionsCount.count) };
   });
 });
 
@@ -73,28 +148,28 @@ export default async function ViewArticle(p: {
       <header>
         <h1 className="text-3xl font-bold">{article.title}</h1>
         <p className="text-sm">
-          <Link href={`/users/${article.authorId}`}>{article.authorName}</Link>
+          <Link href={`/users/${article.author_id}`}>{article.author_name}</Link>
           {", "}
-          <Time>{article.firstPublishedAt}</Time>
-          {article.firstPublishedAt !== article.lastPublishedAt ? (
+          <Time>{article.first_published_at}</Time>
+          {article.first_published_at !== article.last_published_at ? (
             <>
               {" (개정: "}
-              <Time>{article.lastPublishedAt}</Time>
+              <Time>{article.last_published_at}</Time>
               {")"}
             </>
           ) : null}
         </p>
         <Stat>
-          {VISIBILITY} {article.viewsCount}
+          {VISIBILITY} {article.views_count}
         </Stat>
         <Stat>
-          {FAVORITE} {article.likesCount}
+          {FAVORITE} {article.likes_count}
         </Stat>
       </header>
       <Viewer
         content={article.content}
         files={article.files}
-        fileSuffix={`${staticUrl}/${article.editionId}`}
+        fileSuffix={`${staticUrl}/${article.edition_id}`}
       />
       <hr className="border-none my-4" />
       <Buttons article={article} />
@@ -137,7 +212,7 @@ export default async function ViewArticle(p: {
           </ArticleList.Message>
         )}
       </ArticleList.Container>
-      <SubmitView viewToken={viewToken} authorId={article.authorId} />
+      <SubmitView viewToken={viewToken} authorId={article.author_id} />
     </main>
   );
 }

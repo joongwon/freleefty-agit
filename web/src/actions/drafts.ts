@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { webhookNotifyNewArticle } from "@/webhooks";
 import { draftIdSchema } from "@/schemas";
 import { getNNDB } from "@/db";
+import { makeListDraftsQuery } from "@/queries";
 
 export {
   listDrafts,
@@ -16,23 +17,6 @@ export {
   createDraft,
   publishDraft,
 };
-
-function makeListDraftsQuery<T extends ReturnType<typeof getNNDB>>(db: T, authorId: string) {
-  return db
-    .selectFrom("drafts")
-    .innerJoin("articles", "drafts.article_id", "articles.id")
-    .select("id")
-    .select("title")
-    .select("created_at")
-    .select("updated_at")
-    .select("article_id")
-    .select(({exists, selectFrom}) => exists(
-      selectFrom("last_editions")
-      .select("id")
-      .whereRef("article_id", "=", "drafts.id")
-    ).as("published"))
-    .where("author_id", "=", authorId)
-}
 
 async function listDrafts(auth: z.input<typeof authSchema>) {
   const { id: authorId } = await authSchema.parseAsync(auth);

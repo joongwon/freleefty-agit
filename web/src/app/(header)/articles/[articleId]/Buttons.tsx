@@ -1,7 +1,6 @@
 "use client";
 import { COMMENT, FAVORITE, MORE } from "@/components/icons";
 import Link from "next/link";
-import type { Article } from "@/types";
 import { listLikers, unlikeArticle, likeArticle } from "@/actions/likes";
 import { editArticle, getArticleDraftId } from "@/actions/articles";
 import { deleteArticle } from "@/actions/articles";
@@ -14,7 +13,13 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import moment from "moment";
 
-export default function Buttons(p: { article: Article }) {
+export default function Buttons(p: { article: {
+  id: number;
+  comments: { length: number };
+  edition_id: number;
+  editions_count: number;
+  author_id: string;
+} }) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const auth = useHookstate(gAuthState);
   const commentDisabled = auth.value.type !== "login";
@@ -113,7 +118,9 @@ function useLikes(articleId: number) {
   return useSWR([articleId, "like"], async ([id]) => listLikers({ id }));
 }
 
-function LikeButton(p: { article: Article }) {
+function LikeButton(p: { article: {
+  id: number;
+} }) {
   const auth = useHookstate(gAuthState);
   const likes = useLikes(p.article.id);
   const userId = auth.value.type === "login" ? auth.value.profile.id : null;
@@ -174,7 +181,12 @@ function LikeButton(p: { article: Article }) {
   );
 }
 
-function AuthorMenu(p: { article: Article }) {
+function AuthorMenu(p: { article: {
+  edition_id: any;
+  editions_count: number;
+  id: number;
+  author_id: string;
+} }) {
   const auth = useHookstate(gAuthState);
   const router = useRouter();
   const swrKey =
@@ -235,7 +247,7 @@ function AuthorMenu(p: { article: Article }) {
   };
 
   const isAuthor =
-    auth.value.type === "login" && auth.value.profile.id === p.article.authorId;
+    auth.value.type === "login" && auth.value.profile.id === p.article.author_id;
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -308,13 +320,13 @@ function AuthorMenu(p: { article: Article }) {
           </li>
         )}
         <li>
-          {p.article.editionsCount > 1 ? (
+          {p.article.editions_count > 1 ? (
             <Link
-              href={`/editions/${p.article.editionId}`}
+              href={`/editions/${p.article.edition_id}`}
               title="이 일지로서 발행한 판의 목록"
               className="button"
             >
-              다른 판 ({p.article.editionsCount})
+              다른 판 ({p.article.editions_count})
             </Link>
           ) : (
             <span className="button button-disabled">(초판입니다)</span>

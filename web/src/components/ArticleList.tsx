@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import Time from "@/components/Time";
 import { COMMENT, VISIBILITY, FAVORITE, ARROW_RIGHT } from "@/components/icons";
-import { DraftSummary, EditionSummary } from "@/types";
+import { DraftSummary } from "@/types";
 import { getClientEnv } from "@/clientEnv";
 
 export function Container(p: { children: ReactNode }) {
@@ -134,7 +134,11 @@ export function DraftItem(p: { draft: DraftSummary }) {
 }
 
 export function EditionItem(p: {
-  edition: EditionSummary;
+  edition: {
+    id: number;
+    title: string;
+    notes: string;
+  };
   selected: boolean;
   latest: boolean;
 }) {

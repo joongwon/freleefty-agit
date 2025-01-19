@@ -1,16 +1,18 @@
 "use client";
-import type { ArticleComment } from "@/types";
 import { gAuthState } from "@/auth";
 import { useHookstate } from "@hookstate/core";
 import { deleteComment } from "@/actions/comments";
 
 export default function DeleteCommentButton(p: {
   articleId: number;
-  comment: ArticleComment;
+  comment: {
+    id: number;
+    author_id: string;
+  };
 }) {
   const auth = useHookstate(gAuthState);
   const canDelete =
-    auth.value.type === "login" && auth.value.profile.id === p.comment.authorId;
+    auth.value.type === "login" && auth.value.profile.id === p.comment.author_id;
   const handleDelete = async () => {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleDelete");

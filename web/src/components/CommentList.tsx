@@ -1,5 +1,4 @@
 "use client";
-import { ArticleComment, UserComment } from "@/types";
 import Time from "@/components/Time";
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
@@ -9,7 +8,12 @@ export function Container(p: { children: ReactNode }) {
 }
 
 export function Item(p: {
-  comment: UserComment | ArticleComment;
+  comment: {
+    id: number;
+    content: string
+    created_at: string;
+  } & ({author_name: string; author_id: string} | object)
+  & ({article_title: string; article_id: number; article_author_name: string; articleAuthorId: string} | object)
   after?: ReactNode;
 }) {
   const [hash, setHash] = useState("");
@@ -28,31 +32,31 @@ export function Item(p: {
       <div className="flex-1">
         <p>{p.comment.content}</p>
         <footer className="text-sm text-gray-500">
-          {"authorName" in p.comment && p.comment.authorName && (
+          {"author_name" in p.comment && p.comment.author_name && (
             <>
-              <Link href={`/users/${p.comment.authorId}`}>
-                {p.comment.authorName}
+              <Link href={`/users/${p.comment.author_id}`}>
+                {p.comment.author_name}
               </Link>
               {", "}
             </>
           )}
-          {"articleTitle" in p.comment && p.comment.articleTitle && (
+          {"article_title" in p.comment && p.comment.article_title && (
             <>
               「
               <Link
-                href={`/articles/${p.comment.articleId}#comment-${p.comment.id}`}
+                href={`/articles/${p.comment.article_id}#comment-${p.comment.id}`}
                 className="text-gray-700 hover:underline"
               >
-                {p.comment.articleTitle}
+                {p.comment.article_title}
               </Link>
               」 by{" "}
               <Link href={`/users/${p.comment.articleAuthorId}`}>
-                {p.comment.articleAuthorName}
+                {p.comment.article_author_name}
               </Link>
               {", "}
             </>
           )}
-          <Time>{p.comment.createdAt}</Time>
+          <Time>{p.comment.created_at}</Time>
         </footer>
       </div>
       {p.after}

@@ -5,20 +5,36 @@ import Viewer from "@/components/Viewer";
 import Link from "next/link";
 import { getEnv } from "@/env";
 import { cache } from "react";
-import * as Queries from "@/queries_sql";
-import * as newdb from "@/newdb";
+import { getNNDB } from "@/db";
 
 const getEdition = cache(async (editionId: number) => {
-  return newdb.tx(async ({ first, list }) => {
-    const edition = await first(Queries.getEdition, { id: editionId });
-    if (edition === null) {
+  return await getNNDB().transaction().execute(async tx => {
+    const edition = await tx.selectFrom("editions")
+      .where("id", "=", editionId)
+      .select("id")
+      .select("article_id")
+      .select("title")
+      .select("content")
+      .select("notes")
+      .select("published_at")
+      .executeTakeFirst();
+    if (!edition) {
       return null;
     }
 
-    const editions = await list(Queries.listEditions, {
-      articleId: edition.articleId,
-    });
-    const files = await list(Queries.listEditionFiles, { id: editionId });
+    const editions = await tx.selectFrom("editions")
+      .where("article_id", "=", edition.article_id)
+      .select("id")
+      .select("title")
+      .select("notes")
+      .execute();
+
+    const files = await tx.selectFrom("files")
+      .where("edition_id", "=", editionId)
+      .select("id")
+      .select("name")
+      .execute();
+
     return { ...edition, editions, files };
   });
 });
@@ -41,9 +57,9 @@ export default async function Edition(p: { params: { editionId: string } }) {
     <main>
       <header className="flex justify-between md:items-end mb-4 md:flex-row flex-col items-start">
         <h1 className="text-2xl font-bold">
-          일지 {edition.articleId}호의 개정판
+          일지 {edition.article_id}호의 개정판
         </h1>
-        <Link className="underline" href={`/articles/${edition.articleId}`}>
+        <Link className="underline" href={`/articles/${edition.article_id}`}>
           본문 보기
         </Link>
       </header>
