@@ -182,7 +182,7 @@ function LikeButton(p: { article: {
 }
 
 function AuthorMenu(p: { article: {
-  edition_id: any;
+  edition_id: number;
   editions_count: number;
   id: number;
   author_id: string;

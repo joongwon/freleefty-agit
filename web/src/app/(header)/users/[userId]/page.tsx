@@ -1,22 +1,24 @@
-import {
-  getUserById,
-  listArticlesByAuthor,
-  listUserComments,
-} from "@/queries_sql";
 import { notFound } from "next/navigation";
-import * as newdb from "@/newdb";
 import { PageProps } from "@/utils";
 import Link from "next/link";
 import InfiniteArticles from "./InfiniteArticles";
 import InfiniteComments from "./InfiniteComments";
+import { getNNDB } from "@/db";
+import { makeListArticlesQuery, makeListUserCommentsQuery } from "@/queries";
 
 export default async function UserPage(
   p: { params: { userId: string } } & PageProps,
 ) {
   const userId = p.params.userId;
-  const user = await newdb.option(getUserById, { userId });
+  const user = await getNNDB()
+    .selectFrom("users")
+    .where("id", "=", userId)
+    .select("id")
+    .select("name")
+    .select("role")
+    .executeTakeFirst();
 
-  if (user === null) {
+  if (user === undefined) {
     return notFound();
   }
 
@@ -26,20 +28,25 @@ export default async function UserPage(
     section === "comments" ? (
       <InfiniteComments
         authorId={user.id}
-        initialItems={await newdb.list(listUserComments, {
+        initialItems={await makeListUserCommentsQuery(getNNDB(), {
           authorId: user.id,
           before: new Date().toISOString(),
           limit: 40,
-        })}
+          prevId: null,
+        }).execute()}
       />
     ) : (
       <InfiniteArticles
         authorId={user.id}
-        initialItems={await newdb.list(listArticlesByAuthor, {
-          authorId: user.id,
-          before: new Date().toISOString(),
-          limit: 40,
-        })}
+        initialItems={
+          await makeListArticlesQuery(getNNDB(), {
+            prevId: null,
+            before: new Date().toISOString(),
+            limit: 40,
+          })
+          .where("a.author_id", "=", user.id)
+          .execute()
+        }
       />
     );
 

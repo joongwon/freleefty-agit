@@ -259,7 +259,7 @@ export default function EditDraft(p: { params: { draftId: string } }) {
         {res.data?.published && (
           <Link
             className="button"
-            href={`/articles/${res.data.articleId}`}
+            href={`/articles/${res.data.article_id}`}
             title="이 초안이 덮어씌울 일지의 최신 발행판"
           >
             발행판

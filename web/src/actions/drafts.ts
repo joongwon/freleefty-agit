@@ -72,8 +72,8 @@ async function updateDraft(
       .set("title", title)
       .set("content", content)
       .where("id", "=", id)
-      .where(({eb, selectFrom}) => eb(
-        selectFrom("articles").select("author_id").whereRef("id", "=", "drafts.article_id"),
+      .where(eb => eb(
+        eb.selectFrom("articles").select("author_id").whereRef("id", "=", "drafts.article_id"),
         "=", userId))
       .executeTakeFirst()
   ).numUpdatedRows === 1n
@@ -92,8 +92,8 @@ async function deleteDraft(
     const deleteResult = await tx
       .deleteFrom("drafts")
       .where("id", "=", id)
-      .where(({eb, selectFrom}) => eb(
-        selectFrom("articles").select("author_id").whereRef("id", "=", "drafts.article_id"),
+      .where(eb => eb(
+        eb.selectFrom("articles").select("author_id").whereRef("id", "=", "drafts.article_id"),
         "=", userId))
       .returning("article_id")
       .executeTakeFirst();
@@ -103,9 +103,9 @@ async function deleteDraft(
     await tx
       .deleteFrom("articles")
       .where("id", "=", deleteResult.article_id)
-      .where(({eb, selectFrom}) => eb(
+      .where(eb => eb(
         "id", "not in",
-        selectFrom("editions").select("article_id")
+        eb.selectFrom("editions").select("article_id")
       ))
       .execute();
 
@@ -128,8 +128,8 @@ async function createDraft(auth: z.input<typeof authSchema>) {
           .values({ author_id: authorId })
           .returning("id"))
     .insertInto("drafts")
-    .values(({selectFrom}) => ({
-      article_id: selectFrom("new_article").select("new_article.id"),
+    .values(eb => ({
+      article_id: eb.selectFrom("new_article").select("new_article.id"),
     }))
     .returning("id")
     .executeTakeFirstOrThrow();
@@ -185,13 +185,13 @@ async function publishDraft(
     const { article_id, edition_id } = await tx
       .insertInto("editions")
       .columns(["article_id", "title", "content", "notes", "thumbnail"])
-      .expression(({selectFrom, val}) => selectFrom("drafts")
+      .expression(eb => eb.selectFrom("drafts")
                   .select([
                     "article_id",
                     "title",
                     "content",
-                    val(notes).as("notes"),
-                    val(thumbnailId).as("thumbnail")
+                    eb.val(notes).as("notes"),
+                    eb.val(thumbnailId).as("thumbnail")
                   ])
                   .where("id", "=", draftId))
       .returning(["article_id", "id as edition_id"])

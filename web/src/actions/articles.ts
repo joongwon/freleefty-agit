@@ -10,6 +10,7 @@ import {
   paginationWithAuthorSchema,
 } from "@/schemas";
 import { getNNDB } from "@/db";
+import { makeListArticlesQuery } from "@/queries";
 
 export {
   deleteArticle,
@@ -113,9 +114,9 @@ async function editArticle(
       .with("new_files", (cte) => cte
         .insertInto("files")
         .columns(["draft_id", "name", "mime_type"])
-        .expression(({eb, val}) => eb
+        .expression(eb => eb
                     .selectFrom("files")
-                    .select([val(draft.id).as("draft_id"), "name", "mime_type"])
+                    .select([eb.val(draft.id).as("draft_id"), "name", "mime_type"])
                     .where("edition_id", "=", edition.id))
         .returning(["id", "name"]))
       // then return (oldId, newId, name) for each file
@@ -160,33 +161,10 @@ async function getArticleDraftId(
   return draft?.id ?? null;
 }
 
-function makeListArticlesQuery(before: string, limit: number, prevId: number | null) {
-  return getNNDB()
-    .selectFrom("last_editions as e")
-    .innerJoin("articles as a", "a.id", "e.article_id")
-    .innerJoin("users as u", "u.id", "a.author_id")
-    .innerJoin("article_stats as s", "s.id", "a.id")
-    .select("a.id")
-    .select("e.id as edition_id")
-    .select("e.title")
-    .select("a.author_id")
-    .select("u.name as author_name")
-    .select("first_published_at as published_at")
-    .select("s.views_count")
-    .select("s.likes_count")
-    .select("s.comments_count")
-    .select("thumbnail_id")
-    .select("thumbnail_name")
-    .where(({eb, refTuple, tuple}) => eb(
-      refTuple("e.first_published_at", "a.id"), "<", tuple(before, prevId ?? 0)))
-    .orderBy(({refTuple}) => refTuple("e.first_published_at", "a.id"), "desc")
-    .limit(limit);
-}
-
 async function listArticles(payload: z.input<typeof paginationSchema>) {
   const { before, limit, prevId } = paginationSchema.parse(payload);
 
-  return await makeListArticlesQuery(before, limit, prevId).execute();
+  return await makeListArticlesQuery(getNNDB(), {before, limit, prevId}).execute();
 }
 
 async function listArticlesByAuthor(
@@ -195,7 +173,7 @@ async function listArticlesByAuthor(
   const { authorId, before, limit, prevId } =
     paginationWithAuthorSchema.parse(payload);
 
-  return await makeListArticlesQuery(before, limit, prevId)
+  return await makeListArticlesQuery(getNNDB(), {before, limit, prevId})
     .where("a.author_id", "=", authorId)
     .execute();
 }

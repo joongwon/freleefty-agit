@@ -55,7 +55,7 @@ function NameChangeForm(p: { token: string; profile: User }) {
     {
       onSuccess: (data) => {
         if (data.type === "Ok") {
-          setProfile(data.profile);
+          setProfile({ ...p.profile, name });
           alert("저장되었습니다.");
         }
       },

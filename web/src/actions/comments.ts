@@ -4,6 +4,7 @@ import { authSchema } from "@/serverAuth";
 import { articleIdSchema, paginationWithAuthorSchema } from "@/schemas";
 import { revalidatePath } from "next/cache";
 import { getNNDB } from "@/db";
+import { makeListUserCommentsQuery } from "@/queries";
 
 export { createComment, deleteComment, listUserComments };
 
@@ -71,22 +72,5 @@ async function listUserComments(
   const { authorId, before, limit, prevId } =
     paginationWithAuthorSchema.parse(payload);
 
-  return await getNNDB()
-    .selectFrom("comments")
-    .innerJoin("articles", "comments.article_id", "articles.id")
-    .innerJoin("last_editions", "articles.id", "last_editions.article_id")
-    .innerJoin("users as article_author", "comments.author_id", "article_author.id")
-    .select("comments.id")
-    .select("comments.content")
-    .select("comments.created_at")
-    .select("comments.article_id")
-    .select("article_author.name as article_author_name")
-    .select("last_editions.title as article_title")
-    .where("comments.author_id", "=", authorId)
-    .where(({ eb, refTuple, tuple }) =>
-      eb(refTuple("comments.created_at", "comments.id"), "<", tuple(before, prevId ?? 0))
-    )
-    .orderBy(["comments.created_at desc", "comments.id desc"])
-    .limit(limit)
-    .execute();
+  return await makeListUserCommentsQuery(getNNDB(), { authorId, before, limit, prevId }).execute();
 }

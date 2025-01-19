@@ -62,20 +62,20 @@ const getArticle = cache(async (articleId: number) => {
       .select("thumbnail_name");
 
     const next = await makeAdjacentQuery()
-      .where(({eb, refTuple, tuple}) => eb(
-        refTuple("first_published_at", "id"),
+      .where(eb => eb(
+        eb.refTuple("first_published_at", "id"),
         ">",
-        tuple(article.first_published_at, articleId)))
-      .orderBy(({refTuple}) => refTuple("first_published_at", "id"), "asc")
+        eb.tuple(article.first_published_at, articleId)))
+      .orderBy(eb => eb.refTuple("first_published_at", "id"), "asc")
       .limit(1)
       .executeTakeFirst();
 
     const prev = await makeAdjacentQuery()
-      .where(({eb, refTuple, tuple}) => eb(
-        refTuple("first_published_at", "id"),
+      .where(eb => eb(
+        eb.refTuple("first_published_at", "id"),
         "<",
-        tuple(article.first_published_at, articleId)))
-      .orderBy(({refTuple}) => refTuple("first_published_at", "id"), "desc")
+        eb.tuple(article.first_published_at, articleId)))
+      .orderBy(eb => eb.refTuple("first_published_at", "id"), "desc")
       .limit(1)
       .executeTakeFirst();
 
@@ -95,7 +95,7 @@ const getArticle = cache(async (articleId: number) => {
       .select("comments.created_at")
       .select("author_id")
       .select("users.name as author_name")
-      .orderBy(({refTuple}) => refTuple("created_at", "id"), "asc")
+      .orderBy(eb => eb.refTuple("created_at", "id"), "asc")
       .execute();
 
     const toNumber = (x: number | bigint | string) => Number(x);

@@ -13,5 +13,6 @@ module.exports = {
     const result = kanel.defaultGenerateIdentifierType(column, details, config);
     result.typeDefinition = result.typeDefinition.map(t => t.replace('__brand:', '__brand?:'));
     return result;
-  }
+  },
+  enumStyle: 'type',
 };

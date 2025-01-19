@@ -1,7 +1,6 @@
 "use client";
 
 import { listUserComments } from "@/actions/comments";
-import { UserComment } from "@/types";
 import useSWRInfinite from "swr/infinite";
 import * as CommentList from "@/components/CommentList";
 import { useNow } from "@/now";
@@ -10,13 +9,20 @@ const LIMIT = 40;
 
 export default function InfiniteComments(p: {
   authorId: string;
-  initialItems: UserComment[];
+  initialItems: {
+    id: number;
+    created_at: string;
+    article_id: number;
+    article_author_name: string;
+    article_title: string;
+    content: string;
+  }[];
 }) {
   const now = useNow().toISOString();
   const list = useSWRInfinite(
     (index, previous) => {
       if (index !== 0 && (previous?.length ?? 0) < LIMIT) return null;
-      const before = previous?.[previous.length - 1]?.createdAt ?? now;
+      const before = previous?.[previous.length - 1]?.created_at ?? now;
       const prevId = previous?.[previous.length - 1]?.id ?? null;
       return [
         "comments",
