@@ -19,9 +19,10 @@ RUN yarn start build
 FROM base AS release
 WORKDIR /app/web
 # setup migration tool
-RUN npm install -g node-pg-migrate
+RUN npm install -g node-pg-migrate nps
 # copy migrations
 COPY web/migrations ./migrations
+COPY web/package-scripts.js ./
 # copy web
 COPY --from=web /app/web/.next/standalone .
 COPY --from=web /app/web/public ./public
