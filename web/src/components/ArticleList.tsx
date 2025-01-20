@@ -26,7 +26,7 @@ function Stat(p: { icon: ReactNode; value?: number | null }) {
     p.value !== undefined &&
     p.value !== null &&
     p.value > 0 && (
-      <span className="text-gray-500 inline-flex items-center align-bottom ml-2">
+      <span className="text-gray-500 inline-flex items-center align-middle ml-2">
         {p.icon}
         {p.value}
       </span>
@@ -42,21 +42,34 @@ export type ItemType = {
   likes_count?: number | null;
   author_id?: string | null;
   author_name?: string | null;
-  published_at?: string | null;
-  updated_at?: string | null;
   published?: boolean | null;
   article_id?: number | null; // for appending 발행판 보기 link
+  edition_id?: number;
   notes?: string;
 } & (
   | {
-      edition_id: number;
       thumbnail_id: number;
-      thumbnail_name: string;
+      thumbnail_name?: string | null;
     }
   | {
       thumbnail_id?: null;
     }
-);
+) &
+  (
+    | {
+        // author가 있으면 published_at이 있어야 함
+        author_id: string;
+        author_name: string;
+        published_at: string;
+        updated_at?: string;
+      }
+    | {
+        published_at?: string;
+        updated_at?: string;
+        author_id?: null;
+        author_name?: null;
+      }
+  );
 
 /**
  * before: 제목 앞에 표시할 내용. 이전/다음 글을 표시할 때 사용
@@ -70,16 +83,16 @@ export function Item(p: {
 }) {
   return (
     <ItemBase before={p.before}>
-      <p>
-        <Link href={`${p.hrefPrefix}/${p.item.id}`} className="inline-block">
+      <p className="align-bottom">
+        <Link href={`${p.hrefPrefix}/${p.item.id}`}>
           {p.item.thumbnail_id && (
             <img
               src={`${getClientEnv().THUMBNAIL_URL}/${p.item.edition_id}/${p.item.thumbnail_id}/${p.item.thumbnail_name}`}
-              alt={p.item.thumbnail_name}
+              alt={p.item.thumbnail_name ?? "thumbnail"}
               className="w-16 h-16 object-cover rounded inline-block mr-2"
             />
           )}
-          {p.title ?? p.item.title}
+          <span className="align-middle">{p.title ?? p.item.title}</span>
         </Link>
         <Stat icon={COMMENT} value={p.item.comments_count} />
         <Stat icon={VISIBILITY} value={p.item.views_count} />
@@ -116,6 +129,7 @@ export function DraftItem(p: {
   draft: {
     id: number;
     title: string;
+    updated_at: string;
   };
 }) {
   return (
@@ -137,6 +151,7 @@ export function EditionItem(p: {
   edition: {
     id: number;
     title: string;
+    published_at: string;
     notes: string;
   };
   selected: boolean;

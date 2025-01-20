@@ -1,9 +1,10 @@
+import { z } from "zod";
 import { PgTimestamp } from "@/nndb/utils";
 import type { default as Role } from './Role';
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.users */
-export type UsersId = string & { __brand?: 'UsersId' };
+export type UsersId = string & z.BRAND<'UsersId'>;
 
 /** Represents the table public.users */
 export default interface UsersTable {

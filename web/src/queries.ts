@@ -1,14 +1,18 @@
 import { Kysely } from "kysely";
 import DB from "@/nndb/Database";
+import { UsersId } from "./nndb/public/Users";
+import { CommentsId } from "./nndb/public/Comments";
+import { PgTimestamp } from "./nndb/utils";
+import { ArticlesId } from "./nndb/public/Articles";
 
 export function makeListDraftsQuery<T extends Kysely<DB>>(
   db: T,
-  authorId: string,
+  authorId: UsersId,
 ) {
   return db
     .selectFrom("drafts")
     .innerJoin("articles", "drafts.article_id", "articles.id")
-    .select("id")
+    .select("drafts.id")
     .select("title")
     .select("created_at")
     .select("updated_at")
@@ -29,10 +33,10 @@ export function makeListDraftsQuery<T extends Kysely<DB>>(
 export function makeListUserCommentsQuery<T extends Kysely<DB>>(
   db: T,
   payload: {
-    authorId: string;
-    before: string;
+    authorId: UsersId;
+    before: PgTimestamp;
     limit: number;
-    prevId: number | null;
+    prevId: CommentsId | null;
   },
 ) {
   const { authorId, before, limit, prevId } = payload;
@@ -56,7 +60,7 @@ export function makeListUserCommentsQuery<T extends Kysely<DB>>(
       eb(
         eb.refTuple("comments.created_at", "comments.id"),
         "<",
-        eb.tuple(before, prevId ?? 0),
+        eb.tuple(before, prevId ?? <CommentsId>0),
       ),
     )
     .orderBy(["comments.created_at desc", "comments.id desc"])
@@ -65,7 +69,7 @@ export function makeListUserCommentsQuery<T extends Kysely<DB>>(
 
 export function makeListArticlesQuery<T extends Kysely<DB>>(
   db: T,
-  payload: { before: string; limit: number; prevId: number | null },
+  payload: { before: PgTimestamp; limit: number; prevId: ArticlesId | null },
 ) {
   const { before, limit, prevId } = payload;
   return db
@@ -73,6 +77,7 @@ export function makeListArticlesQuery<T extends Kysely<DB>>(
     .innerJoin("articles as a", "a.id", "e.article_id")
     .innerJoin("users as u", "u.id", "a.author_id")
     .innerJoin("article_stats as s", "s.id", "a.id")
+    .leftJoin("files as thumbnail", "e.thumbnail", "thumbnail.id")
     .select("a.id")
     .select("e.id as edition_id")
     .select("e.title")
@@ -82,13 +87,13 @@ export function makeListArticlesQuery<T extends Kysely<DB>>(
     .select("s.views_count")
     .select("s.likes_count")
     .select("s.comments_count")
-    .select("thumbnail_id")
-    .select("thumbnail_name")
+    .select("thumbnail.id as thumbnail_id")
+    .select("thumbnail.name as thumbnail_name")
     .where((eb) =>
       eb(
         eb.refTuple("e.first_published_at", "a.id"),
         "<",
-        eb.tuple(before, prevId ?? 0),
+        eb.tuple(before, prevId ?? <ArticlesId>0),
       ),
     )
     .orderBy((eb) => eb.refTuple("e.first_published_at", "a.id"), "desc")

@@ -14,8 +14,9 @@ import { getEnv } from "@/env";
 import * as CommentList from "@/components/CommentList";
 import Link from "next/link";
 import { getNNDB } from "@/db";
+import { ArticlesId } from "@/nndb/public/Articles";
 
-const getArticle = cache(async (articleId: number) => {
+const getArticle = cache(async (articleId: ArticlesId) => {
   return await getNNDB()
     .transaction()
     .execute(async (tx) => {
@@ -52,6 +53,7 @@ const getArticle = cache(async (articleId: number) => {
           .innerJoin("last_editions", "articles.id", "last_editions.article_id")
           .innerJoin("users", "articles.author_id", "users.id")
           .innerJoin("article_stats", "articles.id", "article_stats.id")
+          .leftJoin("files", "last_editions.thumbnail", "files.id")
           .select("articles.id as id")
           .select("last_editions.id as edition_id")
           .select("title")
@@ -61,30 +63,49 @@ const getArticle = cache(async (articleId: number) => {
           .select("comments_count")
           .select("views_count")
           .select("likes_count")
-          .select("thumbnail_id")
-          .select("thumbnail_name");
+          .select("files.id as thumbnail_id")
+          .select("files.name as thumbnail_name")
+          .select("published_at");
 
       const next = await makeAdjacentQuery()
         .where((eb) =>
           eb(
-            eb.refTuple("first_published_at", "id"),
+            eb.refTuple("first_published_at", "articles.id"),
             ">",
-            eb.tuple(article.first_published_at, articleId),
+            eb.tuple(
+              eb
+                .selectFrom("last_editions")
+                .select("first_published_at")
+                .where("article_id", "=", articleId),
+              articleId,
+            ),
           ),
         )
-        .orderBy((eb) => eb.refTuple("first_published_at", "id"), "asc")
+        .orderBy(
+          (eb) => eb.refTuple("first_published_at", "articles.id"),
+          "asc",
+        )
         .limit(1)
         .executeTakeFirst();
 
       const prev = await makeAdjacentQuery()
         .where((eb) =>
           eb(
-            eb.refTuple("first_published_at", "id"),
+            eb.refTuple("first_published_at", "articles.id"),
             "<",
-            eb.tuple(article.first_published_at, articleId),
+            eb.tuple(
+              eb
+                .selectFrom("last_editions")
+                .select("first_published_at")
+                .where("article_id", "=", articleId),
+              articleId,
+            ),
           ),
         )
-        .orderBy((eb) => eb.refTuple("first_published_at", "id"), "desc")
+        .orderBy(
+          (eb) => eb.refTuple("first_published_at", "articles.id"),
+          "desc",
+        )
         .limit(1)
         .executeTakeFirst();
 
@@ -104,7 +125,7 @@ const getArticle = cache(async (articleId: number) => {
         .select("comments.created_at")
         .select("author_id")
         .select("users.name as author_name")
-        .orderBy((eb) => eb.refTuple("created_at", "id"), "asc")
+        .orderBy((eb) => eb.refTuple("created_at", "comments.id"), "asc")
         .execute();
 
       const toNumber = (x: number | bigint | string) => Number(x);
@@ -126,7 +147,7 @@ export async function generateMetadata(p: { params: { articleId: string } }) {
     return notFound();
   }
 
-  const article = await getArticle(articleId);
+  const article = await getArticle(articleId as ArticlesId);
 
   if (article === null) {
     return notFound();
@@ -146,7 +167,7 @@ export default async function ViewArticle(p: {
     return notFound();
   }
 
-  const article = await getArticle(articleId);
+  const article = await getArticle(articleId as ArticlesId);
 
   if (article === null) {
     return notFound();

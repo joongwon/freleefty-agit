@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getEnv } from "@/env";
 import * as jwt from "jsonwebtoken";
 import Role from "./nndb/public/Role";
+import { UsersId } from "./nndb/public/Users";
 
 export function getRefreshTokenCookie() {
   const refreshTokenCookie = cookies().get("refreshToken");
@@ -21,7 +22,7 @@ export function setRefreshTokenCookie(refreshToken: string) {
   });
 }
 
-export type JwtPayload = { id: string; role: Role };
+export type JwtPayload = { id: UsersId; role: Role };
 
 export async function decodeToken(token: string): Promise<JwtPayload> {
   const JWT_SECRET = getEnv().JWT_SECRET;

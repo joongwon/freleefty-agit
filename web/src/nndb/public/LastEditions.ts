@@ -22,9 +22,7 @@ export default interface LastEditionsTable {
 
   last_published_at: ColumnType<PgTimestamp, never, never>;
 
-  thumbnail_id: ColumnType<FilesId | null, never, never>;
-
-  thumbnail_name: ColumnType<string, never, never>;
+  thumbnail: ColumnType<FilesId | null, never, never>;
 }
 
 export type LastEditions = Selectable<LastEditionsTable>;

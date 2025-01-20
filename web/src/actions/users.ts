@@ -4,7 +4,7 @@ import { authSchema } from "@/serverAuth";
 import { getNNDB } from "@/db";
 import { sql } from "kysely";
 
-const nameUpdateDuration = 24 * 60 * 60 * 1000 * 7;
+const nameUpdateDuration = 24 * 60 * 60 * 1000 * 3;
 const userNameSchema = z.object({
   name: z
     .string()

@@ -327,17 +327,13 @@ function AuthorMenu(p: {
           </li>
         )}
         <li>
-          {p.article.editions_count > 1 ? (
-            <Link
-              href={`/editions/${p.article.edition_id}`}
-              title="이 일지로서 발행한 판의 목록"
-              className="button"
-            >
-              다른 판 ({p.article.editions_count})
-            </Link>
-          ) : (
-            <span className="button button-disabled">(초판입니다)</span>
-          )}
+          <Link
+            href={`/editions/${p.article.edition_id}`}
+            title="이 일지로서 발행한 판의 목록"
+            className="button"
+          >
+            다른 판 ({p.article.editions_count})
+          </Link>
         </li>
       </menu>
     </div>

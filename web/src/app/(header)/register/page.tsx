@@ -6,6 +6,7 @@ import { createUser } from "@/actions/auth";
 import Link from "next/link";
 import { PageProps, onlyString } from "@/utils";
 import { gAuthState } from "@/auth";
+import { UsersId } from "@/nndb/public/Users";
 
 export default function Register(p: PageProps) {
   const state = onlyString(p.searchParams.from);
@@ -72,7 +73,7 @@ export default function Register(p: PageProps) {
           e.preventDefault();
           if (code) {
             setCode(null);
-            createUser({ code, id, name })
+            createUser({ code, id: id as UsersId, name })
               .then((res) => {
                 switch (res.type) {
                   case "success":

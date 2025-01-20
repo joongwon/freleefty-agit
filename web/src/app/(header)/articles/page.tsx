@@ -1,12 +1,13 @@
 import { makeListArticlesQuery } from "@/queries";
 import Infinite from "./Infinite";
 import { getNNDB } from "@/db";
+import { PgTimestamp } from "@/nndb/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function ListArticles() {
   const articles = await makeListArticlesQuery(getNNDB(), {
-    before: new Date().toISOString(),
+    before: new Date().toISOString() as PgTimestamp,
     limit: 40,
     prevId: null,
   }).execute();

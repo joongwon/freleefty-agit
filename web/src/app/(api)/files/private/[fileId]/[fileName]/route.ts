@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import { getEnv } from "@/env";
 import { Readable } from "stream";
+import { FilesId } from "@/nndb/public/Files";
 
 export async function GET(
   _: Request,
@@ -35,7 +36,7 @@ export async function GET(
     .select("name")
     .select("draft_id")
     .select("mime_type")
-    .where("files.id", "=", fileId)
+    .where("files.id", "=", <FilesId>fileId)
     .executeTakeFirst();
   if (!fileInfo) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });

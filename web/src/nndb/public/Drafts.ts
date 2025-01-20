@@ -1,9 +1,10 @@
+import { z } from "zod";
 import { PgTimestamp } from "@/nndb/utils";
 import type { ArticlesId } from './Articles';
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.drafts */
-export type DraftsId = number & { __brand?: 'DraftsId' };
+export type DraftsId = number & z.BRAND<'DraftsId'>;
 
 /** Represents the table public.drafts */
 export default interface DraftsTable {

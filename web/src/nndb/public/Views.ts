@@ -1,9 +1,10 @@
+import { z } from "zod";
 import { PgTimestamp } from "@/nndb/utils";
 import type { ArticlesId } from './Articles';
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.views */
-export type ViewsId = number & { __brand?: 'ViewsId' };
+export type ViewsId = number & z.BRAND<'ViewsId'>;
 
 /** Represents the table public.views */
 export default interface ViewsTable {

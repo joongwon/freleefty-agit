@@ -6,7 +6,9 @@ import * as Files from "@/files";
 import { revalidatePath } from "next/cache";
 import {
   articleIdSchema,
+  Pagination,
   paginationSchema,
+  PaginationWithAuthor,
   paginationWithAuthorSchema,
 } from "@/schemas";
 import { getNNDB } from "@/db";
@@ -179,8 +181,9 @@ async function getArticleDraftId(
   return draft?.id ?? null;
 }
 
-async function listArticles(payload: z.input<typeof paginationSchema>) {
-  const { before, limit, prevId } = paginationSchema.parse(payload);
+async function listArticles(payload: Pagination<"ArticlesId">) {
+  const { before, limit, prevId } =
+    paginationSchema<"ArticlesId">().parse(payload);
 
   return await makeListArticlesQuery(getNNDB(), {
     before,
@@ -190,10 +193,10 @@ async function listArticles(payload: z.input<typeof paginationSchema>) {
 }
 
 async function listArticlesByAuthor(
-  payload: z.input<typeof paginationWithAuthorSchema>,
+  payload: PaginationWithAuthor<"ArticlesId">,
 ) {
   const { authorId, before, limit, prevId } =
-    paginationWithAuthorSchema.parse(payload);
+    paginationWithAuthorSchema<"ArticlesId">().parse(payload);
 
   return await makeListArticlesQuery(getNNDB(), { before, limit, prevId })
     .where("a.author_id", "=", authorId)

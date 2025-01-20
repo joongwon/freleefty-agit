@@ -1,4 +1,5 @@
 import { getNNDB } from "@/db";
+import { ArticlesId } from "./nndb/public/Articles";
 
 export async function webhookSendEmbed(
   webhookUrl: string,
@@ -32,7 +33,7 @@ export async function webhookSendEmbed(
   });
 }
 
-export async function webhookNotifyNewArticle(articleId: number) {
+export async function webhookNotifyNewArticle(articleId: ArticlesId) {
   const article = await getNNDB()
     .selectFrom("last_editions")
     .innerJoin("articles", "last_editions.article_id", "articles.id")

@@ -1,10 +1,11 @@
+import { z } from "zod";
 import { PgTimestamp } from "@/nndb/utils";
 import type { UsersId } from './Users';
 import type { ArticlesId } from './Articles';
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.comments */
-export type CommentsId = number & { __brand?: 'CommentsId' };
+export type CommentsId = number & z.BRAND<'CommentsId'>;
 
 /** Represents the table public.comments */
 export default interface CommentsTable {

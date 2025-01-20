@@ -153,7 +153,7 @@ async function createDraft(auth: z.input<typeof authSchema>) {
 }
 
 const publishDraftSchema = z.object({
-  id: z.number(),
+  id: z.number().brand("DraftsId"),
   notes: z.string().max(255),
   notify: z.boolean(),
   rememberNotify: z.boolean(),

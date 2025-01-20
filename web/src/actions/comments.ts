@@ -1,7 +1,11 @@
 "use server";
 import { z } from "zod";
 import { authSchema } from "@/serverAuth";
-import { articleIdSchema, paginationWithAuthorSchema } from "@/schemas";
+import {
+  articleIdSchema,
+  PaginationWithAuthor,
+  paginationWithAuthorSchema,
+} from "@/schemas";
 import { revalidatePath } from "next/cache";
 import { getNNDB } from "@/db";
 import { makeListUserCommentsQuery } from "@/queries";
@@ -34,7 +38,7 @@ async function createComment(
 
 const deleteCommentSchema = z.object({
   article: articleIdSchema,
-  id: z.number(),
+  id: z.number().brand<"CommentsId">(),
 });
 
 async function deleteComment(
@@ -68,11 +72,9 @@ async function deleteComment(
   return res;
 }
 
-async function listUserComments(
-  payload: z.input<typeof paginationWithAuthorSchema>,
-) {
+async function listUserComments(payload: PaginationWithAuthor<"CommentsId">) {
   const { authorId, before, limit, prevId } =
-    paginationWithAuthorSchema.parse(payload);
+    paginationWithAuthorSchema<"CommentsId">().parse(payload);
 
   return await makeListUserCommentsQuery(getNNDB(), {
     authorId,

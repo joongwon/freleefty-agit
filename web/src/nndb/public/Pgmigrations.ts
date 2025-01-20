@@ -1,8 +1,9 @@
+import { z } from "zod";
 import { PgTimestamp } from "@/nndb/utils";
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.pgmigrations */
-export type PgmigrationsId = number & { __brand?: 'PgmigrationsId' };
+export type PgmigrationsId = number & z.BRAND<'PgmigrationsId'>;
 
 /** Represents the table public.pgmigrations */
 export default interface PgmigrationsTable {

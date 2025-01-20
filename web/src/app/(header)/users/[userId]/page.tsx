@@ -5,6 +5,8 @@ import InfiniteArticles from "./InfiniteArticles";
 import InfiniteComments from "./InfiniteComments";
 import { getNNDB } from "@/db";
 import { makeListArticlesQuery, makeListUserCommentsQuery } from "@/queries";
+import { UsersId } from "@/nndb/public/Users";
+import { PgTimestamp } from "@/nndb/utils";
 
 export default async function UserPage(
   p: { params: { userId: string } } & PageProps,
@@ -12,7 +14,7 @@ export default async function UserPage(
   const userId = p.params.userId;
   const user = await getNNDB()
     .selectFrom("users")
-    .where("id", "=", userId)
+    .where("id", "=", userId as UsersId)
     .select("id")
     .select("name")
     .select("role")
@@ -30,7 +32,7 @@ export default async function UserPage(
         authorId={user.id}
         initialItems={await makeListUserCommentsQuery(getNNDB(), {
           authorId: user.id,
-          before: new Date().toISOString(),
+          before: new Date().toISOString() as PgTimestamp,
           limit: 40,
           prevId: null,
         }).execute()}
@@ -40,7 +42,7 @@ export default async function UserPage(
         authorId={user.id}
         initialItems={await makeListArticlesQuery(getNNDB(), {
           prevId: null,
-          before: new Date().toISOString(),
+          before: new Date().toISOString() as PgTimestamp,
           limit: 40,
         })
           .where("a.author_id", "=", user.id)

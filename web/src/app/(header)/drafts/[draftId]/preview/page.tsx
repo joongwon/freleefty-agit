@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import useSWRMutation from "swr/mutation";
 import { useRouter } from "next/navigation";
+import { DraftsId } from "@/nndb/public/Drafts";
 
 export default function DraftPreview(p: { params: { draftId: string } }) {
   const draftId = parseSafeInt(p.params.draftId);
@@ -18,7 +19,7 @@ export default function DraftPreview(p: { params: { draftId: string } }) {
   // key for draft SWR
   const swrKey =
     authState.type.value === "login" && draftId !== null
-      ? ([draftId, "draft"] as const)
+      ? ([draftId as DraftsId, "draft"] as const)
       : null;
 
   // fetch draft

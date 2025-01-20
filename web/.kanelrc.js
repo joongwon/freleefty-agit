@@ -11,9 +11,13 @@ module.exports = {
       "src/nndb/utils": {
         declarations: [
           {
+            declarationType: "generic",
+            lines: ["import { z } from 'zod';"],
+          },
+          {
             declarationType: "typeDeclaration",
             name: "PgTimestamp",
-            typeDefinition: ['string & { __brand?: "PgTimestamp" }'],
+            typeDefinition: ['string & z.BRAND<"PgTimestamp">'],
             exportAs: "named",
           },
         ],
@@ -21,11 +25,19 @@ module.exports = {
     }),
   ],
   postRenderHooks: [
-    (path, lines) =>
-      path !== "src/nndb/utils.ts" &&
-      lines.some((l) => l.includes("PgTimestamp"))
-        ? ['import { PgTimestamp } from "@/nndb/utils";', ...lines]
-        : lines,
+    (path, lines) => {
+      if (path === "src/nndb/utils.ts") {
+        return lines;
+      }
+      let ls = lines;
+      if (ls.some((l) => l.includes("PgTimestamp"))) {
+        ls = ['import { PgTimestamp } from "@/nndb/utils";', ...ls];
+      }
+      if (ls.some((l) => l.includes("z.BRAND"))) {
+        ls = ['import { z } from "zod";', ...ls];
+      }
+      return ls;
+    },
   ],
   outputPath: "./src/nndb",
   customTypeMap: {
@@ -34,8 +46,10 @@ module.exports = {
   },
   generateIdentifierType: (column, details, config) => {
     const result = kanel.defaultGenerateIdentifierType(column, details, config);
+    const regex = /\{ __brand: '([^']+)' \}/;
     result.typeDefinition = result.typeDefinition.map((t) =>
-      t.replace("__brand:", "__brand?:"),
+      // t.replace("__brand:", "__brand?:"),
+      t.replace(regex, "z.BRAND<'$1'>"),
     );
     return result;
   },

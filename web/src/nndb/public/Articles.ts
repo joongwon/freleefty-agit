@@ -1,8 +1,9 @@
+import { z } from "zod";
 import type { UsersId } from './Users';
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.articles */
-export type ArticlesId = number & { __brand?: 'ArticlesId' };
+export type ArticlesId = number & z.BRAND<'ArticlesId'>;
 
 /** Represents the table public.articles */
 export default interface ArticlesTable {

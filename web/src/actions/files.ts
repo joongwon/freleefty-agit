@@ -42,7 +42,7 @@ export async function createFile(
         .selectFrom("drafts")
         .innerJoin("articles", "drafts.article_id", "articles.id")
         .select("author_id")
-        .where("id", "=", draftId)
+        .where("drafts.id", "=", draftId)
         .executeTakeFirst();
       if (author?.author_id !== userId) {
         return "NotFound" as const;
@@ -69,7 +69,7 @@ export async function createFile(
 }
 
 const fileIdSchema = z.object({
-  id: z.number(),
+  id: z.number().brand<"FilesId">(),
 });
 export async function deleteFile(
   auth: z.input<typeof authSchema>,

@@ -13,6 +13,7 @@ import {
   JwtPayload,
 } from "@/serverAuth";
 import { getNNDB } from "@/db";
+import { UsersId } from "@/nndb/public/Users";
 
 export { tryLogin, logout, refresh, createUser, devLogin };
 export type { TryLoginResult };
@@ -90,7 +91,8 @@ const createUserSchema = z.object({
     .string()
     .min(1)
     .max(20)
-    .regex(/^[a-zA-Z0-9]+$/),
+    .regex(/^[a-zA-Z0-9]+$/)
+    .brand<"UsersId">(),
   name: z
     .string()
     .min(1)
@@ -157,7 +159,7 @@ async function refresh() {
   const profile = await getNNDB()
     .selectFrom("users")
     .select(["id", "role", "name"])
-    .where("id", "=", userId)
+    .where("id", "=", <UsersId>userId)
     .executeTakeFirst();
 
   if (!profile) {
@@ -209,7 +211,7 @@ async function devLogin() {
   const profile = await getNNDB()
     .selectFrom("users")
     .select(["id", "role", "name"])
-    .where("id", "=", "test")
+    .where("id", "=", <UsersId>"test")
     .executeTakeFirst();
   if (!profile) {
     throw new Error("User not found");

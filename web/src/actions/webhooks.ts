@@ -29,7 +29,7 @@ export async function createWebhook(
 }
 
 const webhookIdSchema = z.object({
-  id: z.number(),
+  id: z.number().brand<"WebhooksId">(),
 });
 export async function deleteWebhook(
   auth: z.input<typeof authSchema>,

@@ -6,8 +6,9 @@ import Link from "next/link";
 import { getEnv } from "@/env";
 import { cache } from "react";
 import { getNNDB } from "@/db";
+import { EditionsId } from "@/nndb/public/Editions";
 
-const getEdition = cache(async (editionId: number) => {
+const getEdition = cache(async (editionId: EditionsId) => {
   return await getNNDB()
     .transaction()
     .execute(async (tx) => {
@@ -31,6 +32,7 @@ const getEdition = cache(async (editionId: number) => {
         .select("id")
         .select("title")
         .select("notes")
+        .select("published_at")
         .execute();
 
       const files = await tx
@@ -50,7 +52,7 @@ export default async function Edition(p: { params: { editionId: string } }) {
     return notFound();
   }
 
-  const edition = await getEdition(editionId);
+  const edition = await getEdition(editionId as EditionsId);
 
   if (!edition) {
     return notFound();

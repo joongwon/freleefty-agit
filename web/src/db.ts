@@ -21,6 +21,7 @@ let nndb: Kysely<DB> | null = null;
 
 export function getNNDB() {
   if (nndb === null) {
+    Pg.types.setTypeParser(Pg.types.builtins.TIMESTAMP, (val) => val);
     nndb = new Kysely<DB>({
       dialect: new PostgresDialect({
         pool: new Pg.Pool({

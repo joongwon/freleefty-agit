@@ -1,10 +1,11 @@
+import { z } from "zod";
 import { PgTimestamp } from "@/nndb/utils";
 import type { EditionsId } from './Editions';
 import type { DraftsId } from './Drafts';
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.files */
-export type FilesId = number & { __brand?: 'FilesId' };
+export type FilesId = number & z.BRAND<'FilesId'>;
 
 /** Represents the table public.files */
 export default interface FilesTable {

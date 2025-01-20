@@ -1,8 +1,9 @@
+import { z } from "zod";
 import { PgTimestamp } from "@/nndb/utils";
 import type { ColumnType, Selectable, Insertable, Updateable } from 'kysely';
 
 /** Identifier type for public.webhooks */
-export type WebhooksId = number & { __brand?: 'WebhooksId' };
+export type WebhooksId = number & z.BRAND<'WebhooksId'>;
 
 /** Represents the table public.webhooks */
 export default interface WebhooksTable {
