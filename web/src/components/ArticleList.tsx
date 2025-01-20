@@ -21,8 +21,10 @@ function ItemBase(p: { before?: ReactNode; children: ReactNode }) {
   );
 }
 
-function Stat(p: { icon: ReactNode; value: number }) {
+function Stat(p: { icon: ReactNode; value?: number | null }) {
   return (
+    p.value !== undefined &&
+    p.value !== null &&
     p.value > 0 && (
       <span className="text-gray-500 inline-flex items-center align-bottom ml-2">
         {p.icon}
@@ -35,24 +37,24 @@ function Stat(p: { icon: ReactNode; value: number }) {
 export type ItemType = {
   id: number; // for creating links
   title: string;
-  commentsCount?: number;
-  viewsCount?: number;
-  likesCount?: number;
-  authorId?: string;
-  authorName?: string;
-  publishedAt?: string;
-  updatedAt?: string;
-  published?: boolean;
-  articleId?: number; // for appending 발행판 보기 link
+  comments_count?: number | null;
+  views_count?: number | null;
+  likes_count?: number | null;
+  author_id?: string | null;
+  author_name?: string | null;
+  published_at?: string | null;
+  updated_at?: string | null;
+  published?: boolean | null;
+  article_id?: number | null; // for appending 발행판 보기 link
   notes?: string;
 } & (
   | {
-      editionId: number;
-      thumbnailId: number;
-      thumbnailName: string;
+      edition_id: number;
+      thumbnail_id: number;
+      thumbnail_name: string;
     }
   | {
-      thumbnailId?: never;
+      thumbnail_id?: null;
     }
 );
 
@@ -70,43 +72,37 @@ export function Item(p: {
     <ItemBase before={p.before}>
       <p>
         <Link href={`${p.hrefPrefix}/${p.item.id}`} className="inline-block">
-          {p.item.thumbnailId && (
+          {p.item.thumbnail_id && (
             <img
-              src={`${getClientEnv().THUMBNAIL_URL}/${p.item.editionId}/${p.item.thumbnailId}/${p.item.thumbnailName}`}
-              alt={p.item.thumbnailName}
+              src={`${getClientEnv().THUMBNAIL_URL}/${p.item.edition_id}/${p.item.thumbnail_id}/${p.item.thumbnail_name}`}
+              alt={p.item.thumbnail_name}
               className="w-16 h-16 object-cover rounded inline-block mr-2"
             />
           )}
           {p.title ?? p.item.title}
         </Link>
-        {p.item.commentsCount !== undefined && (
-          <Stat icon={COMMENT} value={p.item.commentsCount} />
-        )}
-        {p.item.viewsCount !== undefined && (
-          <Stat icon={VISIBILITY} value={p.item.viewsCount} />
-        )}
-        {p.item.likesCount !== undefined && (
-          <Stat icon={FAVORITE} value={p.item.likesCount} />
-        )}
+        <Stat icon={COMMENT} value={p.item.comments_count} />
+        <Stat icon={VISIBILITY} value={p.item.views_count} />
+        <Stat icon={FAVORITE} value={p.item.likes_count} />
       </p>
       <p className="text-sm text-gray-600 flex-1 justify-end whitespace-nowrap flex max-w-full">
-        {p.item.authorId && !p.hideAuthor && (
+        {p.item.author_id && !p.hideAuthor && (
           <>
             <Link
-              href={`/users/${p.item.authorId}`}
+              href={`/users/${p.item.author_id}`}
               className="text-gray-500 inline-block whitespace-nowrap min-w-0 overflow-hidden text-ellipsis"
             >
-              {p.item.authorName}
+              {p.item.author_name}
             </Link>
             <span className="mr-1">{", "}</span>
           </>
         )}
-        {p.item.publishedAt && <Time>{p.item.publishedAt}</Time>}
-        {p.item.updatedAt && <Time>{p.item.updatedAt}</Time>}
+        {p.item.published_at && <Time>{p.item.published_at}</Time>}
+        {p.item.updated_at && <Time>{p.item.updated_at}</Time>}
       </p>
       {p.item.published && (
         <Link
-          href={`/articles/${p.item.articleId}`}
+          href={`/articles/${p.item.article_id}`}
           className="text-sm text-gray-500 underline"
         >
           [발행판 보기]

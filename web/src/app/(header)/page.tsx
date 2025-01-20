@@ -22,20 +22,27 @@ export default async function Intro() {
         .select("comments_count")
         .select("likes_count")
         .select((eb) =>
-          eb
-            .selectFrom("views")
-            .select((eb) => eb.fn.countAll().as("views_count"))
-            .whereRef("article_id", "=", "articles.id")
-            .where(
-              "created_at",
-              ">",
-              sql<PgTimestamp>`now() - interval '14 days'`,
+          eb.fn
+            .coalesce(
+              eb
+                .selectFrom("views")
+                .select((eb) => eb.fn.countAll<number>().as("views_count"))
+                .whereRef("article_id", "=", "articles.id")
+                .where(
+                  "created_at",
+                  ">",
+                  sql<PgTimestamp>`now() - interval '14 days'`,
+                ),
+              eb.lit(0),
             )
             .as("views_count"),
         ),
     )
     .selectFrom("popular_articles")
     .selectAll()
+    .orderBy("views_count", "desc")
+    .limit(5)
+    .where("views_count", ">", 0)
     .execute();
   return (
     <article className="prose">

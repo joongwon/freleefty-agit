@@ -30,6 +30,7 @@ module.exports = {
   outputPath: "./src/nndb",
   customTypeMap: {
     "pg_catalog.timestamp": "PgTimestamp",
+    "pg_catalog.int8": "number",
   },
   generateIdentifierType: (column, details, config) => {
     const result = kanel.defaultGenerateIdentifierType(column, details, config);
