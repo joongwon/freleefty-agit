@@ -10,7 +10,7 @@ exports.shorthands = undefined;
  */
 exports.up = (pgm) => {
   pgm.addColumn("users", {
-    "new_article_notify": {
+    new_article_notify: {
       type: "boolean",
       default: true,
       notNull: true,

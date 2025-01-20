@@ -13,13 +13,15 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import moment from "moment";
 
-export default function Buttons(p: { article: {
-  id: number;
-  comments: { length: number };
-  edition_id: number;
-  editions_count: number;
-  author_id: string;
-} }) {
+export default function Buttons(p: {
+  article: {
+    id: number;
+    comments: { length: number };
+    edition_id: number;
+    editions_count: number;
+    author_id: string;
+  };
+}) {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const auth = useHookstate(gAuthState);
   const commentDisabled = auth.value.type !== "login";
@@ -118,9 +120,11 @@ function useLikes(articleId: number) {
   return useSWR([articleId, "like"], async ([id]) => listLikers({ id }));
 }
 
-function LikeButton(p: { article: {
-  id: number;
-} }) {
+function LikeButton(p: {
+  article: {
+    id: number;
+  };
+}) {
   const auth = useHookstate(gAuthState);
   const likes = useLikes(p.article.id);
   const userId = auth.value.type === "login" ? auth.value.profile.id : null;
@@ -181,12 +185,14 @@ function LikeButton(p: { article: {
   );
 }
 
-function AuthorMenu(p: { article: {
-  edition_id: number;
-  editions_count: number;
-  id: number;
-  author_id: string;
-} }) {
+function AuthorMenu(p: {
+  article: {
+    edition_id: number;
+    editions_count: number;
+    id: number;
+    author_id: string;
+  };
+}) {
   const auth = useHookstate(gAuthState);
   const router = useRouter();
   const swrKey =
@@ -247,7 +253,8 @@ function AuthorMenu(p: { article: {
   };
 
   const isAuthor =
-    auth.value.type === "login" && auth.value.profile.id === p.article.author_id;
+    auth.value.type === "login" &&
+    auth.value.profile.id === p.article.author_id;
 
   const [isOpen, setIsOpen] = useState(false);
 

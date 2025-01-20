@@ -38,15 +38,13 @@ export default async function UserPage(
     ) : (
       <InfiniteArticles
         authorId={user.id}
-        initialItems={
-          await makeListArticlesQuery(getNNDB(), {
-            prevId: null,
-            before: new Date().toISOString(),
-            limit: 40,
-          })
+        initialItems={await makeListArticlesQuery(getNNDB(), {
+          prevId: null,
+          before: new Date().toISOString(),
+          limit: 40,
+        })
           .where("a.author_id", "=", user.id)
-          .execute()
-        }
+          .execute()}
       />
     );
 

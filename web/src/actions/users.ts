@@ -21,29 +21,31 @@ export async function updateUserName(
   const { name } = userNameSchema.parse(user);
 
   const now = Date.now();
-  const res = await getNNDB().transaction().execute(async (tx) => {
-    const { name_updated_at: nameUpdatedAtRaw } = await tx
-      .selectFrom("users")
-      .select("name_updated_at")
-      .where("id", "=", userId)
-      .executeTakeFirstOrThrow();
-    const nameUpdatedAt = Date.parse(nameUpdatedAtRaw);
-    if (now - nameUpdatedAt < nameUpdateDuration) {
+  const res = await getNNDB()
+    .transaction()
+    .execute(async (tx) => {
+      const { name_updated_at: nameUpdatedAtRaw } = await tx
+        .selectFrom("users")
+        .select("name_updated_at")
+        .where("id", "=", userId)
+        .executeTakeFirstOrThrow();
+      const nameUpdatedAt = Date.parse(nameUpdatedAtRaw);
+      if (now - nameUpdatedAt < nameUpdateDuration) {
+        return {
+          type: "TooSoon",
+          remaining: nameUpdateDuration - (now - nameUpdatedAt),
+        } as const;
+      }
+      await tx
+        .updateTable("users")
+        .set("name", name)
+        .set("name_updated_at", sql`now()`)
+        .where("id", "=", userId)
+        .execute();
       return {
-        type: "TooSoon",
-        remaining: nameUpdateDuration - (now - nameUpdatedAt),
+        type: "Ok",
       } as const;
-    }
-    await tx
-      .updateTable("users")
-      .set("name", name)
-      .set("name_updated_at", sql`now()`)
-      .where("id", "=", userId)
-      .execute();
-    return {
-      type: "Ok",
-    } as const;
-  });
+    });
 
   return res;
 }

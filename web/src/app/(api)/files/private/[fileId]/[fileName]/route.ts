@@ -1,12 +1,10 @@
 import { getRefreshTokenCookie } from "@/serverAuth";
-import { getRedis } from "@/db";
+import { getNNDB, getRedis } from "@/db";
 import { parseSafeInt } from "@/utils";
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import { getEnv } from "@/env";
 import { Readable } from "stream";
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
 
 export async function GET(
   _: Request,
@@ -29,7 +27,16 @@ export async function GET(
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const fileInfo = await newdb.option(Queries.getFileInfo, { id: fileId });
+  const fileInfo = await getNNDB()
+    .selectFrom("files")
+    .innerJoin("drafts", "files.draft_id", "drafts.id")
+    .innerJoin("articles", "drafts.article_id", "articles.id")
+    .select("author_id")
+    .select("name")
+    .select("draft_id")
+    .select("mime_type")
+    .where("files.id", "=", fileId)
+    .executeTakeFirst();
   if (!fileInfo) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
@@ -37,7 +44,7 @@ export async function GET(
     return NextResponse.redirect(`/files/private/${fileId}/${fileInfo.name}`);
   }
   const uploadDir = getEnv().UPLOAD_DIR;
-  const filePath = `${uploadDir}/d/${fileInfo.draftId}/${fileId}/${fileInfo.name}`;
+  const filePath = `${uploadDir}/d/${fileInfo.draft_id}/${fileId}/${fileInfo.name}`;
   const fileHandle = await fs.open(filePath).catch(() => null);
   if (!fileHandle) {
     return NextResponse.json({ error: "Cannot open file" }, { status: 500 });
@@ -46,8 +53,8 @@ export async function GET(
     fileHandle.createReadStream(),
   ) as ReadableStream;
   const res = new Response(fileStream);
-  res.headers.set("Content-Type", fileInfo.mimeType);
-  if (fileInfo.mimeType.startsWith("image/")) {
+  res.headers.set("Content-Type", fileInfo.mime_type);
+  if (fileInfo.mime_type.startsWith("image/")) {
     res.headers.set("Content-Disposition", "inline");
   } else {
     res.headers.set(

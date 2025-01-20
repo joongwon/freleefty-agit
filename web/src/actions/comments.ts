@@ -47,21 +47,23 @@ async function deleteComment(
     article: { id: articleId },
   } = deleteCommentSchema.parse(payload);
 
-  const res = await getNNDB().transaction().execute(async (tx) => {
-    const comment = await tx
-      .selectFrom("comments")
-      .select("author_id")
-      .where("id", "=", id)
-      .executeTakeFirst();
-    if (!comment) {
-      return { type: "NotFound" } as const;
-    } else if (comment.author_id !== userId) {
-      return { type: "Forbidden" } as const;
-    }
+  const res = await getNNDB()
+    .transaction()
+    .execute(async (tx) => {
+      const comment = await tx
+        .selectFrom("comments")
+        .select("author_id")
+        .where("id", "=", id)
+        .executeTakeFirst();
+      if (!comment) {
+        return { type: "NotFound" } as const;
+      } else if (comment.author_id !== userId) {
+        return { type: "Forbidden" } as const;
+      }
 
-    await tx.deleteFrom("comments").where("id", "=", id).execute();
-    return { type: "Ok" } as const;
-  });
+      await tx.deleteFrom("comments").where("id", "=", id).execute();
+      return { type: "Ok" } as const;
+    });
   revalidatePath(`/articles/${articleId}`);
   return res;
 }
@@ -72,5 +74,10 @@ async function listUserComments(
   const { authorId, before, limit, prevId } =
     paginationWithAuthorSchema.parse(payload);
 
-  return await makeListUserCommentsQuery(getNNDB(), { authorId, before, limit, prevId }).execute();
+  return await makeListUserCommentsQuery(getNNDB(), {
+    authorId,
+    before,
+    limit,
+    prevId,
+  }).execute();
 }

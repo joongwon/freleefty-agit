@@ -19,10 +19,7 @@ export async function createWebhook(
     return { type: "Forbidden" };
   }
 
-  await getNNDB()
-    .insertInto("webhooks")
-    .values({ name, url })
-    .execute();
+  await getNNDB().insertInto("webhooks").values({ name, url }).execute();
   void webhookSendEmbed(url, {
     title: "안녕하세요!",
     description: "오늘부터 아지트새글을 알려드려요!",

@@ -1,5 +1,4 @@
-import * as newdb from "@/newdb";
-import * as Queries from "@/queries_sql";
+import { getNNDB } from "@/db";
 
 export async function webhookSendEmbed(
   webhookUrl: string,
@@ -34,23 +33,32 @@ export async function webhookSendEmbed(
 }
 
 export async function webhookNotifyNewArticle(articleId: number) {
-  const article = await newdb.option(Queries.getArticleForWebhook, {
-    id: articleId,
-  });
+  const article = await getNNDB()
+    .selectFrom("last_editions")
+    .innerJoin("articles", "last_editions.article_id", "articles.id")
+    .innerJoin("users", "articles.author_id", "users.id")
+    .select("title")
+    .select("author_id")
+    .select("name as author_name")
+    .where("articles.id", "=", articleId)
+    .executeTakeFirst();
   if (!article) {
     console.error(
       `webhookNorifyNewArticle(): article with id=${articleId} not found`,
     );
     return;
   }
-  const webhooks = await newdb.list(Queries.listWebhooks, undefined);
+  const webhooks = await getNNDB()
+    .selectFrom("webhooks")
+    .select("url")
+    .execute();
   await Promise.all(
     webhooks.map(({ url }) =>
       webhookSendEmbed(url, {
         title: article.title,
         author: {
-          name: article.authorName,
-          url: `https://blog.freleefty.org/users/${article.authorId}/`,
+          name: article.author_name,
+          url: `https://blog.freleefty.org/users/${article.author_id}/`,
         },
         url: `https://blog.freleefty.org/articles/${articleId}`,
       }),

@@ -1,12 +1,42 @@
-import * as Queries from "@/queries_sql";
-import * as newdb from "@/newdb";
 import * as ArticleList from "@/components/ArticleList";
+import { getNNDB } from "@/db";
+import { PgTimestamp } from "@/nndb/utils";
+import { sql } from "kysely";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function Intro() {
-  const articles = await newdb.list(Queries.listPopularArticles, undefined);
+  const articles = await getNNDB()
+    .with("popular_articles", (db) =>
+      db
+        .selectFrom("last_editions")
+        .innerJoin("articles", "last_editions.article_id", "articles.id")
+        .innerJoin("users", "articles.author_id", "users.id")
+        .innerJoin("article_stats", "articles.id", "article_stats.id")
+        .select("articles.id")
+        .select("title")
+        .select("author_id")
+        .select("name as author_name")
+        .select("first_published_at as published_at")
+        .select("comments_count")
+        .select("likes_count")
+        .select((eb) =>
+          eb
+            .selectFrom("views")
+            .select((eb) => eb.fn.countAll().as("views_count"))
+            .whereRef("article_id", "=", "articles.id")
+            .where(
+              "created_at",
+              ">",
+              sql<PgTimestamp>`now() - interval '14 days'`,
+            )
+            .as("views_count"),
+        ),
+    )
+    .selectFrom("popular_articles")
+    .selectAll()
+    .execute();
   return (
     <article className="prose">
       <h2>왼손잡이해방연대</h2>

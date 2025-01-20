@@ -15,7 +15,10 @@ exports.up = (pgm) => {
       references: "files",
     },
   });
-  pgm.createView("last_editions", { replace: true }, `
+  pgm.createView(
+    "last_editions",
+    { replace: true },
+    `
     SELECT e.id,
       article_id,
       notes,
@@ -33,7 +36,8 @@ exports.up = (pgm) => {
     WHERE published_at = (
       SELECT max(editions.published_at) AS max
       FROM editions
-      WHERE editions.article_id = e.article_id)`);
+      WHERE editions.article_id = e.article_id)`,
+  );
 };
 
 /**
@@ -44,7 +48,10 @@ exports.up = (pgm) => {
 exports.down = (pgm) => {
   pgm.dropView("last_editions");
   /* copy-pasted from existing view */
-  pgm.createView("last_editions", {}, `
+  pgm.createView(
+    "last_editions",
+    {},
+    `
     SELECT id,
       article_id,
       notes,
@@ -58,6 +65,7 @@ exports.down = (pgm) => {
     FROM editions e
     WHERE published_at = (( SELECT max(editions.published_at) AS max
       FROM editions
-      WHERE editions.article_id = e.article_id))`);
+      WHERE editions.article_id = e.article_id))`,
+  );
   pgm.dropColumns("editions", ["thumbnail"]);
 };

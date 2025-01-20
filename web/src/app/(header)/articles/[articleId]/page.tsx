@@ -16,93 +16,108 @@ import Link from "next/link";
 import { getNNDB } from "@/db";
 
 const getArticle = cache(async (articleId: number) => {
-  return await getNNDB().transaction().execute(async (tx) => {
-    const article = await tx
-      .selectFrom("articles")
-      .innerJoin("users", "articles.author_id", "users.id")
-      .innerJoin("last_editions", "articles.id", "last_editions.article_id")
-      .innerJoin("article_stats", "articles.id", "article_stats.id")
-      .where("articles.id", "=", articleId)
-      .select("articles.id as id")
-      .select("last_editions.id as edition_id")
-      .select("title")
-      .select("content")
-      .select("author_id")
-      .select("users.name as author_name")
-      .select("views_count")
-      .select("likes_count")
-      .select("first_published_at")
-      .select("last_published_at")
-      .executeTakeFirst();
-    if (!article) {
-      return null;
-    }
+  return await getNNDB()
+    .transaction()
+    .execute(async (tx) => {
+      const article = await tx
+        .selectFrom("articles")
+        .innerJoin("users", "articles.author_id", "users.id")
+        .innerJoin("last_editions", "articles.id", "last_editions.article_id")
+        .innerJoin("article_stats", "articles.id", "article_stats.id")
+        .where("articles.id", "=", articleId)
+        .select("articles.id as id")
+        .select("last_editions.id as edition_id")
+        .select("title")
+        .select("content")
+        .select("author_id")
+        .select("users.name as author_name")
+        .select("views_count")
+        .select("likes_count")
+        .select("first_published_at")
+        .select("last_published_at")
+        .executeTakeFirst();
+      if (!article) {
+        return null;
+      }
 
-    const editionsCount = await tx
-      .selectFrom("editions")
-      .where("article_id", "=", articleId)
-      .select(eb => eb.fn.countAll().as("count"))
-      .executeTakeFirstOrThrow();
+      const editionsCount = await tx
+        .selectFrom("editions")
+        .where("article_id", "=", articleId)
+        .select((eb) => eb.fn.countAll().as("count"))
+        .executeTakeFirstOrThrow();
 
-    const makeAdjacentQuery = () => tx
-      .selectFrom("articles")
-      .innerJoin("last_editions", "articles.id", "last_editions.article_id")
-      .innerJoin("users", "articles.author_id", "users.id")
-      .innerJoin("article_stats", "articles.id", "article_stats.id")
-      .select("articles.id as id")
-      .select("last_editions.id as edition_id")
-      .select("title")
-      .select("author_id")
-      .select("users.name as author_name")
-      .select("first_published_at")
-      .select("comments_count")
-      .select("views_count")
-      .select("likes_count")
-      .select("thumbnail_id")
-      .select("thumbnail_name");
+      const makeAdjacentQuery = () =>
+        tx
+          .selectFrom("articles")
+          .innerJoin("last_editions", "articles.id", "last_editions.article_id")
+          .innerJoin("users", "articles.author_id", "users.id")
+          .innerJoin("article_stats", "articles.id", "article_stats.id")
+          .select("articles.id as id")
+          .select("last_editions.id as edition_id")
+          .select("title")
+          .select("author_id")
+          .select("users.name as author_name")
+          .select("first_published_at")
+          .select("comments_count")
+          .select("views_count")
+          .select("likes_count")
+          .select("thumbnail_id")
+          .select("thumbnail_name");
 
-    const next = await makeAdjacentQuery()
-      .where(eb => eb(
-        eb.refTuple("first_published_at", "id"),
-        ">",
-        eb.tuple(article.first_published_at, articleId)))
-      .orderBy(eb => eb.refTuple("first_published_at", "id"), "asc")
-      .limit(1)
-      .executeTakeFirst();
+      const next = await makeAdjacentQuery()
+        .where((eb) =>
+          eb(
+            eb.refTuple("first_published_at", "id"),
+            ">",
+            eb.tuple(article.first_published_at, articleId),
+          ),
+        )
+        .orderBy((eb) => eb.refTuple("first_published_at", "id"), "asc")
+        .limit(1)
+        .executeTakeFirst();
 
-    const prev = await makeAdjacentQuery()
-      .where(eb => eb(
-        eb.refTuple("first_published_at", "id"),
-        "<",
-        eb.tuple(article.first_published_at, articleId)))
-      .orderBy(eb => eb.refTuple("first_published_at", "id"), "desc")
-      .limit(1)
-      .executeTakeFirst();
+      const prev = await makeAdjacentQuery()
+        .where((eb) =>
+          eb(
+            eb.refTuple("first_published_at", "id"),
+            "<",
+            eb.tuple(article.first_published_at, articleId),
+          ),
+        )
+        .orderBy((eb) => eb.refTuple("first_published_at", "id"), "desc")
+        .limit(1)
+        .executeTakeFirst();
 
-    const files = await tx
-      .selectFrom("files")
-      .where("edition_id", "=", article.edition_id)
-      .select("id")
-      .select("name")
-      .execute();
+      const files = await tx
+        .selectFrom("files")
+        .where("edition_id", "=", article.edition_id)
+        .select("id")
+        .select("name")
+        .execute();
 
-    const comments = await tx
-      .selectFrom("comments")
-      .innerJoin("users", "comments.author_id", "users.id")
-      .where("article_id", "=", articleId)
-      .select("comments.id")
-      .select("content")
-      .select("comments.created_at")
-      .select("author_id")
-      .select("users.name as author_name")
-      .orderBy(eb => eb.refTuple("created_at", "id"), "asc")
-      .execute();
+      const comments = await tx
+        .selectFrom("comments")
+        .innerJoin("users", "comments.author_id", "users.id")
+        .where("article_id", "=", articleId)
+        .select("comments.id")
+        .select("content")
+        .select("comments.created_at")
+        .select("author_id")
+        .select("users.name as author_name")
+        .orderBy((eb) => eb.refTuple("created_at", "id"), "asc")
+        .execute();
 
-    const toNumber = (x: number | bigint | string) => Number(x);
+      const toNumber = (x: number | bigint | string) => Number(x);
 
-    return { ...article, next, prev, files, comments,
-      editions_count: toNumber(editionsCount.count) };
-  });
+      return {
+        ...article,
+        next,
+        prev,
+        files,
+        comments,
+        editions_count: toNumber(editionsCount.count),
+      };
+    });
 });
 
 export async function generateMetadata(p: { params: { articleId: string } }) {
@@ -148,7 +163,9 @@ export default async function ViewArticle(p: {
       <header>
         <h1 className="text-3xl font-bold">{article.title}</h1>
         <p className="text-sm">
-          <Link href={`/users/${article.author_id}`}>{article.author_name}</Link>
+          <Link href={`/users/${article.author_id}`}>
+            {article.author_name}
+          </Link>
           {", "}
           <Time>{article.first_published_at}</Time>
           {article.first_published_at !== article.last_published_at ? (

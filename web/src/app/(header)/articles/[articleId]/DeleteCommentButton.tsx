@@ -12,7 +12,8 @@ export default function DeleteCommentButton(p: {
 }) {
   const auth = useHookstate(gAuthState);
   const canDelete =
-    auth.value.type === "login" && auth.value.profile.id === p.comment.author_id;
+    auth.value.type === "login" &&
+    auth.value.profile.id === p.comment.author_id;
   const handleDelete = async () => {
     if (auth.value.type !== "login") {
       throw new Error("non-login state detected in handleDelete");

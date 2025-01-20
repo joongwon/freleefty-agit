@@ -1,0 +1,1 @@
+export type PgTimestamp = string & { __brand?: "PgTimestamp" };

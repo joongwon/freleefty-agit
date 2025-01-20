@@ -12,7 +12,7 @@ export default function InfiniteArticles(p: {
   initialItems: {
     id: number;
     title: string;
-    published_at: string
+    published_at: string;
   }[];
 }) {
   const now = useNow().toISOString();

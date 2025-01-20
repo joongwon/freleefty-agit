@@ -21,7 +21,7 @@ export async function createFile(
   const { id: userId } = await authSchema.parseAsync(auth);
   const {
     draft: { id: draftId },
-    name: fileName
+    name: fileName,
   } = createFileSchema.parse(payload);
   if (!(formData instanceof FormData)) {
     throw new Error("Invalid form data");
@@ -35,31 +35,33 @@ export async function createFile(
   }
 
   const upload = Files.uploadFile(file);
-  const result = await getNNDB().transaction().execute(async (tx) => {
-    const author = await tx
-      .selectFrom("drafts")
-      .innerJoin("articles", "drafts.article_id", "articles.id")
-      .select("author_id")
-      .where("id", "=", draftId)
-      .executeTakeFirst();
-    if (author?.author_id !== userId) {
-      return "NotFound" as const;
-    }
-    try {
-      const { id: fileId } = await tx
-        .insertInto("files")
-        .values({ draft_id: draftId, name: fileName, mime_type: file.type })
-        .returning("id")
-        .executeTakeFirstOrThrow();
-      await upload.rename({ draftId, fileId, fileName });
-      return "Ok" as const;
-    } catch (e) {
-      if ((e as { constraint?: string })?.constraint === "files_name_key") {
-        return "Conflict" as const;
+  const result = await getNNDB()
+    .transaction()
+    .execute(async (tx) => {
+      const author = await tx
+        .selectFrom("drafts")
+        .innerJoin("articles", "drafts.article_id", "articles.id")
+        .select("author_id")
+        .where("id", "=", draftId)
+        .executeTakeFirst();
+      if (author?.author_id !== userId) {
+        return "NotFound" as const;
       }
-      throw e;
-    }
-  });
+      try {
+        const { id: fileId } = await tx
+          .insertInto("files")
+          .values({ draft_id: draftId, name: fileName, mime_type: file.type })
+          .returning("id")
+          .executeTakeFirstOrThrow();
+        await upload.rename({ draftId, fileId, fileName });
+        return "Ok" as const;
+      } catch (e) {
+        if ((e as { constraint?: string })?.constraint === "files_name_key") {
+          return "Conflict" as const;
+        }
+        throw e;
+      }
+    });
   if (result !== "Ok") {
     await upload.cancel();
   }
@@ -76,20 +78,26 @@ export async function deleteFile(
   const { id: userId } = await authSchema.parseAsync(auth);
   const { id: fileId } = await fileIdSchema.parseAsync(file);
 
-  const res = await getNNDB().transaction().execute(async (tx) => {
-    const fileInfo = await tx
-      .selectFrom("files")
-      .innerJoin("drafts", "files.draft_id", "drafts.id")
-      .innerJoin("articles", "drafts.article_id", "articles.id")
-      .select(["draft_id", "author_id"])
-      .where("id", "=", fileId)
-      .executeTakeFirst();
-    if (!fileInfo || fileInfo.author_id !== userId || fileInfo.draft_id === null) {
-      return { type: "Forbidden" } as const;
-    }
-    await tx.deleteFrom("files").where("id", "=", fileId).execute();
-    await Files.deleteOneDraftFile({ draftId: fileInfo.draft_id, fileId });
-    return { type: "Ok" } as const;
-  });
+  const res = await getNNDB()
+    .transaction()
+    .execute(async (tx) => {
+      const fileInfo = await tx
+        .selectFrom("files")
+        .innerJoin("drafts", "files.draft_id", "drafts.id")
+        .innerJoin("articles", "drafts.article_id", "articles.id")
+        .select(["draft_id", "author_id"])
+        .where("id", "=", fileId)
+        .executeTakeFirst();
+      if (
+        !fileInfo ||
+        fileInfo.author_id !== userId ||
+        fileInfo.draft_id === null
+      ) {
+        return { type: "Forbidden" } as const;
+      }
+      await tx.deleteFrom("files").where("id", "=", fileId).execute();
+      await Files.deleteOneDraftFile({ draftId: fileInfo.draft_id, fileId });
+      return { type: "Ok" } as const;
+    });
   return res.type;
 }

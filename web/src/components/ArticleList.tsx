@@ -116,10 +116,12 @@ export function Item(p: {
   );
 }
 
-export function DraftItem(p: { draft: {
-  id: number;
-  title: string;
-} }) {
+export function DraftItem(p: {
+  draft: {
+    id: number;
+    title: string;
+  };
+}) {
   return (
     <Item
       item={p.draft}

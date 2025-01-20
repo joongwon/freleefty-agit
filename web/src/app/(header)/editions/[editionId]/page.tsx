@@ -8,35 +8,40 @@ import { cache } from "react";
 import { getNNDB } from "@/db";
 
 const getEdition = cache(async (editionId: number) => {
-  return await getNNDB().transaction().execute(async tx => {
-    const edition = await tx.selectFrom("editions")
-      .where("id", "=", editionId)
-      .select("id")
-      .select("article_id")
-      .select("title")
-      .select("content")
-      .select("notes")
-      .select("published_at")
-      .executeTakeFirst();
-    if (!edition) {
-      return null;
-    }
+  return await getNNDB()
+    .transaction()
+    .execute(async (tx) => {
+      const edition = await tx
+        .selectFrom("editions")
+        .where("id", "=", editionId)
+        .select("id")
+        .select("article_id")
+        .select("title")
+        .select("content")
+        .select("notes")
+        .select("published_at")
+        .executeTakeFirst();
+      if (!edition) {
+        return null;
+      }
 
-    const editions = await tx.selectFrom("editions")
-      .where("article_id", "=", edition.article_id)
-      .select("id")
-      .select("title")
-      .select("notes")
-      .execute();
+      const editions = await tx
+        .selectFrom("editions")
+        .where("article_id", "=", edition.article_id)
+        .select("id")
+        .select("title")
+        .select("notes")
+        .execute();
 
-    const files = await tx.selectFrom("files")
-      .where("edition_id", "=", editionId)
-      .select("id")
-      .select("name")
-      .execute();
+      const files = await tx
+        .selectFrom("files")
+        .where("edition_id", "=", editionId)
+        .select("id")
+        .select("name")
+        .execute();
 
-    return { ...edition, editions, files };
-  });
+      return { ...edition, editions, files };
+    });
 });
 
 export default async function Edition(p: { params: { editionId: string } }) {
