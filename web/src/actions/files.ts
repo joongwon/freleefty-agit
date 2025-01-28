@@ -86,7 +86,7 @@ export async function deleteFile(
         .innerJoin("drafts", "files.draft_id", "drafts.id")
         .innerJoin("articles", "drafts.article_id", "articles.id")
         .select(["draft_id", "author_id"])
-        .where("id", "=", fileId)
+        .where("files.id", "=", fileId)
         .executeTakeFirst();
       if (
         !fileInfo ||
