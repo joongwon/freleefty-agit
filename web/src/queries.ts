@@ -30,16 +30,15 @@ export function makeListDraftsQuery<T extends Kysely<DB>>(
     .where("author_id", "=", authorId);
 }
 
-export function makeListUserCommentsQuery<T extends Kysely<DB>>(
+function makeListCommentsQuery<T extends Kysely<DB>>(
   db: T,
   payload: {
-    authorId: UsersId;
     before: PgTimestamp;
     limit: number;
     prevId: CommentsId | null;
   },
 ) {
-  const { authorId, before, limit, prevId } = payload;
+  const { before, limit, prevId } = payload;
   return db
     .selectFrom("comments")
     .innerJoin("articles", "comments.article_id", "articles.id")
@@ -53,9 +52,7 @@ export function makeListUserCommentsQuery<T extends Kysely<DB>>(
     .select("comments.content")
     .select("comments.created_at")
     .select("comments.article_id")
-    .select("article_author.name as article_author_name")
     .select("last_editions.title as article_title")
-    .where("comments.author_id", "=", authorId)
     .where((eb) =>
       eb(
         eb.refTuple("comments.created_at", "comments.id"),
@@ -66,6 +63,38 @@ export function makeListUserCommentsQuery<T extends Kysely<DB>>(
     .orderBy(["comments.created_at desc", "comments.id desc"])
     .limit(limit);
 }
+
+export function makeListUserCommentsQuery<T extends Kysely<DB>>(
+  db: T,
+  payload: {
+    authorId: UsersId;
+    before: PgTimestamp;
+    limit: number;
+    prevId: CommentsId | null;
+  },
+) {
+  return makeListCommentsQuery(db, payload).where(
+    "comments.author_id",
+    "=",
+    payload.authorId,
+  )
+    .select("article_author.name as article_author_name");
+}
+
+export function makeListAllCommentsQuery<T extends Kysely<DB>>(
+  db: T,
+  payload: {
+    before: PgTimestamp;
+    limit: number;
+    prevId: CommentsId | null;
+  },
+) {
+  return makeListCommentsQuery(db, payload)
+    .innerJoin("users as comment_author", "comments.author_id", "comment_author.id")
+    .select("comment_author.name as author_name")
+    .select("comment_author.id as author_id");
+}
+
 
 export function makeListArticlesQuery<T extends Kysely<DB>>(
   db: T,

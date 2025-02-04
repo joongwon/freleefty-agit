@@ -16,3 +16,21 @@ export type FileInfo = {
   id: number;
   name: string;
 };
+
+export type Comment = {
+  id: number;
+  content: string;
+  created_at: string;
+} & ({ author_name: string; author_id: string } | object) &
+    (
+      | {
+          article_title: string;
+          article_id: number;
+        } & (
+          {
+          article_author_name: string;
+          articleAuthorId: string;
+          } | object
+        )
+      | object
+    );

@@ -21,7 +21,6 @@ function Button(p: {
 export default function NavMenu() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <>
       <nav
         className="fixed bottom-0 right-0 m-8 flex flex-col text-xl md:static md:inset-auto md:m-0 md:text-base md:bg-gray-200 md:p-4 md:shadow-lg z-10"
         onClick={(e) => {
@@ -43,6 +42,9 @@ export default function NavMenu() {
           <li>
             <Link href="/articles">모든 일지</Link>
           </li>
+          <li>
+            <Link href="/comments">최근 댓글</Link>
+          </li>
         </ul>
         <Button
           onClick={(e) => {
@@ -56,6 +58,5 @@ export default function NavMenu() {
           {GOTO_TOP}
         </Button>
       </nav>
-    </>
   );
 }

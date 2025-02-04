@@ -3,14 +3,16 @@ import { z } from "zod";
 import { authSchema } from "@/serverAuth";
 import {
   articleIdSchema,
+  Pagination,
+  paginationSchema,
   PaginationWithAuthor,
   paginationWithAuthorSchema,
 } from "@/schemas";
 import { revalidatePath } from "next/cache";
 import { getNNDB } from "@/db";
-import { makeListUserCommentsQuery } from "@/queries";
+import { makeListAllCommentsQuery, makeListUserCommentsQuery } from "@/queries";
 
-export { createComment, deleteComment, listUserComments };
+export { createComment, deleteComment, listUserComments, listAllComments };
 
 const createCommentSchema = z.object({
   article: articleIdSchema,
@@ -78,6 +80,17 @@ async function listUserComments(payload: PaginationWithAuthor<"CommentsId">) {
 
   return await makeListUserCommentsQuery(getNNDB(), {
     authorId,
+    before,
+    limit,
+    prevId,
+  }).execute();
+}
+
+async function listAllComments(payload: Pagination<"CommentsId">) {
+  const { before, limit, prevId } =
+    paginationSchema<"CommentsId">().parse(payload);
+
+  return await makeListAllCommentsQuery(getNNDB(), {
     before,
     limit,
     prevId,

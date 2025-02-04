@@ -2,26 +2,14 @@
 import Time from "@/components/Time";
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
+import { Comment } from "@/types";
 
 export function Container(p: { children: ReactNode }) {
   return <section className="mt-4 mb-8">{p.children}</section>;
 }
 
 export function Item(p: {
-  comment: {
-    id: number;
-    content: string;
-    created_at: string;
-  } & ({ author_name: string; author_id: string } | object) &
-    (
-      | {
-          article_title: string;
-          article_id: number;
-          article_author_name: string;
-          articleAuthorId: string;
-        }
-      | object
-    );
+  comment: Comment;
   after?: ReactNode;
 }) {
   const [hash, setHash] = useState("");
@@ -57,11 +45,16 @@ export function Item(p: {
               >
                 {p.comment.article_title}
               </Link>
-              」 by{" "}
-              <Link href={`/users/${p.comment.articleAuthorId}`}>
-                {p.comment.article_author_name}
-              </Link>
-              {", "}
+              」
+              {"article_author_name" in p.comment && p.comment.article_author_name && (
+                <>
+                  {" by "}
+                  <Link href={`/users/${p.comment.articleAuthorId}`}>
+                    {p.comment.article_author_name}
+                  </Link>
+                </>
+              )}
+                  {", "}
             </>
           )}
           <Time>{p.comment.created_at}</Time>
