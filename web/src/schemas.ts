@@ -29,3 +29,7 @@ export function paginationWithAuthorSchema<T extends string>() {
 export type PaginationWithAuthor<T extends string> = z.input<
   ReturnType<typeof paginationWithAuthorSchema<T>>
 >;
+
+export const categoryIdSchema = z.object({
+  id: z.number().brand<"CategoriesId">(),
+});

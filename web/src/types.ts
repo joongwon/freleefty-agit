@@ -34,3 +34,11 @@ export type Comment = {
         )
       | object
     );
+
+export interface Category {
+  id: number;
+  name: string;
+  is_group: boolean;
+  parent_id: number | null;
+  children: Category[];
+};
