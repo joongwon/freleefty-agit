@@ -17,7 +17,8 @@ export default function Infinite(p: { initialItems: Comment[] }) {
       const prevId = previous?.[previous.length - 1]?.id ?? null;
       return ["comments", { before, prevId, limit: LIMIT }];
     },
-    ([, { before, prevId, limit }]) => listAllComments({ before, limit, prevId }),
+    ([, { before, prevId, limit }]) =>
+      listAllComments({ before, limit, prevId }),
     { fallbackData: [p.initialItems], revalidateOnMount: false },
   );
   const isEnd =
@@ -27,10 +28,7 @@ export default function Infinite(p: { initialItems: Comment[] }) {
     <>
       <CommentList.Container>
         {flatList.map((comment) => (
-          <CommentList.Item
-            key={comment.id}
-            comment={comment}
-          />
+          <CommentList.Item key={comment.id} comment={comment} />
         ))}
       </CommentList.Container>
       <p className="text-center py-4 text-gray-500">

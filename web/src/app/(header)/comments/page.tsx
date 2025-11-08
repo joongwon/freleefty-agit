@@ -1,4 +1,4 @@
-import { makeListAllCommentsQuery, } from "@/queries";
+import { makeListAllCommentsQuery } from "@/queries";
 import { getNNDB } from "@/db";
 import { PgTimestamp } from "@/nndb/utils";
 import Infinite from "./Infinite";

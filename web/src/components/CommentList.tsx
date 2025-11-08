@@ -8,10 +8,7 @@ export function Container(p: { children: ReactNode }) {
   return <section className="mt-4 mb-8">{p.children}</section>;
 }
 
-export function Item(p: {
-  comment: Comment;
-  after?: ReactNode;
-}) {
+export function Item(p: { comment: Comment; after?: ReactNode }) {
   const [hash, setHash] = useState("");
   useEffect(() => {
     setHash(window.location.hash);
@@ -46,15 +43,16 @@ export function Item(p: {
                 {p.comment.article_title}
               </Link>
               」
-              {"article_author_name" in p.comment && p.comment.article_author_name && (
-                <>
-                  {" by "}
-                  <Link href={`/users/${p.comment.articleAuthorId}`}>
-                    {p.comment.article_author_name}
-                  </Link>
-                </>
-              )}
-                  {", "}
+              {"article_author_name" in p.comment &&
+                p.comment.article_author_name && (
+                  <>
+                    {" by "}
+                    <Link href={`/users/${p.comment.articleAuthorId}`}>
+                      {p.comment.article_author_name}
+                    </Link>
+                  </>
+                )}
+              {", "}
             </>
           )}
           <Time>{p.comment.created_at}</Time>

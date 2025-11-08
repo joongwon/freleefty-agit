@@ -23,7 +23,7 @@ export function makeListDraftsQuery<T extends Kysely<DB>>(
           eb
             .selectFrom("last_editions")
             .select("id")
-            .whereRef("article_id", "=", "drafts.id"),
+            .whereRef("article_id", "=", "drafts.article_id"),
         )
         .as("published"),
     )
@@ -73,11 +73,8 @@ export function makeListUserCommentsQuery<T extends Kysely<DB>>(
     prevId: CommentsId | null;
   },
 ) {
-  return makeListCommentsQuery(db, payload).where(
-    "comments.author_id",
-    "=",
-    payload.authorId,
-  )
+  return makeListCommentsQuery(db, payload)
+    .where("comments.author_id", "=", payload.authorId)
     .select("article_author.name as article_author_name");
 }
 
@@ -90,11 +87,14 @@ export function makeListAllCommentsQuery<T extends Kysely<DB>>(
   },
 ) {
   return makeListCommentsQuery(db, payload)
-    .innerJoin("users as comment_author", "comments.author_id", "comment_author.id")
+    .innerJoin(
+      "users as comment_author",
+      "comments.author_id",
+      "comment_author.id",
+    )
     .select("comment_author.name as author_name")
     .select("comment_author.id as author_id");
 }
-
 
 export function makeListArticlesQuery<T extends Kysely<DB>>(
   db: T,

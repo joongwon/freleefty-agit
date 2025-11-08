@@ -243,16 +243,19 @@ export default function EditDraft(p: { params: { draftId: string } }) {
             if (gAuthState.value.type !== "login")
               throw new Error("non-login state found in delete onClick");
             if (delDisabled) {
-              alert("삭제할 수 없습니다");
+              alert("초안을 삭제할 수 없습니다");
               return;
             }
-            if (confirm("삭제하시겠습니까?")) {
+            const message = res.data?.published
+              ? "초안을 삭제하시겠습니까? 이미 발행된 일지는 삭제되지 않습니다."
+              : "초안을 삭제하시겠습니까?";
+            if (confirm(message)) {
               update.reset();
               void del.trigger({ token: gAuthState.value.token });
             }
           }}
         >
-          삭제
+          초안 삭제
         </button>
       </section>
       <section className="flex gap-2 justify-end">
