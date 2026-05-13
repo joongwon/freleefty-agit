@@ -1,6 +1,5 @@
 services:
   next:
-    # image: registry.freleefty.org/joongwon/blog-server:latest
     build:
       context: .
       args:
@@ -8,7 +7,7 @@ services:
         NEXT_PUBLIC_THUMBNAIL_URL: ${NEXT_PUBLIC_THUMBNAIL_URL}
     env_file: .env
     environment:
-      DATABASE_URL: postgres://blog:blog@db/blog
+      DATABASE_URL: postgres://blog:${DB_PASSWORD}@db/blog
       REDIS_URL: redis://redis
       PORT: 3000
       UPLOAD_DIR: /var/uploads
@@ -16,16 +15,19 @@ services:
     ports:
       - ${PORT}:3000
     volumes:
-      - ${UPLOAD_DIR}:/var/uploads
+      - ${UPLOAD_DIR}:/var/uploads:Z
   db:
-    image: postgres:16.0-alpine
+    image: docker.io/library/postgres:16.0-alpine
     environment:
-      POSTGRES_PASSWORD: blog
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: blog
       POSTGRES_DB: blog
     volumes:
-      - ${DB_DATA}:/var/lib/postgresql/data
+      - ${DB_DATA}:/var/lib/postgresql/data:Z
+    ports:
+      - "127.0.0.1:5432:5432"
+    command: ["postgres", "-c", "listen_addresses=*"]
     restart: always
   redis:
-    image: redis:7.2.1-alpine
+    image: docker.io/library/redis:7.2.1-alpine
     restart: always
