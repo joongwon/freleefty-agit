@@ -62,15 +62,16 @@ async function tryLogin(payload: z.infer<typeof tryLoginSchema>) {
     throw new Error("Failed to get profile from Naver");
   }
   const profileData = (await profileRes.json()) as {
-    response: { id: string; nickname?: string };
+    response: { id: string; nickname?: string; email?: string };
   };
   const naverId = profileData.response.id;
   const naverName = profileData.response.nickname ?? "";
+  const naverEmail = profileData.response.email ?? "";
 
   // 네이버 아이디로 사용자가 등록되어 있는지 확인
   const user = await getNNDB()
     .selectFrom("users")
-    .select(["id", "role", "name"])
+    .select(["id", "role", "name", "email"])
     .where("naver_id", "=", naverId)
     .executeTakeFirst();
 
@@ -80,6 +81,17 @@ async function tryLogin(payload: z.infer<typeof tryLoginSchema>) {
     return { type: "register" as const, registerCode, naverName };
   } else {
     // 등록되어 있다면, 로그인 처리
+    // DB에 이메일이 저장되어 있지 않다면, 네이버에서 받아온 이메일로 업데이트
+    if (!user.email && naverEmail) {
+      await getNNDB()
+        .updateTable("users")
+        .set({ email: naverEmail })
+        .where("id", "=", user.id)
+        .execute()
+        .catch(() => {
+          /* 이메일 업데이트 실패해도 로그인은 시켜준다 */
+        });
+    }
     const res = await login(user);
     return { type: "login" as const, ...res };
   }

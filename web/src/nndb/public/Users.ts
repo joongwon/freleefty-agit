@@ -19,6 +19,8 @@ export default interface UsersTable {
   name_updated_at: ColumnType<PgTimestamp, PgTimestamp | undefined, PgTimestamp>;
 
   new_article_notify: ColumnType<boolean, boolean | undefined, boolean>;
+
+  email: ColumnType<string | null, string | null, string | null>;
 }
 
 export type Users = Selectable<UsersTable>;
