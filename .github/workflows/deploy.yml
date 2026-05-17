@@ -22,11 +22,4 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
           script: |
-            set -e
-
-            cd "${{ secrets.DEPLOY_PATH }}"
-
-            git fetch origin main
-            git reset --hard origin/main
-
-            podman-compose up -d --build
+            echo "Deploying application..."

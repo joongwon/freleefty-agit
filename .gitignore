@@ -1,3 +1,4 @@
 .*.swp
 .env
 .run
+/deploy.sh
